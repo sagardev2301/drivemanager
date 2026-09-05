@@ -78,10 +78,10 @@ export default function CustomerDetail() {
     ? (customer.amount_paid / customer.total_fee) * 100
     : 0
 
-  const courseStatusColors: Record<string, string> = {
-    active: 'text-[#005623]',
-    completed: 'text-[#005623]',
-    dropped: 'text-[#ba1a1a]',
+  const courseStatusBadgeClass: Record<string, string> = {
+    active:    'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#e9edff]/50 text-[12px] font-semibold text-[#005623]',
+    completed: 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#e9edff]/50 text-[12px] font-semibold text-[#005623]',
+    dropped:   'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#e9edff]/50 text-[12px] font-semibold text-[#ba1a1a]',
   }
 
   const classStatusBadge = (status: string) => {
@@ -109,7 +109,7 @@ export default function CustomerDetail() {
               <span className="material-symbols-outlined text-[20px]">chevron_left</span>
               <span>Customers</span>
             </button>
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#e9edff]/50 text-[12px] font-semibold ${courseStatusColors[customer.course_status] ?? 'text-[#434654]'}`}>
+            <span className={courseStatusBadgeClass[customer.course_status] ?? 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#e9edff]/50 text-[12px] font-semibold text-[#434654]'}>
               <span className="w-1.5 h-1.5 rounded-full bg-current" />
               {customer.course_status.charAt(0).toUpperCase() + customer.course_status.slice(1)} • Class {customer.classes_completed}/{customer.package_classes}
             </span>
@@ -181,7 +181,7 @@ export default function CustomerDetail() {
                 <div className="w-full bg-[#e1e8fd] h-2 rounded-full overflow-hidden mb-1.5">
                   <div className="bg-[#007130] h-full rounded-full" style={{ width: `${feePct}%` }} />
                 </div>
-                <p className={`text-[11px] font-semibold ${customer.amount_pending > 0 ? 'text-[#1a3f9c]' : 'text-[#005623]'}`}>
+                <p className={customer.amount_pending > 0 ? 'text-[11px] font-semibold text-[#1a3f9c]' : 'text-[11px] font-semibold text-[#005623]'}>
                   {customer.amount_pending > 0 ? `₹${customer.amount_pending.toLocaleString('en-IN')} Pending` : 'Fully Paid'}
                 </p>
               </div>
@@ -219,7 +219,7 @@ export default function CustomerDetail() {
                 {classes.map((cls, i) => (
                   <div key={cls.id} className="flex items-center justify-between p-2.5 rounded-lg bg-[#f1f3ff]">
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${cls.status === 'done' ? 'bg-[#6bff8f]/20 text-[#005623]' : 'bg-[#e9edff] text-[#434654]'}`}>
+                      <div className={cls.status === 'done' ? 'w-8 h-8 rounded-full flex items-center justify-center bg-[#6bff8f]/20 text-[#005623]' : 'w-8 h-8 rounded-full flex items-center justify-center bg-[#e9edff] text-[#434654]'}>
                         <span className="material-symbols-outlined text-[18px]">{cls.status === 'done' ? 'check' : 'schedule'}</span>
                       </div>
                       <div>

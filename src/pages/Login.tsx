@@ -19,48 +19,48 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-surface text-on-surface flex flex-col items-center justify-center px-4 font-sans">
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-[#003fb1] flex items-center justify-center mb-3 shadow-lg">
-            <span className="material-symbols-outlined text-white text-[28px]">directions_car</span>
+          <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mb-3 shadow-lg">
+            <span className="material-symbols-outlined text-on-primary text-[28px]">directions_car</span>
           </div>
-          <h1 className="text-[20px] font-semibold text-[#141b2b] tracking-tight">DriveManager</h1>
-          <p className="text-[13px] text-[#434654] mt-1">Driving School Operations</p>
+          <h1 className="text-headline-md font-semibold text-on-surface tracking-tight">DriveManager</h1>
+          <p className="text-body-sm text-on-surface-variant mt-1">Driving School Operations</p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-[16px] font-semibold text-[#141b2b] mb-1">Sign in</h2>
-          <p className="text-[13px] text-[#434654] mb-6">Enter your instructor credentials</p>
+        <div className="bg-surface-container-lowest rounded-2xl shadow-sm p-6">
+          <h2 className="text-headline-sm font-semibold text-on-surface mb-1">Sign in</h2>
+          <p className="text-body-sm text-on-surface-variant mb-6">Enter your instructor credentials</p>
 
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             <div>
-              <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Email</label>
+              <label className="text-caption-xs text-on-surface-variant block mb-1 uppercase tracking-wider font-semibold">Email</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@drivingschool.com"
-                className="w-full h-11 px-3 rounded-lg bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#003fb1]/20 transition-all placeholder:text-[#737686]"
+                className="w-full h-11 px-3 rounded-lg bg-surface-container-low text-on-surface text-body-base focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-outline-variant/30"
               />
             </div>
             <div>
-              <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Password</label>
+              <label className="text-caption-xs text-on-surface-variant block mb-1 uppercase tracking-wider font-semibold">Password</label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full h-11 px-3 rounded-lg bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#003fb1]/20 transition-all placeholder:text-[#737686]"
+                className="w-full h-11 px-3 rounded-lg bg-surface-container-low text-on-surface text-body-base focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-outline-variant/30"
               />
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 bg-[#ffdad6] text-[#93000a] px-3 py-2 rounded-lg text-[13px]">
+              <div className="flex items-center gap-2 bg-error-container text-on-error-container px-3 py-2 rounded-lg text-body-sm">
                 <span className="material-symbols-outlined text-[16px]">error</span>
                 <span>{error}</span>
               </div>
@@ -69,7 +69,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-[#003fb1] text-white rounded-xl font-semibold text-[14px] flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all disabled:opacity-60"
+              className="w-full h-12 bg-primary hover:bg-primary-container text-on-primary rounded-xl font-semibold text-body-base flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
             >
               {loading ? (
                 <>
@@ -86,11 +86,10 @@ export default function Login() {
           </form>
         </div>
 
-        <p className="text-center text-[11px] text-[#737686] mt-6">
+        <p className="text-center text-caption-xs text-outline mt-6">
           Contact your administrator to get access
         </p>
       </div>
     </div>
   )
 }
-

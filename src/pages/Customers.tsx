@@ -58,9 +58,16 @@ export default function Customers() {
     return <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#ffdad6] text-[#93000a] text-[12px] font-semibold">₹{c.amount_pending.toLocaleString('en-IN')} Pending</span>
   }
 
-  function progressColor(c: CustomerSummary) {
-    if (c.course_status === 'completed') return 'bg-[#005623]'
-    return 'bg-[#003fb1]'
+  const progressBarColor: Record<string, string> = {
+    active: 'bg-[#003fb1]',
+    completed: 'bg-[#005623]',
+    dropped: 'bg-[#ba1a1a]',
+  }
+
+  const progressLabelColor: Record<string, string> = {
+    active: 'text-[#141b2b]',
+    completed: 'text-[#005623]',
+    dropped: 'text-[#ba1a1a]',
   }
 
   const pills: { key: FilterKey; label: string }[] = [
@@ -149,7 +156,7 @@ export default function Customers() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-11 h-11 rounded-full flex items-center justify-center text-[14px] font-semibold shrink-0 ${c.course_status === 'completed' ? 'bg-[#e9edff] text-[#005623]' : 'bg-[#e9edff] text-[#003fb1]'}`}>
+                  <div className={c.course_status === 'completed' ? 'w-11 h-11 rounded-full flex items-center justify-center text-[14px] font-semibold shrink-0 bg-[#e9edff] text-[#005623]' : 'w-11 h-11 rounded-full flex items-center justify-center text-[14px] font-semibold shrink-0 bg-[#e9edff] text-[#003fb1]'}>
                     {getInitials(c.full_name)}
                   </div>
                   <div>
@@ -175,12 +182,12 @@ export default function Customers() {
                     <span className="text-[11px] text-[#434654]">
                       {c.course_status === 'completed' ? 'Course Complete' : 'Training Progress'}
                     </span>
-                    <span className={`text-[14px] font-semibold ${c.course_status === 'completed' ? 'text-[#005623]' : 'text-[#141b2b]'}`}>
+                    <span className={progressLabelColor[c.course_status] ?? 'text-[#141b2b]'} style={{fontSize:'14px', fontWeight:600}}>
                       {c.classes_completed} / {c.package_classes} classes
                     </span>
                   </div>
                   <div className="w-full h-1.5 bg-[#e9edff] rounded-full overflow-hidden">
-                    <div className={`h-full ${progressColor(c)} rounded-full`} style={{ width: `${progress}%` }} />
+                    <div className={progressBarColor[c.course_status] ?? 'bg-[#003fb1]'} style={{ width: `${progress}%`, height: '100%', borderRadius: '9999px' }} />
                   </div>
                 </div>
                 <div className="w-8 h-8 rounded-full bg-[#f1f3ff] flex items-center justify-center text-[#434654] shrink-0">

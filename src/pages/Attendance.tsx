@@ -129,10 +129,10 @@ export default function Attendance() {
         )}
 
         {!loading && classes.map(cls => (
-          <div key={cls.id} className={`flex flex-col bg-white p-4 rounded-2xl shadow-sm ${cls.status === 'done' ? 'opacity-80' : ''}`}>
+          <div key={cls.id} className={cls.status === 'done' ? "flex flex-col bg-white p-4 rounded-2xl shadow-sm opacity-80" : "flex flex-col bg-white p-4 rounded-2xl shadow-sm"}>
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${cls.status === 'done' ? 'bg-[#6bff8f]/30 text-[#005623]' : 'bg-[#e9edff] text-[#434654]'}`}>
+                <div className={cls.status === 'done' ? "w-8 h-8 rounded-full flex items-center justify-center bg-[#6bff8f]/30 text-[#005623]" : "w-8 h-8 rounded-full flex items-center justify-center bg-[#e9edff] text-[#434654]"}>
                   {cls.status === 'done' ? (
                     <span className="material-symbols-outlined text-[18px]">check</span>
                   ) : (

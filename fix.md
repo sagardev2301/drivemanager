@@ -1,30 +1,29 @@
-# FIX PROMPT — Styling/Tailwind CSS is not being applied at all
+Diagnosis: the Tailwind base/reset layer is loading correctly (background color and margin resets from `index.css` are visible), but utility classes (`bg-primary`, `rounded-xl`, `p-4`, `shadow`, etc.) are not being generated at all — buttons and inputs render as plain unstyled browser defaults. This means Tailwind's content scanner isn't finding the utility classes used in the actual component code. Please check and fix both of the following:
 
-The app is rendering with zero styling — plain unstyled HTML text, no colors, no spacing, no component styling at all (see attached screenshot of the login page). This means Tailwind CSS either isn't configured correctly or isn't being loaded by the app. Please diagnose and fix by checking, in order:
+**1. Confirm the `content` glob in `tailwind.config.js` actually matches where component files live.**
+Current config scans: `"./index.html"` and `"./src/**/*.{js,ts,jsx,tsx}"`. Run a listing of the actual project structure and confirm every page/component file (Login, Dashboard, Attendance Log, Enrolled Customers, Customer Detail) is genuinely inside `src/` with one of those extensions. If any live outside `src/` (e.g. in a root-level `app/`, `pages/`, or `components/` folder, or use an extension not listed like `.mtsx`), either move them into `src/` or update the `content` array to include their actual path.
 
-**1. Is the CSS file actually imported?**
-- Confirm there's a global CSS file (e.g. `src/index.css` or `src/App.css`) containing the three Tailwind directives:
-  ```css
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
-  ```
-- Confirm that CSS file is imported in the app's entry point (`src/main.tsx` or `src/main.jsx`) — e.g. `import './index.css'`. If this import is missing or points to the wrong file, that alone would cause exactly this symptom.
+**2. Check for dynamically-constructed Tailwind class names and replace them with static literals.**
+Search the codebase for any className built via template strings or concatenation, e.g.:
+```jsx
+// BAD — Tailwind's scanner can't see this at build time
+className={`bg-${statusColor}-500`}
+className={"text-" + variant}
+```
+Given how much of this app depends on status-driven coloring (payment status: paid/partial/unpaid, course status: active/completed/dropped, class status: done/not_completed/cancelled), this is the most likely place dynamic class construction crept in. Replace every instance with a lookup object mapping each status to a complete, static class string, e.g.:
+```jsx
+const paymentStatusClasses = {
+  paid: "bg-tertiary text-on-tertiary",
+  partial: "bg-tertiary-container text-on-tertiary-container",
+  unpaid: "bg-error text-on-error",
+};
+// usage: className={paymentStatusClasses[status]}
+```
+This is required — Tailwind's JIT compiler only works with complete, literal class strings it can find via static text search across the project. Audit every status/variant-driven style in Dashboard, Attendance Log, Enrolled Customers, and Customer Detail for this pattern.
 
-**2. Is Tailwind actually installed and configured?**
-- Confirm `tailwindcss`, `postcss`, and `autoprefixer` are in `package.json` dependencies (not just referenced in code).
-- Confirm `tailwind.config.js` (or `.ts`) exists at the project root and its `content` array correctly points to where the component files actually live, e.g.:
-  ```js
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"]
-  ```
-  If this path doesn't match the real folder structure, Tailwind generates an empty stylesheet with no utility classes in it — this is the single most common cause of exactly this bug.
-- Confirm `postcss.config.js` exists and includes `tailwindcss` and `autoprefixer` as plugins.
+**3. After fixing both, do a clean rebuild:**
+- Delete the Vite cache: `rm -rf node_modules/.vite`
+- Restart the dev server fully (stop and start, not hot-reload).
+- Confirm in the browser dev tools' Network tab that the compiled CSS file now contains rules for classes like `.bg-primary` — if it still doesn't, list out the exact classNames used in the Login screen component so we can check them directly.
 
-**3. Is the dev server actually serving the compiled CSS?**
-- Do a hard refresh / clear cache, since a stale dev server cache can also cause this.
-- Restart the dev server after confirming the above — Tailwind config changes usually require a restart, not just a hot reload.
-
-**4. Sanity check:**
-- After fixing, verify by adding a simple bold color test (e.g. a div with `className="bg-red-500 text-white p-4"`) temporarily to confirm Tailwind classes are actually being applied, then remove the test once confirmed.
-
-Once fixed, re-render the login screen and confirm it matches the Stitch design fetched earlier — colors, spacing, input styling, and the button should all be visually styled, not plain browser-default text and inputs.
+---
