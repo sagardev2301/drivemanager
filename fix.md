@@ -1,29 +1,17 @@
-Diagnosis: the Tailwind base/reset layer is loading correctly (background color and margin resets from `index.css` are visible), but utility classes (`bg-primary`, `rounded-xl`, `p-4`, `shadow`, etc.) are not being generated at all — buttons and inputs render as plain unstyled browser defaults. This means Tailwind's content scanner isn't finding the utility classes used in the actual component code. Please check and fix both of the following:
 
-**1. Confirm the `content` glob in `tailwind.config.js` actually matches where component files live.**
-Current config scans: `"./index.html"` and `"./src/**/*.{js,ts,jsx,tsx}"`. Run a listing of the actual project structure and confirm every page/component file (Login, Dashboard, Attendance Log, Enrolled Customers, Customer Detail) is genuinely inside `src/` with one of those extensions. If any live outside `src/` (e.g. in a root-level `app/`, `pages/`, or `components/` folder, or use an extension not listed like `.mtsx`), either move them into `src/` or update the `content` array to include their actual path.
+On mobile, the "Enroll New Customer" modal (and likely "Log a Class" too, since it's probably the same modal pattern) has its primary Save/Continue button hidden underneath the fixed bottom navigation bar — the button is there, but visually obscured/unreachable because the bottom nav renders on top of it or the modal doesn't leave enough space above the nav.
 
-**2. Check for dynamically-constructed Tailwind class names and replace them with static literals.**
-Search the codebase for any className built via template strings or concatenation, e.g.:
-```jsx
-// BAD — Tailwind's scanner can't see this at build time
-className={`bg-${statusColor}-500`}
-className={"text-" + variant}
-```
-Given how much of this app depends on status-driven coloring (payment status: paid/partial/unpaid, course status: active/completed/dropped, class status: done/not_completed/cancelled), this is the most likely place dynamic class construction crept in. Replace every instance with a lookup object mapping each status to a complete, static class string, e.g.:
-```jsx
-const paymentStatusClasses = {
-  paid: "bg-tertiary text-on-tertiary",
-  partial: "bg-tertiary-container text-on-tertiary-container",
-  unpaid: "bg-error text-on-error",
-};
-// usage: className={paymentStatusClasses[status]}
-```
-This is required — Tailwind's JIT compiler only works with complete, literal class strings it can find via static text search across the project. Audit every status/variant-driven style in Dashboard, Attendance Log, Enrolled Customers, and Customer Detail for this pattern.
+Please fix this by checking both of the following:
 
-**3. After fixing both, do a clean rebuild:**
-- Delete the Vite cache: `rm -rf node_modules/.vite`
-- Restart the dev server fully (stop and start, not hot-reload).
-- Confirm in the browser dev tools' Network tab that the compiled CSS file now contains rules for classes like `.bg-primary` — if it still doesn't, list out the exact classNames used in the Login screen component so we can check them directly.
+**1. Z-index stacking — the modal should always render above the bottom nav.**
+- Check the bottom nav bar's z-index (e.g. `z-40`) and the modal overlay's z-index. The modal container (the fixed overlay wrapping the whole "Enroll New Customer" sheet) must have a **higher** z-index than the bottom nav — e.g. bottom nav at `z-40`, modal overlay at `z-50` or higher.
+- The cleanest fix: when any modal is open, the bottom nav should not be visible at all underneath it — the modal should be a full-screen overlay (`fixed inset-0`) that completely covers the nav, not a partial-height sheet that shares screen space with it.
 
----
+**2. Bottom padding/safe area — ensure the button isn't clipped even if the modal's content scrolls.**
+- The modal's action button area (Save/Continue) should have bottom padding of at least the bottom nav's height plus normal spacing, e.g. using the `bottom-nav-height` value already defined in `tailwind.config.js` (`4rem`): add `pb-[calc(4rem+1rem)]` (or reference the theme value) to the modal's button container, OR simpler — since the modal fully overlays the nav per fix #1, just ensure normal safe-area bottom padding (`pb-6` or `pb-[env(safe-area-inset-bottom)]`) so the button isn't flush against the very edge of the screen on devices with home-indicator bars.
+- If the modal's form content can be long (scrollable), make sure the button is either sticky at the bottom of the modal (not scrolled away) or the scroll container has enough bottom padding that scrolling reveals the button fully above the screen edge.
+
+**Apply this fix to every modal in the app that has this same bottom-nav layout** (Enroll New Customer, Log a Class/Add Unscheduled Class, Record Payment on Customer Detail, and any others) — this is a shared layout bug, not a one-off in a single component, so check the shared Modal wrapper component if there is one and fix it there rather than patching each modal individually.
+
+After fixing, verify on a real mobile-width viewport (not just resizing a desktop browser window) that the Save button is fully visible and tappable without the bottom nav overlapping it.
+

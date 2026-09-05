@@ -128,51 +128,60 @@ export default function Attendance() {
           </div>
         )}
 
-        {!loading && classes.map(cls => (
-          <div key={cls.id} className={cls.status === 'done' ? "flex flex-col bg-white p-4 rounded-2xl shadow-sm opacity-80" : "flex flex-col bg-white p-4 rounded-2xl shadow-sm"}>
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className={cls.status === 'done' ? "w-8 h-8 rounded-full flex items-center justify-center bg-[#6bff8f]/30 text-[#005623]" : "w-8 h-8 rounded-full flex items-center justify-center bg-[#e9edff] text-[#434654]"}>
-                  {cls.status === 'done' ? (
-                    <span className="material-symbols-outlined text-[18px]">check</span>
-                  ) : (
-                    <span className="material-symbols-outlined text-[18px]">schedule</span>
-                  )}
-                </div>
-                <div>
-                  <span className="text-[11px] text-[#434654]">
-                    {cls.start_time ? `${formatTime(cls.start_time)} – ${formatTime(cls.end_time)}` : 'Time TBD'}
-                  </span>
-                  <h3 className="text-[16px] font-semibold text-[#141b2b]">{cls.full_name}</h3>
-                </div>
-              </div>
-              {statusBadge(cls.status)}
-            </div>
+        {!loading && classes.map(cls => {
+          const isDone = cls.status === 'done'
+          const isSaving = markingDone === cls.id
+          const cardClass = isDone
+            ? "flex flex-col bg-white p-4 rounded-2xl shadow-sm opacity-80"
+            : "flex flex-col bg-white p-4 rounded-2xl shadow-sm"
+          const avatarClass = isDone
+            ? "w-8 h-8 rounded-full flex items-center justify-center bg-[#6bff8f]/30 text-[#005623]"
+            : "w-8 h-8 rounded-full flex items-center justify-center bg-[#e9edff] text-[#434654]"
+          const avatarIcon = isDone ? 'check' : 'schedule'
+          const buttonIconClass = isSaving
+            ? "material-symbols-outlined text-[18px] animate-spin"
+            : "material-symbols-outlined text-[18px]"
+          const buttonIcon = isSaving ? 'refresh' : 'check_circle'
+          const buttonLabel = isSaving ? 'Saving...' : 'Mark Done'
 
-            <div className="flex items-center justify-between mt-1 mb-2 text-[11px] text-[#434654]">
-              <span>Class {cls.classes_completed + (cls.status !== 'done' ? 1 : 0)} of {cls.package_classes}</span>
-              {cls.amount_pending > 0 ? (
-                <span className="text-[#ba1a1a] font-semibold">₹{cls.amount_pending.toLocaleString('en-IN')} Pending</span>
-              ) : (
-                <span className="text-[#005623] font-semibold">Fully Paid</span>
+          return (
+            <div key={cls.id} className={cardClass}>
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className={avatarClass}>
+                    <span className="material-symbols-outlined text-[18px]">{avatarIcon}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-[#434654]">
+                      {cls.start_time ? `${formatTime(cls.start_time)} – ${formatTime(cls.end_time)}` : 'Time TBD'}
+                    </span>
+                    <h3 className="text-[16px] font-semibold text-[#141b2b]">{cls.full_name}</h3>
+                  </div>
+                </div>
+                {statusBadge(cls.status)}
+              </div>
+
+              <div className="flex items-center justify-between mt-1 mb-2 text-[11px] text-[#434654]">
+                <span>Class {cls.classes_completed + (cls.status !== 'done' ? 1 : 0)} of {cls.package_classes}</span>
+                {cls.amount_pending > 0 ? (
+                  <span className="text-[#ba1a1a] font-semibold">₹{cls.amount_pending.toLocaleString('en-IN')} Pending</span>
+                ) : (
+                  <span className="text-[#005623] font-semibold">Fully Paid</span>
+                )}
+              </div>
+
+              {cls.status === 'scheduled' && (
+                <button
+                  onClick={() => markDone(cls.id)}
+                  disabled={isSaving}
+                  className="w-full h-11 mt-1 flex items-center justify-center gap-2 rounded-lg bg-[#f1f3ff] hover:bg-[#e9edff] text-[#141b2b] text-[14px] font-semibold transition-all active:scale-[0.99] disabled:opacity-60"
+                >
+                  <span className={buttonIconClass}>{buttonIcon}</span>{buttonLabel}
+                </button>
               )}
             </div>
-
-            {cls.status === 'scheduled' && (
-              <button
-                onClick={() => markDone(cls.id)}
-                disabled={markingDone === cls.id}
-                className="w-full h-11 mt-1 flex items-center justify-center gap-2 rounded-lg bg-[#f1f3ff] hover:bg-[#e9edff] text-[#141b2b] text-[14px] font-semibold transition-all active:scale-[0.99] disabled:opacity-60"
-              >
-                {markingDone === cls.id ? (
-                  <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
-                ) : (
-                  <><span className="material-symbols-outlined text-[18px]">check_circle</span>Mark Done</>
-                )}
-              </button>
-            )}
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Add Unscheduled Class */}

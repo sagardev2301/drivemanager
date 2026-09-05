@@ -2,7 +2,7 @@ import { Outlet, NavLink } from 'react-router-dom'
 
 function BottomNav() {
   return (
-    <nav className="fixed bottom-0 w-full z-50 bg-[#f9f9ff]/90 backdrop-blur-xl shadow-[0_-1px_12px_rgba(0,0,0,0.04)]"
+    <nav className="fixed bottom-0 w-full z-40 bg-[#f9f9ff]/90 backdrop-blur-xl shadow-[0_-1px_12px_rgba(0,0,0,0.04)]"
          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="flex justify-around items-center h-16 px-2 max-w-lg mx-auto">
         <NavLink
@@ -53,7 +53,7 @@ interface LayoutProps {
 export function Header({ title, showBack, onBack }: LayoutProps) {
   return (
     <header
-      className="fixed top-0 w-full z-50 bg-[#f9f9ff]/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"
+      className="fixed top-0 w-full z-40 bg-[#f9f9ff]/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
       <div className="h-14 px-4 flex items-center justify-between">
