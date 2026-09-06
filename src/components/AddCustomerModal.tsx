@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { toLocalDateString } from '../lib/dateUtils'
 
 interface Props {
   onClose: () => void
@@ -13,6 +14,7 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
     package_classes: '10',
     total_fee: '',
     enrollment_date: new Date().toISOString().split('T')[0],
+    enrollment_date: toLocalDateString(new Date()),
     course_status: 'active' as const,
   })
   const [saving, setSaving] = useState(false)
@@ -40,6 +42,24 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
     })
     if (err) {
       setError(err.message)
+    try {
+      const { error: err } = await supabase.from('customers').insert({
+        full_name: form.full_name.trim(),
+        phone_number: form.phone_number.trim(),
+        package_classes: parseInt(form.package_classes) || 10,
+        total_fee: parseFloat(form.total_fee),
+        enrollment_date: form.enrollment_date,
+        course_status: form.course_status,
+      })
+      if (err) {
+        setError('Something went wrong saving this. Please try again.')
+        setSaving(false)
+        return
+      }
+      onSaved()
+      onClose()
+    } catch {
+      setError('Something went wrong saving this. Please try again.')
       setSaving(false)
       return
     }

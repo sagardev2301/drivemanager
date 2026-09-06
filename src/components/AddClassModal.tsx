@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Customer } from '../lib/supabase'
+import { toLocalDateString } from '../lib/dateUtils'
 
 interface Props {
   onClose: () => void
@@ -14,6 +15,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
   const [form, setForm] = useState({
     customer_id: defaultCustomerId ?? '',
     class_date: defaultDate ?? new Date().toISOString().split('T')[0],
+    class_date: defaultDate ?? toLocalDateString(new Date()),
     start_time: '08:00',
     end_time: '08:50',
     notes: '',
@@ -21,6 +23,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     supabase
@@ -33,12 +36,35 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
 
   function set(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
+    if (errors[field]) {
+      setErrors(prev => {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      })
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     if (!form.customer_id) { setError('Please select a customer'); return }
+    const newErrors: Record<string, string> = {}
+    if (!form.customer_id.trim()) {
+      newErrors.customer_id = 'Please select a customer'
+    }
+    if (!form.class_date.trim()) {
+      newErrors.class_date = 'Date is required'
+    }
+    if (!form.start_time.trim()) {
+      newErrors.start_time = 'Start time is required'
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+    setErrors({})
 
     setSaving(true)
     const { error: err } = await supabase.from('classes').insert({
@@ -51,6 +77,28 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
     })
     if (err) {
       setError(err.message)
+    try {
+      const { error: err } = await supabase.from('classes').insert({
+        customer_id: form.customer_id,
+        class_date: form.class_date,
+        start_time: form.start_time || null,
+        end_time: form.end_time || null,
+        notes: form.notes || null,
+        status: form.status,
+      })
+      if (err) {
+        if (err.message?.includes('payment_exceeds_fee')) {
+          setError('This payment would exceed the remaining balance for this customer.')
+        } else {
+          setError('Something went wrong saving this. Please try again.')
+        }
+        setSaving(false)
+        return
+      }
+      onSaved()
+      onClose()
+    } catch {
+      setError('Something went wrong saving this. Please try again.')
       setSaving(false)
       return
     }
@@ -81,12 +129,16 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
                 value={form.customer_id}
                 onChange={e => set('customer_id', e.target.value)}
                 className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all"
+                className={`w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all ${errors.customer_id ? 'border border-[#ba1a1a]' : ''}`}
               >
                 <option value="">Select customer...</option>
                 {customers.map(c => (
                   <option key={c.id} value={c.id}>{c.full_name}</option>
                 ))}
               </select>
+              {errors.customer_id && (
+                <p className="text-[12px] text-[#ba1a1a] mt-1">{errors.customer_id}</p>
+              )}
             </div>
           )}
           <div>
@@ -97,17 +149,26 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
               value={form.class_date}
               onChange={e => set('class_date', e.target.value)}
               className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all"
+              className={`w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all ${errors.class_date ? 'border border-[#ba1a1a]' : ''}`}
             />
+            {errors.class_date && (
+              <p className="text-[12px] text-[#ba1a1a] mt-1">{errors.class_date}</p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Start Time</label>
+              <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Start Time *</label>
               <input
                 type="time"
                 value={form.start_time}
                 onChange={e => set('start_time', e.target.value)}
                 className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all"
+                className={`w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all ${errors.start_time ? 'border border-[#ba1a1a]' : ''}`}
               />
+              {errors.start_time && (
+                <p className="text-[12px] text-[#ba1a1a] mt-1">{errors.start_time}</p>
+              )}
             </div>
             <div>
               <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">End Time</label>

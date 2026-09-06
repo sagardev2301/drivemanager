@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import type { CustomerSummary, Class } from '../lib/supabase'
 import AddCustomerModal from '../components/AddCustomerModal'
 import AddClassModal from '../components/AddClassModal'
+import { toLocalDateString } from '../lib/dateUtils'
 
 function getInitials(name: string) {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -34,6 +35,7 @@ export default function Dashboard() {
   const [markingDone, setMarkingDone] = useState<string | null>(null)
 
   const today = new Date().toISOString().split('T')[0]
+  const today = toLocalDateString(new Date())
   const todayDisplay = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })
 
   async function fetchData() {

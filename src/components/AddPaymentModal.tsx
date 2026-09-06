@@ -29,6 +29,10 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
     setError('')
     const amt = parseFloat(amount)
     if (isNaN(amt) || amt <= 0) { setError('Enter a valid amount'); return }
+    if (amountPending > 0 && amt > amountPending) {
+      setError(`Amount exceeds the remaining balance of ₹${amountPending.toLocaleString('en-IN')}`)
+      return
+    }
 
     setSaving(true)
     const { error: err } = await supabase.from('payments').insert({
@@ -38,6 +42,25 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
     })
     if (err) {
       setError(err.message)
+    try {
+      const { error: err } = await supabase.from('payments').insert({
+        customer_id: customerId,
+        amount: amt,
+        payment_mode: mode,
+      })
+      if (err) {
+        if (err.message?.includes('payment_exceeds_fee')) {
+          setError('This payment would exceed the remaining balance for this customer.')
+        } else {
+          setError('Something went wrong saving this. Please try again.')
+        }
+        setSaving(false)
+        return
+      }
+      onSaved()
+      onClose()
+    } catch {
+      setError('Something went wrong saving this. Please try again.')
       setSaving(false)
       return
     }
@@ -76,8 +99,13 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
               type="number"
               required
               min="1"
+              max={amountPending > 0 ? amountPending : undefined}
               value={amount}
               onChange={e => setAmount(e.target.value)}
+              onChange={e => {
+                setAmount(e.target.value)
+                setError('')
+              }}
               placeholder="0"
               className="w-full h-12 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[20px] font-bold focus:outline-none focus:bg-white transition-all placeholder:text-[#737686] placeholder:font-normal placeholder:text-[14px]"
             />

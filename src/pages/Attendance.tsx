@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Class } from '../lib/supabase'
 import AddClassModal from '../components/AddClassModal'
+import { toLocalDateString } from '../lib/dateUtils'
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr + 'T00:00:00')
@@ -26,10 +27,13 @@ type EnrichedClass = Class & { full_name: string; package_classes: number; class
 
 export default function Attendance() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [selectedDate, setSelectedDate] = useState(toLocalDateString(new Date()))
   const [classes, setClasses] = useState<EnrichedClass[]>([])
   const [loading, setLoading] = useState(true)
   const [markingDone, setMarkingDone] = useState<string | null>(null)
   const [showAddClass, setShowAddClass] = useState(false)
+  const [copying, setCopying] = useState(false)
+  const [copyMessage, setCopyMessage] = useState<string | null>(null)
 
   async function fetchClasses(date: string) {
     setLoading(true)
@@ -53,11 +57,60 @@ export default function Attendance() {
   }
 
   useEffect(() => { fetchClasses(selectedDate) }, [selectedDate])
+  useEffect(() => {
+    fetchClasses(selectedDate)
+    setCopyMessage(null)
+  }, [selectedDate])
 
   function changeDate(delta: number) {
     const d = new Date(selectedDate + 'T00:00:00')
     d.setDate(d.getDate() + delta)
     setSelectedDate(d.toISOString().split('T')[0])
+    setSelectedDate(toLocalDateString(d))
+  }
+
+  async function copyPreviousDaySchedule() {
+    setCopying(true)
+    setCopyMessage(null)
+    try {
+      const prevDateObj = new Date(selectedDate + 'T00:00:00')
+      prevDateObj.setDate(prevDateObj.getDate() - 1)
+      const prevDate = toLocalDateString(prevDateObj)
+
+      const { data: prevClasses, error: fetchErr } = await supabase
+        .from('classes')
+        .select('customer_id, start_time, end_time')
+        .eq('class_date', prevDate)
+        .order('start_time', { ascending: true })
+
+      if (fetchErr) throw fetchErr
+
+      if (!prevClasses || prevClasses.length === 0) {
+        setCopyMessage("No classes found on previous day to copy.")
+        setCopying(false)
+        return
+      }
+
+      const rowsToInsert = prevClasses.map(c => ({
+        customer_id: c.customer_id,
+        class_date: selectedDate,
+        start_time: c.start_time,
+        end_time: c.end_time,
+        status: 'scheduled',
+      }))
+
+      const { error: insertErr } = await supabase
+        .from('classes')
+        .insert(rowsToInsert)
+
+      if (insertErr) throw insertErr
+
+      await fetchClasses(selectedDate)
+    } catch {
+      setCopyMessage('Something went wrong copying the schedule. Please try again.')
+    } finally {
+      setCopying(false)
+    }
   }
 
   async function markDone(classId: string) {
@@ -65,6 +118,12 @@ export default function Attendance() {
     await supabase.from('classes').update({ status: 'done' }).eq('id', classId)
     await fetchClasses(selectedDate)
     setMarkingDone(null)
+    try {
+      await supabase.from('classes').update({ status: 'done' }).eq('id', classId)
+      await fetchClasses(selectedDate)
+    } finally {
+      setMarkingDone(null)
+    }
   }
 
   const doneCount = classes.filter(c => c.status === 'done').length
@@ -186,6 +245,18 @@ export default function Attendance() {
 
       {/* Add Unscheduled Class */}
       <div className="mt-6 flex justify-center">
+      {/* Action Buttons */}
+      <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+        {!loading && classes.length === 0 && (
+          <button
+            onClick={copyPreviousDaySchedule}
+            disabled={copying}
+            className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-[#e9edff] hover:bg-[#dbe1ff] text-[#003fb1] text-[14px] font-semibold shadow-sm active:scale-95 transition-all disabled:opacity-60"
+          >
+            <span className="material-symbols-outlined text-[20px]">{copying ? 'refresh' : 'content_copy'}</span>
+            <span>{copying ? 'Copying Schedule...' : "Copy Yesterday's Schedule"}</span>
+          </button>
+        )}
         <button
           onClick={() => setShowAddClass(true)}
           className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-[#e1e8fd] text-[#141b2b] text-[14px] font-semibold shadow-sm active:scale-95 transition-all"
@@ -194,6 +265,12 @@ export default function Attendance() {
           <span>Add Unscheduled Class</span>
         </button>
       </div>
+
+      {copyMessage && (
+        <div className="mt-3 p-3 rounded-xl bg-[#ffdad6] text-[#93000a] text-[13px] text-center">
+          {copyMessage}
+        </div>
+      )}
 
       {showAddClass && (
         <AddClassModal
