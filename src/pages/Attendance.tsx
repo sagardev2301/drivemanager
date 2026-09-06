@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import type { Class } from '../lib/supabase'
 import AddClassModal from '../components/AddClassModal'
-import { toLocalDateString } from '../lib/dateUtils'
+import { toLocalDateString, canMarkClassDone } from '../lib/dateUtils'
 import { invalidateCustomerCache } from '../lib/customerCache'
 
 function formatDate(dateStr: string) {
@@ -254,29 +254,43 @@ export default function Attendance() {
                 )}
               </div>
 
-              {cls.status === 'scheduled' && dateContext !== 'past' && (
-                <div className="flex items-center gap-2 mt-1">
-                  {dateContext === 'today' && (
+              {cls.status === 'scheduled' && dateContext !== 'past' && (() => {
+                const canMark = canMarkClassDone(cls.start_time)
+                return (
+                  <div className="flex items-center gap-2 mt-1">
+                    {dateContext === 'today' && (
+                      canMark ? (
+                        <button
+                          onClick={() => markDone(cls.id)}
+                          disabled={isSaving}
+                          className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl bg-[#f1f3ff] hover:bg-[#e9edff] text-[#141b2b] text-[14px] font-semibold transition-all active:scale-[0.99] disabled:opacity-60"
+                        >
+                          <span className={buttonIconClass}>{buttonIcon}</span>{buttonLabel}
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          className="flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl bg-[#f1f3ff] text-[#737686] text-[13px] font-medium opacity-70 cursor-not-allowed"
+                          title={`Cannot mark done before scheduled time (${cls.start_time ? formatTime(cls.start_time) : ''})`}
+                        >
+                          <span className="material-symbols-outlined text-[18px]">lock_clock</span>
+                          <span>Starts at {cls.start_time ? formatTime(cls.start_time) : 'TBD'}</span>
+                        </button>
+                      )
+                    )}
                     <button
-                      onClick={() => markDone(cls.id)}
-                      disabled={isSaving}
-                      className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl bg-[#f1f3ff] hover:bg-[#e9edff] text-[#141b2b] text-[14px] font-semibold transition-all active:scale-[0.99] disabled:opacity-60"
+                      onClick={() => setClassToDelete(cls)}
+                      disabled={isSaving || deletingId === cls.id}
+                      className={`${dateContext === 'today' ? 'w-11 h-11' : 'w-full h-11'} flex items-center justify-center gap-1.5 rounded-xl bg-[#ffdad6]/50 hover:bg-[#ffdad6] text-[#ba1a1a] text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0`}
+                      title="Delete scheduled class"
+                      aria-label="Delete scheduled class"
                     >
-                      <span className={buttonIconClass}>{buttonIcon}</span>{buttonLabel}
+                      <span className="material-symbols-outlined text-[20px]">delete</span>
+                      {dateContext !== 'today' && <span>Delete Class</span>}
                     </button>
-                  )}
-                  <button
-                    onClick={() => setClassToDelete(cls)}
-                    disabled={isSaving || deletingId === cls.id}
-                    className={`${dateContext === 'today' ? 'w-11 h-11' : 'w-full h-11'} flex items-center justify-center gap-1.5 rounded-xl bg-[#ffdad6]/50 hover:bg-[#ffdad6] text-[#ba1a1a] text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0`}
-                    title="Delete scheduled class"
-                    aria-label="Delete scheduled class"
-                  >
-                    <span className="material-symbols-outlined text-[20px]">delete</span>
-                    {dateContext !== 'today' && <span>Delete Class</span>}
-                  </button>
-                </div>
-              )}
+                  </div>
+                )
+              })()}
             </div>
           )
         })}
