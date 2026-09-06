@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { toLocalDateString } from '../lib/dateUtils'
+import { invalidateCustomerCache } from '../lib/customerCache'
 
 interface Props {
   onClose: () => void
@@ -47,6 +49,7 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
         setSaving(false)
         return
       }
+      invalidateCustomerCache()
       onSaved()
       onClose()
     } catch {
@@ -56,8 +59,8 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div
         className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl p-6 pb-8 max-h-[90dvh] overflow-y-auto"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
@@ -162,7 +165,8 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import type { Class } from '../lib/supabase'
 import AddClassModal from '../components/AddClassModal'
 import { toLocalDateString } from '../lib/dateUtils'
+import { invalidateCustomerCache } from '../lib/customerCache'
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr + 'T00:00:00')
@@ -111,6 +112,7 @@ export default function Attendance() {
 
       if (insertErr) throw insertErr
 
+      invalidateCustomerCache()
       await fetchClasses(selectedDate)
     } catch {
       setCopyMessage('Something went wrong copying the schedule. Please try again.')
@@ -123,6 +125,7 @@ export default function Attendance() {
     setMarkingDone(classId)
     try {
       await supabase.from('classes').update({ status: 'done' }).eq('id', classId)
+      invalidateCustomerCache()
       await fetchClasses(selectedDate)
     } finally {
       setMarkingDone(null)

@@ -5,6 +5,7 @@ import type { CustomerSummary, Class } from '../lib/supabase'
 import AddCustomerModal from '../components/AddCustomerModal'
 import AddClassModal from '../components/AddClassModal'
 import { toLocalDateString } from '../lib/dateUtils'
+import { invalidateCustomerCache } from '../lib/customerCache'
 
 function getInitials(name: string) {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -76,6 +77,7 @@ export default function Dashboard() {
   async function markDone(classId: string) {
     setMarkingDone(classId)
     await supabase.from('classes').update({ status: 'done' }).eq('id', classId)
+    invalidateCustomerCache()
     await fetchData()
     setMarkingDone(null)
   }

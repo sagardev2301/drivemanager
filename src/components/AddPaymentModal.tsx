@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import type { PaymentMode } from '../lib/supabase'
 
@@ -59,8 +60,8 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div
         className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl p-6 max-h-[90dvh] overflow-y-auto"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
@@ -139,7 +140,8 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

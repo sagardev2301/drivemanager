@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
-import type { Customer } from '../lib/supabase'
 import { toLocalDateString } from '../lib/dateUtils'
+import { getActiveCustomers, invalidateCustomerCache } from '../lib/customerCache'
+import type { ActiveCustomerOption } from '../lib/customerCache'
 
 interface Props {
   onClose: () => void
@@ -12,7 +14,7 @@ interface Props {
 }
 
 export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCustomerId, mode = 'log' }: Props) {
-  const [customers, setCustomers] = useState<Customer[]>([])
+  const [customers, setCustomers] = useState<ActiveCustomerOption[]>([])
   const [form, setForm] = useState({
     customer_id: defaultCustomerId ?? '',
     class_date: defaultDate ?? toLocalDateString(new Date()),
@@ -26,13 +28,9 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    supabase
-      .from('customers')
-      .select('id, full_name, customer_code')
-      .eq('course_status', 'active')
-      .order('full_name')
-      .then(({ data }) => { if (data) setCustomers(data as unknown as Customer[]) })
-  }, [])
+    if (defaultCustomerId) return
+    getActiveCustomers().then(setCustomers)
+  }, [defaultCustomerId])
 
   function set(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -84,6 +82,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
         setSaving(false)
         return
       }
+      invalidateCustomerCache()
       onSaved()
       onClose()
     } catch {
@@ -93,8 +92,8 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div
         className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl p-6 max-h-[90dvh] overflow-y-auto"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
@@ -118,7 +117,9 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
               >
                 <option value="">Select customer...</option>
                 {customers.map(c => (
-                  <option key={c.id} value={c.id}>{c.full_name}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.full_name}{c.phone_number ? ` (${c.phone_number})` : ''}
+                  </option>
                 ))}
               </select>
               {errors.customer_id && (
@@ -211,7 +212,8 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
