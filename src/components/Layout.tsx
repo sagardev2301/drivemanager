@@ -1,5 +1,4 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
 
 function BottomNav() {
   return (
@@ -84,32 +83,9 @@ export function Header({ title, showBack, onBack }: LayoutProps) {
 }
 
 export function Layout({ title }: { title: string }) {
-const PAGE_TITLES: Record<string, string> = {
-  '/': 'Dashboard',
-  '/attendance': 'Attendance',
-  '/customers': 'Customers',
-}
-
-export function Layout({ title: propTitle }: { title?: string } = {}) {
-  const location = useLocation()
-  const navigate = useNavigate()
-
-  const isCustomerDetail = location.pathname.startsWith('/customers/') && location.pathname !== '/customers'
-
-  let title = propTitle ?? PAGE_TITLES[location.pathname] ?? 'DriveManager'
-  let showBack = false
-  let onBack: (() => void) | undefined = undefined
-
-  if (isCustomerDetail) {
-    title = 'Customer Profile'
-    showBack = true
-    onBack = () => navigate('/customers')
-  }
-
   return (
     <div className="flex flex-col min-h-screen bg-[#f9f9ff]">
       <Header title={title} />
-      <Header title={title} showBack={showBack} onBack={onBack} />
       <main className="flex flex-col w-full px-4 pt-14 pb-24 bg-[#f9f9ff] min-h-screen">
         <Outlet />
       </main>

@@ -34,7 +34,6 @@ export default function Dashboard() {
   const [showAddClass, setShowAddClass] = useState(false)
   const [markingDone, setMarkingDone] = useState<string | null>(null)
 
-  const today = new Date().toISOString().split('T')[0]
   const today = toLocalDateString(new Date())
   const todayDisplay = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })
 

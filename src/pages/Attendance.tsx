@@ -26,7 +26,6 @@ function formatTime(t: string | null) {
 type EnrichedClass = Class & { full_name: string; package_classes: number; classes_completed: number; payment_status: string; amount_pending: number }
 
 export default function Attendance() {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [selectedDate, setSelectedDate] = useState(toLocalDateString(new Date()))
   const [classes, setClasses] = useState<EnrichedClass[]>([])
   const [loading, setLoading] = useState(true)
@@ -56,7 +55,6 @@ export default function Attendance() {
     setLoading(false)
   }
 
-  useEffect(() => { fetchClasses(selectedDate) }, [selectedDate])
   useEffect(() => {
     fetchClasses(selectedDate)
     setCopyMessage(null)
@@ -65,7 +63,6 @@ export default function Attendance() {
   function changeDate(delta: number) {
     const d = new Date(selectedDate + 'T00:00:00')
     d.setDate(d.getDate() + delta)
-    setSelectedDate(d.toISOString().split('T')[0])
     setSelectedDate(toLocalDateString(d))
   }
 
@@ -115,9 +112,6 @@ export default function Attendance() {
 
   async function markDone(classId: string) {
     setMarkingDone(classId)
-    await supabase.from('classes').update({ status: 'done' }).eq('id', classId)
-    await fetchClasses(selectedDate)
-    setMarkingDone(null)
     try {
       await supabase.from('classes').update({ status: 'done' }).eq('id', classId)
       await fetchClasses(selectedDate)
@@ -243,8 +237,6 @@ export default function Attendance() {
         })}
       </div>
 
-      {/* Add Unscheduled Class */}
-      <div className="mt-6 flex justify-center">
       {/* Action Buttons */}
       <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
         {!loading && classes.length === 0 && (

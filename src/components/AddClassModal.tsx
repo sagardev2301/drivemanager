@@ -14,7 +14,6 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
   const [customers, setCustomers] = useState<Customer[]>([])
   const [form, setForm] = useState({
     customer_id: defaultCustomerId ?? '',
-    class_date: defaultDate ?? new Date().toISOString().split('T')[0],
     class_date: defaultDate ?? toLocalDateString(new Date()),
     start_time: '08:00',
     end_time: '08:50',
@@ -48,7 +47,6 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (!form.customer_id) { setError('Please select a customer'); return }
     const newErrors: Record<string, string> = {}
     if (!form.customer_id.trim()) {
       newErrors.customer_id = 'Please select a customer'
@@ -67,16 +65,6 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
     setErrors({})
 
     setSaving(true)
-    const { error: err } = await supabase.from('classes').insert({
-      customer_id: form.customer_id,
-      class_date: form.class_date,
-      start_time: form.start_time || null,
-      end_time: form.end_time || null,
-      notes: form.notes || null,
-      status: form.status,
-    })
-    if (err) {
-      setError(err.message)
     try {
       const { error: err } = await supabase.from('classes').insert({
         customer_id: form.customer_id,
@@ -102,8 +90,6 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
       setSaving(false)
       return
     }
-    onSaved()
-    onClose()
   }
 
   return (
@@ -125,10 +111,8 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
             <div>
               <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Customer *</label>
               <select
-                required
                 value={form.customer_id}
                 onChange={e => set('customer_id', e.target.value)}
-                className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all"
                 className={`w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all ${errors.customer_id ? 'border border-[#ba1a1a]' : ''}`}
               >
                 <option value="">Select customer...</option>
@@ -145,10 +129,8 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
             <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Date *</label>
             <input
               type="date"
-              required
               value={form.class_date}
               onChange={e => set('class_date', e.target.value)}
-              className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all"
               className={`w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all ${errors.class_date ? 'border border-[#ba1a1a]' : ''}`}
             />
             {errors.class_date && (
@@ -157,13 +139,11 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Start Time</label>
               <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Start Time *</label>
               <input
                 type="time"
                 value={form.start_time}
                 onChange={e => set('start_time', e.target.value)}
-                className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all"
                 className={`w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all ${errors.start_time ? 'border border-[#ba1a1a]' : ''}`}
               />
               {errors.start_time && (

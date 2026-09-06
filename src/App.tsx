@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -21,11 +20,9 @@ function AppRoutes() {
   return (
     <Routes>
       <Route element={<Layout title={title} />}>
-      <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/attendance" element={<Attendance />} />
         <Route path="/customers" element={<Customers />} />
-        <Route path="/customers/:id" element={<CustomerDetail />} />
       </Route>
       {/* Customer Detail has its own header (back button, no bottom nav inside Layout) */}
       <Route path="/customers/:id" element={<CustomerDetail />} />

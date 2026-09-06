@@ -35,13 +35,6 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
     }
 
     setSaving(true)
-    const { error: err } = await supabase.from('payments').insert({
-      customer_id: customerId,
-      amount: amt,
-      payment_mode: mode,
-    })
-    if (err) {
-      setError(err.message)
     try {
       const { error: err } = await supabase.from('payments').insert({
         customer_id: customerId,
@@ -64,8 +57,6 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
       setSaving(false)
       return
     }
-    onSaved()
-    onClose()
   }
 
   return (
@@ -101,7 +92,6 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
               min="1"
               max={amountPending > 0 ? amountPending : undefined}
               value={amount}
-              onChange={e => setAmount(e.target.value)}
               onChange={e => {
                 setAmount(e.target.value)
                 setError('')

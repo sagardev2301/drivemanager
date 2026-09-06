@@ -13,7 +13,6 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
     phone_number: '',
     package_classes: '10',
     total_fee: '',
-    enrollment_date: new Date().toISOString().split('T')[0],
     enrollment_date: toLocalDateString(new Date()),
     course_status: 'active' as const,
   })
@@ -32,16 +31,6 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
     if (!form.total_fee || isNaN(Number(form.total_fee))) { setError('Valid total fee is required'); return }
 
     setSaving(true)
-    const { error: err } = await supabase.from('customers').insert({
-      full_name: form.full_name.trim(),
-      phone_number: form.phone_number.trim(),
-      package_classes: parseInt(form.package_classes) || 10,
-      total_fee: parseFloat(form.total_fee),
-      enrollment_date: form.enrollment_date,
-      course_status: form.course_status,
-    })
-    if (err) {
-      setError(err.message)
     try {
       const { error: err } = await supabase.from('customers').insert({
         full_name: form.full_name.trim(),
@@ -63,8 +52,6 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
       setSaving(false)
       return
     }
-    onSaved()
-    onClose()
   }
 
   return (
