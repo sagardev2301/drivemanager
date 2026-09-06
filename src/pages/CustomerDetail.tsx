@@ -5,7 +5,7 @@ import type { CustomerSummary, Class, Payment } from '../lib/supabase'
 import AddClassModal from '../components/AddClassModal'
 import AddPaymentModal from '../components/AddPaymentModal'
 import AddCustomerModal from '../components/AddCustomerModal'
-import { Header } from '../components/Layout'
+import { Header, BottomNav } from '../components/Layout'
 import { toLocalDateString } from '../lib/dateUtils'
 
 function getInitials(name: string) {
@@ -61,6 +61,7 @@ export default function CustomerDetail() {
             <div key={i} className="bg-white p-4 rounded-2xl shadow-sm animate-pulse h-24" />
           ))}
         </div>
+        <BottomNav />
       </div>
     )
   }
@@ -73,6 +74,7 @@ export default function CustomerDetail() {
           <span className="material-symbols-outlined text-[#737686] text-[48px]">person_off</span>
           <p className="text-[14px] text-[#434654] mt-2">Customer not found</p>
         </div>
+        <BottomNav />
       </div>
     )
   }
@@ -341,6 +343,7 @@ export default function CustomerDetail() {
           onSaved={fetchAll}
         />
       )}
+      <BottomNav />
     </div>
   )
 }

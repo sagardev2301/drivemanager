@@ -1,6 +1,6 @@
 import { Outlet, NavLink } from 'react-router-dom'
 
-function BottomNav() {
+export function BottomNav() {
   return (
     <nav className="fixed bottom-0 w-full z-40 bg-[#f9f9ff]/90 backdrop-blur-xl shadow-[0_-1px_12px_rgba(0,0,0,0.04)]"
          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
