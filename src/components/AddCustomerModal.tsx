@@ -1,26 +1,54 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { toLocalDateString } from '../lib/dateUtils'
 import { invalidateCustomerCache } from '../lib/customerCache'
 
+export interface CustomerEditData {
+  id: string
+  full_name: string
+  phone_number: string
+  package_classes: number
+  total_fee: number
+  enrollment_date: string
+  course_status?: 'active' | 'completed' | 'dropped'
+  location?: string | null
+  classes_completed?: number
+}
+
 interface Props {
   onClose: () => void
   onSaved: () => void
+  customer?: CustomerEditData | null
 }
 
-export default function AddCustomerModal({ onClose, onSaved }: Props) {
+export default function AddCustomerModal({ onClose, onSaved, customer }: Props) {
+  const isEditing = Boolean(customer)
   const [form, setForm] = useState({
-    full_name: '',
-    phone_number: '',
-    package_classes: '10',
-    total_fee: '',
-    enrollment_date: toLocalDateString(new Date()),
-    course_status: 'active' as const,
-    location: '',
+    full_name: customer?.full_name ?? '',
+    phone_number: customer?.phone_number ?? '',
+    package_classes: customer ? String(customer.package_classes) : '10',
+    total_fee: customer ? String(customer.total_fee) : '',
+    enrollment_date: customer?.enrollment_date ?? toLocalDateString(new Date()),
+    course_status: (customer?.course_status ?? 'active') as 'active' | 'completed' | 'dropped',
+    location: customer?.location ?? '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (customer) {
+      setForm({
+        full_name: customer.full_name,
+        phone_number: customer.phone_number,
+        package_classes: String(customer.package_classes),
+        total_fee: String(customer.total_fee),
+        enrollment_date: customer.enrollment_date,
+        course_status: (customer.course_status ?? 'active') as 'active' | 'completed' | 'dropped',
+        location: customer.location ?? '',
+      })
+    }
+  }, [customer])
 
   function set(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -33,22 +61,50 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
     if (!form.phone_number.trim()) { setError('Phone number is required'); return }
     if (!form.total_fee || isNaN(Number(form.total_fee))) { setError('Valid total fee is required'); return }
 
+    const pkgClasses = parseInt(form.package_classes) || 10
+    if (isEditing && customer && customer.classes_completed !== undefined && pkgClasses < customer.classes_completed) {
+      setError(`Package classes cannot be less than completed classes (${customer.classes_completed})`)
+      return
+    }
+
     setSaving(true)
     try {
-      const { error: err } = await supabase.from('customers').insert({
-        full_name: form.full_name.trim(),
-        phone_number: form.phone_number.trim(),
-        package_classes: parseInt(form.package_classes) || 10,
-        total_fee: parseFloat(form.total_fee),
-        enrollment_date: form.enrollment_date,
-        course_status: form.course_status,
-        location: form.location.trim() || null,
-      })
-      if (err) {
-        setError('Something went wrong saving this. Please try again.')
-        setSaving(false)
-        return
+      if (isEditing && customer) {
+        const { error: err } = await supabase
+          .from('customers')
+          .update({
+            full_name: form.full_name.trim(),
+            phone_number: form.phone_number.trim(),
+            package_classes: pkgClasses,
+            total_fee: parseFloat(form.total_fee),
+            enrollment_date: form.enrollment_date,
+            course_status: form.course_status,
+            location: form.location.trim() || null,
+          })
+          .eq('id', customer.id)
+
+        if (err) {
+          setError(err.message || 'Something went wrong saving this. Please try again.')
+          setSaving(false)
+          return
+        }
+      } else {
+        const { error: err } = await supabase.from('customers').insert({
+          full_name: form.full_name.trim(),
+          phone_number: form.phone_number.trim(),
+          package_classes: pkgClasses,
+          total_fee: parseFloat(form.total_fee),
+          enrollment_date: form.enrollment_date,
+          course_status: form.course_status,
+          location: form.location.trim() || null,
+        })
+        if (err) {
+          setError('Something went wrong saving this. Please try again.')
+          setSaving(false)
+          return
+        }
       }
+
       invalidateCustomerCache()
       onSaved()
       onClose()
@@ -67,7 +123,9 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-[20px] font-semibold text-[#141b2b]">Enroll New Customer</h2>
+          <h2 className="text-[20px] font-semibold text-[#141b2b]">
+            {isEditing ? 'Edit Customer Details' : 'Enroll New Customer'}
+          </h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-[#434654] hover:bg-[#e9edff]">
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
@@ -96,30 +154,74 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
               className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all placeholder:text-[#737686]"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Package Classes</label>
-              <input
-                type="number"
-                min="1"
-                value={form.package_classes}
-                onChange={e => set('package_classes', e.target.value)}
-                className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all"
-              />
+
+          {isEditing ? (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Completed Classes</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      readOnly
+                      disabled
+                      value={customer?.classes_completed ?? 0}
+                      className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#737686] text-[14px] font-semibold cursor-not-allowed select-none border border-[#dce2f7] opacity-80"
+                    />
+                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[16px] text-[#737686]">lock</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Package Classes</label>
+                  <input
+                    type="number"
+                    min={customer?.classes_completed ?? 1}
+                    value={form.package_classes}
+                    onChange={e => set('package_classes', e.target.value)}
+                    className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Total Fee (₹) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  value={form.total_fee}
+                  onChange={e => set('total_fee', e.target.value)}
+                  placeholder="5000"
+                  className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all placeholder:text-[#737686]"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Package Classes</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={form.package_classes}
+                  onChange={e => set('package_classes', e.target.value)}
+                  className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Total Fee (₹) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  value={form.total_fee}
+                  onChange={e => set('total_fee', e.target.value)}
+                  placeholder="5000"
+                  className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all placeholder:text-[#737686]"
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Total Fee (₹) *</label>
-              <input
-                type="number"
-                min="0"
-                required
-                value={form.total_fee}
-                onChange={e => set('total_fee', e.target.value)}
-                placeholder="5000"
-                className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all placeholder:text-[#737686]"
-              />
-            </div>
-          </div>
+          )}
+
           <div>
             <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Enrollment Date</label>
             <input
@@ -158,7 +260,9 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
             className="w-full h-12 mt-1 bg-[#003fb1] text-white rounded-xl text-[14px] font-semibold flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all disabled:opacity-60"
           >
             {saving ? (
-              <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Enrolling...</>
+              <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
+            ) : isEditing ? (
+              <><span className="material-symbols-outlined text-[18px]">check</span>Save Changes</>
             ) : (
               <><span className="material-symbols-outlined text-[18px]">person_add</span>Enroll Customer</>
             )}

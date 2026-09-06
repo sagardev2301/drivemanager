@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import type { CustomerSummary, Class, Payment } from '../lib/supabase'
 import AddClassModal from '../components/AddClassModal'
 import AddPaymentModal from '../components/AddPaymentModal'
+import AddCustomerModal from '../components/AddCustomerModal'
 import { Header } from '../components/Layout'
 import { toLocalDateString } from '../lib/dateUtils'
 
@@ -32,6 +33,7 @@ export default function CustomerDetail() {
   const [loading, setLoading] = useState(true)
   const [showAddClass, setShowAddClass] = useState(false)
   const [showAddPayment, setShowAddPayment] = useState(false)
+  const [showEditCustomer, setShowEditCustomer] = useState(false)
 
   async function fetchAll() {
     if (!id) return
@@ -131,13 +133,25 @@ export default function CustomerDetail() {
                   <p className="text-[13px] text-[#434654]">Enrolled {formatDate(customer.enrollment_date)}</p>
                 </div>
               </div>
-              <a
-                aria-label={`Call ${customer.full_name}`}
-                href={`tel:${customer.phone_number}`}
-                className="w-10 h-10 rounded-full bg-[#e1e8fd] text-[#003fb1] flex items-center justify-center active:scale-95 transition-transform shrink-0"
-              >
-                <span className="material-symbols-outlined text-[20px]">call</span>
-              </a>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowEditCustomer(true)}
+                  aria-label={`Edit ${customer.full_name}`}
+                  title="Edit customer details"
+                  className="w-10 h-10 rounded-full bg-[#f1f3ff] text-[#003fb1] hover:bg-[#e1e8fd] flex items-center justify-center active:scale-95 transition-transform"
+                >
+                  <span className="material-symbols-outlined text-[20px]">edit</span>
+                </button>
+                <a
+                  aria-label={`Call ${customer.full_name}`}
+                  href={`tel:${customer.phone_number}`}
+                  className="w-10 h-10 rounded-full bg-[#e1e8fd] text-[#003fb1] flex items-center justify-center active:scale-95 transition-transform"
+                  title={`Call ${customer.full_name}`}
+                >
+                  <span className="material-symbols-outlined text-[20px]">call</span>
+                </a>
+              </div>
             </div>
             <div className="flex items-center justify-between text-[13px] text-[#434654]">
               <div className="flex items-center gap-1.5">
@@ -311,6 +325,23 @@ export default function CustomerDetail() {
           customerId={id!}
           customerName={customer.full_name}
           amountPending={customer.amount_pending}
+        />
+      )}
+      {showEditCustomer && customer && (
+        <AddCustomerModal
+          customer={{
+            id: customer.customer_id,
+            full_name: customer.full_name,
+            phone_number: customer.phone_number,
+            package_classes: customer.package_classes,
+            total_fee: customer.total_fee,
+            enrollment_date: customer.enrollment_date,
+            course_status: customer.course_status,
+            location: customer.location,
+            classes_completed: customer.classes_completed,
+          }}
+          onClose={() => setShowEditCustomer(false)}
+          onSaved={fetchAll}
         />
       )}
     </div>
