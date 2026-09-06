@@ -36,12 +36,13 @@ export default function CustomerDetail() {
   async function fetchAll() {
     if (!id) return
     setLoading(true)
-    const [{ data: sumData }, { data: classData }, { data: payData }] = await Promise.all([
+    const [{ data: sumData }, { data: classData }, { data: payData }, { data: custData }] = await Promise.all([
       supabase.from('customer_summary').select('*').eq('customer_id', id).single(),
       supabase.from('classes').select('*').eq('customer_id', id).order('class_date', { ascending: false }).order('start_time', { ascending: false }),
       supabase.from('payments').select('*').eq('customer_id', id).order('created_at', { ascending: false }),
+      supabase.from('customers').select('location').eq('id', id).single(),
     ])
-    if (sumData) setCustomer(sumData)
+    if (sumData) setCustomer({ ...sumData, location: custData?.location ?? null })
     if (classData) setClasses(classData)
     if (payData) setPayments(payData)
     setLoading(false)
@@ -145,6 +146,12 @@ export default function CustomerDetail() {
               </div>
               <span className="px-2 py-0.5 rounded bg-[#e9edff] text-[11px] text-[#434654]">{customer.package_classes}-Class Package</span>
             </div>
+            {customer.location && (
+              <div className="flex items-center gap-1.5 mt-2 text-[13px] text-[#434654]">
+                <span className="material-symbols-outlined text-[18px] text-[#003fb1]">location_on</span>
+                <span className="text-[#434654]">{customer.location}</span>
+              </div>
+            )}
           </div>
 
           {/* Metric Cards */}

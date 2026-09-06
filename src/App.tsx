@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
+import { useOnlineStatus } from './hooks/useOnlineStatus'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Attendance from './pages/Attendance'
 import Customers from './pages/Customers'
 import CustomerDetail from './pages/CustomerDetail'
 import { Layout } from './components/Layout'
+import OfflinePage from './components/OfflinePage'
 
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Dashboard',
@@ -33,6 +35,7 @@ function AppRoutes() {
 
 export default function App() {
   const { session, loading } = useAuth()
+  const isOnline = useOnlineStatus()
 
   if (loading) {
     return (
@@ -50,6 +53,7 @@ export default function App() {
   if (!session) {
     return (
       <BrowserRouter>
+        {!isOnline && <OfflinePage />}
         <Routes>
           <Route path="*" element={<Login />} />
         </Routes>
@@ -59,6 +63,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      {!isOnline && <OfflinePage />}
       <AppRoutes />
     </BrowserRouter>
   )

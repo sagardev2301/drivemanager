@@ -15,6 +15,7 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
     total_fee: '',
     enrollment_date: toLocalDateString(new Date()),
     course_status: 'active' as const,
+    location: '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -39,6 +40,7 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
         total_fee: parseFloat(form.total_fee),
         enrollment_date: form.enrollment_date,
         course_status: form.course_status,
+        location: form.location.trim() || null,
       })
       if (err) {
         setError('Something went wrong saving this. Please try again.')
@@ -123,6 +125,21 @@ export default function AddCustomerModal({ onClose, onSaved }: Props) {
               onChange={e => set('enrollment_date', e.target.value)}
               className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all"
             />
+          </div>
+          <div>
+            <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">
+              Location (Pickup / Drop)
+            </label>
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#737686] pointer-events-none">location_on</span>
+              <input
+                type="text"
+                value={form.location}
+                onChange={e => set('location', e.target.value)}
+                placeholder="Eg. Sector 15, Noida"
+                className="w-full h-11 pl-9 pr-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all placeholder:text-[#737686]"
+              />
+            </div>
           </div>
 
           {error && (

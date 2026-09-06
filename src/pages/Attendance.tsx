@@ -25,6 +25,13 @@ function formatTime(t: string | null) {
 
 type EnrichedClass = Class & { full_name: string; package_classes: number; classes_completed: number; payment_status: string; amount_pending: number }
 
+function getDateContext(dateStr: string): 'past' | 'today' | 'future' {
+  const today = toLocalDateString(new Date())
+  if (dateStr < today) return 'past'
+  if (dateStr === today) return 'today'
+  return 'future'
+}
+
 export default function Attendance() {
   const [selectedDate, setSelectedDate] = useState(toLocalDateString(new Date()))
   const [classes, setClasses] = useState<EnrichedClass[]>([])
@@ -33,6 +40,8 @@ export default function Attendance() {
   const [showAddClass, setShowAddClass] = useState(false)
   const [copying, setCopying] = useState(false)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
+
+  const dateContext = getDateContext(selectedDate)
 
   async function fetchClasses(date: string) {
     setLoading(true)
@@ -223,7 +232,7 @@ export default function Attendance() {
                 )}
               </div>
 
-              {cls.status === 'scheduled' && (
+              {cls.status === 'scheduled' && dateContext === 'today' && (
                 <button
                   onClick={() => markDone(cls.id)}
                   disabled={isSaving}
@@ -237,26 +246,41 @@ export default function Attendance() {
         })}
       </div>
 
-      {/* Action Buttons */}
-      <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-        {!loading && classes.length === 0 && (
-          <button
-            onClick={copyPreviousDaySchedule}
-            disabled={copying}
-            className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-[#e9edff] hover:bg-[#dbe1ff] text-[#003fb1] text-[14px] font-semibold shadow-sm active:scale-95 transition-all disabled:opacity-60"
-          >
-            <span className="material-symbols-outlined text-[20px]">{copying ? 'refresh' : 'content_copy'}</span>
-            <span>{copying ? 'Copying Schedule...' : "Copy Yesterday's Schedule"}</span>
-          </button>
-        )}
-        <button
-          onClick={() => setShowAddClass(true)}
-          className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-[#e1e8fd] text-[#141b2b] text-[14px] font-semibold shadow-sm active:scale-95 transition-all"
-        >
-          <span className="material-symbols-outlined text-[#003fb1] text-[20px]">add_circle</span>
-          <span>Add Unscheduled Class</span>
-        </button>
-      </div>
+      {/* Action Buttons — only show for today and future */}
+      {!loading && dateContext !== 'past' && (
+        <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+          {/* Today: Copy Yesterday's Schedule (when no classes) + Add Unscheduled Class */}
+          {dateContext === 'today' && classes.length === 0 && (
+            <button
+              onClick={copyPreviousDaySchedule}
+              disabled={copying}
+              className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-[#e9edff] hover:bg-[#dbe1ff] text-[#003fb1] text-[14px] font-semibold shadow-sm active:scale-95 transition-all disabled:opacity-60"
+            >
+              <span className="material-symbols-outlined text-[20px]">{copying ? 'refresh' : 'content_copy'}</span>
+              <span>{copying ? 'Copying Schedule...' : "Copy Yesterday's Schedule"}</span>
+            </button>
+          )}
+          {dateContext === 'today' && (
+            <button
+              onClick={() => setShowAddClass(true)}
+              className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-[#e1e8fd] text-[#141b2b] text-[14px] font-semibold shadow-sm active:scale-95 transition-all"
+            >
+              <span className="material-symbols-outlined text-[#003fb1] text-[20px]">add_circle</span>
+              <span>Add Unscheduled Class</span>
+            </button>
+          )}
+          {/* Future: Schedule Class button */}
+          {dateContext === 'future' && (
+            <button
+              onClick={() => setShowAddClass(true)}
+              className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-[#e1e8fd] text-[#141b2b] text-[14px] font-semibold shadow-sm active:scale-95 transition-all"
+            >
+              <span className="material-symbols-outlined text-[#003fb1] text-[20px]">calendar_add_on</span>
+              <span>Schedule Class</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {copyMessage && (
         <div className="mt-3 p-3 rounded-xl bg-[#ffdad6] text-[#93000a] text-[13px] text-center">
@@ -269,6 +293,7 @@ export default function Attendance() {
           onClose={() => setShowAddClass(false)}
           onSaved={() => fetchClasses(selectedDate)}
           defaultDate={selectedDate}
+          mode={dateContext === 'future' ? 'schedule' : 'log'}
         />
       )}
     </div>

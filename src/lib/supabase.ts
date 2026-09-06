@@ -21,6 +21,7 @@ export interface Customer {
   total_fee: number
   course_status: CourseStatus
   review_flag: boolean
+  location: string | null
 }
 
 export interface Class {
@@ -56,5 +57,6 @@ export interface CustomerSummary {
   amount_paid: number
   amount_pending: number
   payment_status: PaymentStatus
+  location: string | null
 }
 

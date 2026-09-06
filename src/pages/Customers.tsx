@@ -20,11 +20,14 @@ export default function Customers() {
 
   async function fetchCustomers() {
     setLoading(true)
-    const { data } = await supabase
-      .from('customer_summary')
-      .select('*')
-      .order('enrollment_date', { ascending: false })
-    if (data) setCustomers(data)
+    const [{ data: summaryData }, { data: locationData }] = await Promise.all([
+      supabase.from('customer_summary').select('*').order('enrollment_date', { ascending: false }),
+      supabase.from('customers').select('id, location'),
+    ])
+    if (summaryData) {
+      const locationMap = new Map((locationData ?? []).map((c: { id: string; location: string | null }) => [c.id, c.location]))
+      setCustomers(summaryData.map((c: CustomerSummary) => ({ ...c, location: locationMap.get(c.customer_id) ?? null })))
+    }
     setLoading(false)
   }
 
@@ -170,6 +173,12 @@ export default function Customers() {
                       <span className="material-symbols-outlined text-[14px]">phone</span>
                       <span className="text-[11px] tracking-wide">{c.phone_number}</span>
                     </div>
+                    {c.location && (
+                      <div className="flex items-center gap-1 text-[#434654] mt-0.5">
+                        <span className="material-symbols-outlined text-[14px] text-[#003fb1]">location_on</span>
+                        <span className="text-[11px] tracking-wide">{c.location}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 {paymentBadge(c)}

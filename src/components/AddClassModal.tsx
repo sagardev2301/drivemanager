@@ -8,9 +8,10 @@ interface Props {
   onSaved: () => void
   defaultDate?: string
   defaultCustomerId?: string
+  mode?: 'log' | 'schedule'
 }
 
-export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCustomerId }: Props) {
+export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCustomerId, mode = 'log' }: Props) {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [form, setForm] = useState({
     customer_id: defaultCustomerId ?? '',
@@ -100,7 +101,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-[20px] font-semibold text-[#141b2b]">Log a Class</h2>
+          <h2 className="text-[20px] font-semibold text-[#141b2b]">{mode === 'schedule' ? 'Schedule a Class' : 'Log a Class'}</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-[#434654] hover:bg-[#e9edff]">
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
@@ -160,21 +161,23 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
               />
             </div>
           </div>
-          <div>
-            <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Status</label>
-            <div className="grid grid-cols-2 gap-2">
-              {(['scheduled', 'done'] as const).map(s => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => set('status', s)}
-                  className={`h-10 rounded-lg text-[12px] font-semibold transition-all ${form.status === s ? 'bg-[#003fb1] text-white' : 'bg-[#f1f3ff] text-[#141b2b]'}`}
-                >
-                  {s === 'scheduled' ? 'Scheduled' : 'Mark Done'}
-                </button>
-              ))}
+          {mode !== 'schedule' && (
+            <div>
+              <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Status</label>
+              <div className="grid grid-cols-2 gap-2">
+                {(['scheduled', 'done'] as const).map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => set('status', s)}
+                    className={`h-10 rounded-lg text-[12px] font-semibold transition-all ${form.status === s ? 'bg-[#003fb1] text-white' : 'bg-[#f1f3ff] text-[#141b2b]'}`}
+                  >
+                    {s === 'scheduled' ? 'Scheduled' : 'Mark Done'}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           <div>
             <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Notes (optional)</label>
             <input
@@ -200,6 +203,8 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
           >
             {saving ? (
               <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
+            ) : mode === 'schedule' ? (
+              <><span className="material-symbols-outlined text-[18px]">calendar_add_on</span>Schedule Class</>
             ) : (
               <><span className="material-symbols-outlined text-[18px]">add_circle</span>Log Class</>
             )}
