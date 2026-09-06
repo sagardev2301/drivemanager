@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import type { Class } from '../lib/supabase'
 import AddClassModal from '../components/AddClassModal'
@@ -41,6 +42,8 @@ export default function Attendance() {
   const [showAddClass, setShowAddClass] = useState(false)
   const [copying, setCopying] = useState(false)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
+  const [classToDelete, setClassToDelete] = useState<EnrichedClass | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const dateContext = getDateContext(selectedDate)
 
@@ -129,6 +132,22 @@ export default function Attendance() {
       await fetchClasses(selectedDate)
     } finally {
       setMarkingDone(null)
+    }
+  }
+
+  async function handleDeleteClass(classId: string) {
+    setDeletingId(classId)
+    try {
+      const { error } = await supabase.from('classes').delete().eq('id', classId)
+      if (error) throw error
+      invalidateCustomerCache()
+      await fetchClasses(selectedDate)
+      setClassToDelete(null)
+    } catch (err) {
+      console.error('Failed to delete class:', err)
+      alert('Failed to delete class. Please try again.')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -235,14 +254,28 @@ export default function Attendance() {
                 )}
               </div>
 
-              {cls.status === 'scheduled' && dateContext === 'today' && (
-                <button
-                  onClick={() => markDone(cls.id)}
-                  disabled={isSaving}
-                  className="w-full h-11 mt-1 flex items-center justify-center gap-2 rounded-lg bg-[#f1f3ff] hover:bg-[#e9edff] text-[#141b2b] text-[14px] font-semibold transition-all active:scale-[0.99] disabled:opacity-60"
-                >
-                  <span className={buttonIconClass}>{buttonIcon}</span>{buttonLabel}
-                </button>
+              {cls.status === 'scheduled' && dateContext !== 'past' && (
+                <div className="flex items-center gap-2 mt-1">
+                  {dateContext === 'today' && (
+                    <button
+                      onClick={() => markDone(cls.id)}
+                      disabled={isSaving}
+                      className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl bg-[#f1f3ff] hover:bg-[#e9edff] text-[#141b2b] text-[14px] font-semibold transition-all active:scale-[0.99] disabled:opacity-60"
+                    >
+                      <span className={buttonIconClass}>{buttonIcon}</span>{buttonLabel}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setClassToDelete(cls)}
+                    disabled={isSaving || deletingId === cls.id}
+                    className={`${dateContext === 'today' ? 'w-11 h-11' : 'w-full h-11'} flex items-center justify-center gap-1.5 rounded-xl bg-[#ffdad6]/50 hover:bg-[#ffdad6] text-[#ba1a1a] text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0`}
+                    title="Delete scheduled class"
+                    aria-label="Delete scheduled class"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">delete</span>
+                    {dateContext !== 'today' && <span>Delete Class</span>}
+                  </button>
+                </div>
               )}
             </div>
           )
@@ -298,6 +331,56 @@ export default function Attendance() {
           defaultDate={selectedDate}
           mode={dateContext === 'future' ? 'schedule' : 'log'}
         />
+      )}
+
+      {/* Delete Scheduled Class Confirmation Popup */}
+      {classToDelete && createPortal(
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={() => !deletingId && setClassToDelete(null)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 rounded-2xl bg-[#ffdad6] text-[#ba1a1a] flex items-center justify-center mb-4 mx-auto">
+              <span className="material-symbols-outlined text-[26px]">delete_forever</span>
+            </div>
+
+            <h3 className="text-[18px] font-bold text-[#141b2b] text-center mb-2">
+              Delete Scheduled Class?
+            </h3>
+
+            <p className="text-[13px] text-[#434654] text-center mb-6 leading-relaxed">
+              Are you sure you want to delete the scheduled class for{' '}
+              <span className="font-semibold text-[#141b2b]">{classToDelete.full_name}</span>? This action cannot be undone.
+            </p>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setClassToDelete(null)}
+                disabled={deletingId === classToDelete.id}
+                className="flex-1 h-12 rounded-2xl bg-[#f1f3ff] text-[#434654] font-semibold text-[14px] hover:bg-[#e9edff] active:scale-95 transition-all disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteClass(classToDelete.id)}
+                disabled={deletingId === classToDelete.id}
+                className="flex-1 h-12 rounded-2xl bg-[#ba1a1a] text-white font-semibold text-[14px] flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all disabled:opacity-60"
+              >
+                {deletingId === classToDelete.id ? (
+                  <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Deleting...</>
+                ) : (
+                  <><span className="material-symbols-outlined text-[18px]">delete</span>Delete</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   )

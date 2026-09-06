@@ -26,10 +26,24 @@ function formatTime(t: string | null) {
   return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`
 }
 
+function isValidPhone(phone: string | null | undefined): boolean {
+  if (!phone) return false
+  const trimmed = phone.trim()
+  if (trimmed.length < 5) return false
+  if (trimmed.toLowerCase().includes('nophone')) return false
+  return /\d{5,}/.test(trimmed)
+}
+
+function getWhatsAppUrl(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  const fullNumber = digits.length === 10 ? `91${digits}` : digits
+  return `https://wa.me/${fullNumber}`
+}
+
 export default function Dashboard() {
   const navigate = useNavigate()
   const [summary, setSummary] = useState<CustomerSummary[]>([])
-  const [todayClasses, setTodayClasses] = useState<(Class & { full_name: string; classes_completed: number; package_classes: number; amount_pending: number })[]>([])
+  const [todayClasses, setTodayClasses] = useState<(Class & { full_name: string; phone_number: string; location: string | null; classes_completed: number; package_classes: number; amount_pending: number })[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddCustomer, setShowAddCustomer] = useState(false)
   const [showAddClass, setShowAddClass] = useState(false)
@@ -44,7 +58,7 @@ export default function Dashboard() {
       supabase.from('customer_summary').select('*'),
       supabase
         .from('classes')
-        .select('*, customers(full_name, phone_number, package_classes)')
+        .select('*, customers(full_name, phone_number, package_classes, location)')
         .eq('class_date', today)
         .in('status', ['scheduled', 'done', 'not_completed'])
         .order('start_time', { ascending: true }),
@@ -56,6 +70,8 @@ export default function Dashboard() {
       const enriched = classData.map((c: any) => ({
         ...c,
         full_name: c.customers?.full_name ?? 'Unknown',
+        phone_number: c.customers?.phone_number ?? '',
+        location: c.customers?.location ?? null,
         package_classes: c.customers?.package_classes ?? 0,
         classes_completed: sumData?.find((s: CustomerSummary) => s.customer_id === c.customer_id)?.classes_completed ?? 0,
         amount_pending: sumData?.find((s: CustomerSummary) => s.customer_id === c.customer_id)?.amount_pending ?? 0,
@@ -231,7 +247,15 @@ export default function Dashboard() {
                   </span>
                 </div>
               </div>
-              {statusBadge(cls.status)}
+              <div className="flex flex-col items-end gap-1">
+                {statusBadge(cls.status)}
+                {cls.location && (
+                  <div className="flex items-center gap-0.5 text-[#434654] mt-0.5">
+                    <span className="material-symbols-outlined text-[13px] text-[#003fb1]">location_on</span>
+                    <span className="text-[11px] font-medium max-w-[140px] truncate text-right">{cls.location}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Time row */}
@@ -249,20 +273,65 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Mark Done button */}
-            {cls.status === 'scheduled' && (
-              <button
-                onClick={() => markDone(cls.id)}
-                disabled={markingDone === cls.id}
-                className="w-full h-11 flex items-center justify-center gap-2 bg-[#003fb1] text-white rounded-lg text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
-              >
-                {markingDone === cls.id ? (
-                  <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
-                ) : (
-                  <><span className="material-symbols-outlined text-[20px]">check</span>Mark Done</>
-                )}
-              </button>
-            )}
+            {/* Mark Done row with Call & WhatsApp */}
+            {cls.status === 'scheduled' && (() => {
+              const hasPhone = isValidPhone(cls.phone_number)
+              return (
+                <div className="flex items-center gap-2 pt-0.5">
+                  <button
+                    onClick={() => markDone(cls.id)}
+                    disabled={markingDone === cls.id}
+                    className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-[#003fb1] text-white rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
+                  >
+                    {markingDone === cls.id ? (
+                      <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
+                    ) : (
+                      <><span className="material-symbols-outlined text-[20px]">check</span>Mark Done</>
+                    )}
+                  </button>
+
+                  {/* Call button */}
+                  {hasPhone ? (
+                    <a
+                      href={`tel:${cls.phone_number}`}
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#e9edff] text-[#003fb1] hover:bg-[#dbe1ff] active:scale-95 transition-all shrink-0 shadow-sm"
+                      title={`Call ${cls.full_name}`}
+                    >
+                      <span className="material-symbols-outlined text-[20px]">call</span>
+                    </a>
+                  ) : (
+                    <button
+                      disabled
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#f1f3ff] text-[#737686] opacity-40 cursor-not-allowed shrink-0"
+                      title="Phone number not available"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">call</span>
+                    </button>
+                  )}
+
+                  {/* WhatsApp button */}
+                  {hasPhone ? (
+                    <a
+                      href={getWhatsAppUrl(cls.phone_number)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#e8f5e9] text-[#1b5e20] hover:bg-[#c8e6c9] active:scale-95 transition-all shrink-0 shadow-sm"
+                      title={`WhatsApp ${cls.full_name}`}
+                    >
+                      <span className="material-symbols-outlined text-[20px]">chat</span>
+                    </a>
+                  ) : (
+                    <button
+                      disabled
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#f1f3ff] text-[#737686] opacity-40 cursor-not-allowed shrink-0"
+                      title="Phone number not available"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">chat</span>
+                    </button>
+                  )}
+                </div>
+              )
+            })()}
           </div>
         ))}
       </div>
