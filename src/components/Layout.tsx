@@ -4,40 +4,51 @@ function BottomNav() {
   return (
     <nav className="fixed bottom-0 w-full z-40 bg-[#f9f9ff]/90 backdrop-blur-xl shadow-[0_-1px_12px_rgba(0,0,0,0.04)]"
          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <div className="flex justify-around items-center h-16 px-2 max-w-lg mx-auto">
+      <div className="flex justify-around items-center h-16 px-1 max-w-lg mx-auto">
         <NavLink
           to="/"
           end
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[64px] min-h-[44px] py-1 transition-colors duration-150 ${
+            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-colors duration-150 ${
               isActive ? 'text-[#003fb1]' : 'text-[#434654]'
             }`
           }
         >
           <span className="material-symbols-outlined text-[24px]">home</span>
-          <span className="text-[11px] leading-[14px] mt-0.5 font-medium">Dashboard</span>
+          <span className="text-[10px] leading-[13px] mt-0.5 font-medium">Home</span>
+        </NavLink>
+        <NavLink
+          to="/dashboard"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-colors duration-150 ${
+              isActive ? 'text-[#003fb1]' : 'text-[#434654]'
+            }`
+          }
+        >
+          <span className="material-symbols-outlined text-[24px]">bar_chart</span>
+          <span className="text-[10px] leading-[13px] mt-0.5 font-medium">Dashboard</span>
         </NavLink>
         <NavLink
           to="/attendance"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[64px] min-h-[44px] py-1 transition-colors duration-150 ${
+            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-colors duration-150 ${
               isActive ? 'text-[#003fb1]' : 'text-[#434654]'
             }`
           }
         >
           <span className="material-symbols-outlined text-[24px]">event_available</span>
-          <span className="text-[11px] leading-[14px] mt-0.5 font-medium">Attendance</span>
+          <span className="text-[10px] leading-[13px] mt-0.5 font-medium">Attendance</span>
         </NavLink>
         <NavLink
           to="/customers"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[64px] min-h-[44px] py-1 transition-colors duration-150 ${
+            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-colors duration-150 ${
               isActive ? 'text-[#003fb1]' : 'text-[#434654]'
             }`
           }
         >
           <span className="material-symbols-outlined text-[24px]">group</span>
-          <span className="text-[11px] leading-[14px] mt-0.5 font-medium">Customers</span>
+          <span className="text-[10px] leading-[13px] mt-0.5 font-medium">Customers</span>
         </NavLink>
       </div>
     </nav>

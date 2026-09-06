@@ -212,8 +212,8 @@ export default function CustomerDetail() {
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-2 mb-4">
+          {/* Action Button */}
+          <div className="mb-3">
             <button
               onClick={() => setShowAddClass(true)}
               className="w-full h-12 bg-[#003fb1] text-white rounded-2xl text-[14px] font-semibold flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-transform"
@@ -221,13 +221,58 @@ export default function CustomerDetail() {
               <span className="material-symbols-outlined text-[20px]">add_circle</span>
               <span>Log Class for {customer.full_name.split(' ')[0]}</span>
             </button>
-            <button
-              onClick={() => setShowAddPayment(true)}
-              className="w-full h-11 bg-white text-[#003fb1] rounded-2xl text-[14px] font-semibold flex items-center justify-center gap-2 shadow-sm active:bg-[#f1f3ff] transition-colors"
-            >
-              <span className="material-symbols-outlined text-[20px]">credit_card</span>
-              <span>Record Payment</span>
-            </button>
+          </div>
+
+          {/* Payment History (Above Class History) */}
+          <div className="bg-white rounded-2xl shadow-sm p-4 mb-3">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[16px] font-semibold text-[#141b2b]">Payment History</h3>
+              <span className="text-[11px] text-[#434654]">Total: ₹{customer.total_fee.toLocaleString('en-IN')}</span>
+            </div>
+            {payments.length === 0 && customer.amount_pending <= 0 ? (
+              <p className="text-[13px] text-[#434654] text-center py-2">No payments recorded</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {/* Remaining pending balance stays at TOP */}
+                {customer.amount_pending > 0 && (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-[#eef2ff] border border-[#c7d2fe]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-[#dbe1ff] text-[#003fb1] flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-[20px]">hourglass_top</span>
+                      </div>
+                      <div>
+                        <p className="text-[14px] font-bold text-[#1a3f9c]">₹{customer.amount_pending.toLocaleString('en-IN')} Remaining</p>
+                        <p className="text-[11px] text-[#434654]">Pending balance</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowAddPayment(true)}
+                      className="px-3.5 py-1.5 rounded-xl bg-[#003fb1] text-white text-[12px] font-semibold active:scale-95 shadow-sm flex items-center gap-1 hover:bg-[#003494] transition-all"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">payments</span>
+                      <span>Collect</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Collected payment transactions */}
+                {payments.map(pay => (
+                  <div key={pay.id} className="flex items-center justify-between p-2.5 rounded-lg bg-[#f1f3ff]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-[#dbe1ff] text-[#003fb1] flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+                      </div>
+                      <div>
+                        <p className="text-[14px] font-semibold text-[#141b2b]">₹{pay.amount.toLocaleString('en-IN')} Paid</p>
+                        <p className="text-[11px] text-[#434654]">
+                          {formatDate(pay.created_at)} • {payModeLabel[pay.payment_mode] ?? pay.payment_mode}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Class History */}
@@ -256,54 +301,6 @@ export default function CustomerDetail() {
                     {classStatusBadge(cls.status)}
                   </div>
                 ))}
-              </div>
-            )}
-          </div>
-
-          {/* Payment History */}
-          <div className="bg-white rounded-2xl shadow-sm p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[16px] font-semibold text-[#141b2b]">Payment History</h3>
-              <span className="text-[11px] text-[#434654]">Total: ₹{customer.total_fee.toLocaleString('en-IN')}</span>
-            </div>
-            {payments.length === 0 && customer.amount_pending <= 0 ? (
-              <p className="text-[13px] text-[#434654] text-center py-2">No payments recorded</p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {payments.map(pay => (
-                  <div key={pay.id} className="flex items-center justify-between p-2.5 rounded-lg bg-[#f1f3ff]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#dbe1ff] text-[#003fb1] flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
-                      </div>
-                      <div>
-                        <p className="text-[14px] font-semibold text-[#141b2b]">₹{pay.amount.toLocaleString('en-IN')} Paid</p>
-                        <p className="text-[11px] text-[#434654]">
-                          {formatDate(pay.created_at)} • {payModeLabel[pay.payment_mode] ?? pay.payment_mode}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {customer.amount_pending > 0 && (
-                  <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#b5c4ff]/20">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#b5c4ff]/30 text-[#1a3f9c] flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[18px]">hourglass_top</span>
-                      </div>
-                      <div>
-                        <p className="text-[14px] font-semibold text-[#1a3f9c]">₹{customer.amount_pending.toLocaleString('en-IN')} Remaining</p>
-                        <p className="text-[11px] text-[#434654]">Pending balance</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setShowAddPayment(true)}
-                      className="px-2.5 py-1 rounded-md bg-white text-[#003fb1] text-[12px] font-semibold active:scale-95 shadow-sm"
-                    >
-                      Pay Now
-                    </button>
-                  </div>
-                )}
               </div>
             )}
           </div>

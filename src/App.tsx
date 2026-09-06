@@ -2,7 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { useAuth } from './hooks/useAuth'
 import { useOnlineStatus } from './hooks/useOnlineStatus'
 import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
+import Home from './pages/Home'
+import AnalyticsDashboard from './pages/AnalyticsDashboard'
 import Attendance from './pages/Attendance'
 import Customers from './pages/Customers'
 import CustomerDetail from './pages/CustomerDetail'
@@ -10,7 +11,8 @@ import { Layout } from './components/Layout'
 import OfflinePage from './components/OfflinePage'
 
 const PAGE_TITLES: Record<string, string> = {
-  '/': 'Dashboard',
+  '/': 'Home',
+  '/dashboard': 'Dashboard',
   '/attendance': 'Attendance',
   '/customers': 'Customers',
 }
@@ -22,7 +24,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route element={<Layout title={title} />}>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/dashboard" element={<AnalyticsDashboard />} />
         <Route path="/attendance" element={<Attendance />} />
         <Route path="/customers" element={<Customers />} />
       </Route>
