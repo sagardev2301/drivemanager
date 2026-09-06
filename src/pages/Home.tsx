@@ -88,23 +88,29 @@ export default function Home() {
 
   async function fetchData() {
     setLoading(true)
-    const { data: classData } = await supabase
-      .from('classes')
-      .select('*, customers(full_name, phone_number, package_classes, location, customer_summary(classes_completed, amount_pending))')
-      .eq('class_date', today)
-      .in('status', ['scheduled', 'done', 'not_completed'])
-      .order('start_time', { ascending: true })
+    const [{ data: sumData }, { data: classData }] = await Promise.all([
+      supabase.from('customer_summary').select('customer_id, classes_completed, amount_pending'),
+      supabase
+        .from('classes')
+        .select('*, customers(full_name, phone_number, package_classes, location)')
+        .eq('class_date', today)
+        .in('status', ['scheduled', 'done', 'not_completed'])
+        .order('start_time', { ascending: true }),
+    ])
 
     if (classData) {
-      const enriched = classData.map((c: any) => ({
-        ...c,
-        full_name: c.customers?.full_name ?? 'Unknown',
-        phone_number: c.customers?.phone_number ?? '',
-        location: c.customers?.location ?? null,
-        package_classes: c.customers?.package_classes ?? 0,
-        classes_completed: c.customers?.customer_summary?.classes_completed ?? 0,
-        amount_pending: c.customers?.customer_summary?.amount_pending ?? 0,
-      }))
+      const enriched = classData.map((c: any) => {
+        const sum = sumData?.find((s: any) => s.customer_id === c.customer_id)
+        return {
+          ...c,
+          full_name: c.customers?.full_name ?? 'Unknown',
+          phone_number: c.customers?.phone_number ?? '',
+          location: c.customers?.location ?? null,
+          package_classes: c.customers?.package_classes ?? 0,
+          classes_completed: sum?.classes_completed ?? 0,
+          amount_pending: sum?.amount_pending ?? 0,
+        }
+      })
       setTodayClasses(enriched)
     }
     setLoading(false)
@@ -136,6 +142,7 @@ export default function Home() {
     .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
 
   // Identify UP NEXT class in upcoming classes:
+  // The first class starting after current time; or the earliest upcoming class
   const now = new Date()
   const currentMinutes = now.getHours() * 60 + now.getMinutes()
   const nextFutureClass = upcomingClasses.find(c => {
@@ -144,7 +151,6 @@ export default function Home() {
     return (h * 60 + (m || 0)) > currentMinutes
   })
   const upNextId = nextFutureClass ? nextFutureClass.id : (upcomingClasses[0]?.id ?? null)
-
 
   async function markDone(classId: string) {
     setMarkingDone(classId)
@@ -357,7 +363,6 @@ export default function Home() {
                 <p className="text-[12px] text-[#434654] mt-0.5">See completed classes below</p>
               </div>
             ) : (
-              /* No classes at all today — illustrated empty state */
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="bg-gradient-to-br from-[#e8eeff] to-[#f1f3ff] px-6 pt-8 pb-6 flex flex-col items-center">
                   <svg viewBox="0 0 200 160" className="w-48 h-36" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -365,8 +370,7 @@ export default function Home() {
                     <circle cx="160" cy="38" r="20" fill="#fbbf24" opacity="0.9" />
                     <circle cx="160" cy="38" r="14" fill="#fde68a" />
                     {[0,45,90,135,180,225,270,315].map((deg, i) => (
-                      <line
-                        key={i}
+                      <line key={i}
                         x1={160 + Math.cos(deg * Math.PI / 180) * 18}
                         y1={38 + Math.sin(deg * Math.PI / 180) * 18}
                         x2={160 + Math.cos(deg * Math.PI / 180) * 26}
