@@ -161,26 +161,26 @@ export default function Home() {
   }
 
   const statusBadge = (status: string) => {
-    if (status === 'done') return <span className="px-2 py-1 rounded-full bg-[#6bff8f]/40 text-[#005623] text-[12px] font-semibold flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">check_circle</span>Done</span>
-    return <span className="px-2 py-1 rounded-full bg-[#dbe1ff] text-[#00164d] text-[12px] font-semibold">Scheduled</span>
+    if (status === 'done') return <span className="px-2 py-1 rounded-full bg-tertiary-fixed/40 text-tertiary text-[12px] font-semibold flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">check_circle</span>Done</span>
+    return <span className="px-2 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-[12px] font-semibold">Scheduled</span>
   }
 
   return (
     <div className="flex flex-col w-full pb-6 space-y-4 pt-4">
       {/* Greeting Banner */}
-      <div className="flex flex-col bg-white p-4 rounded-2xl shadow-sm">
+      <div className="flex flex-col bg-white p-4 rounded-xl shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-[11px] text-[#434654] uppercase tracking-wider">{todayDisplay}</span>
-            <h1 className="text-[20px] font-semibold text-[#141b2b] mt-0.5">{getGreeting()}</h1>
+            <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">{todayDisplay}</span>
+            <h1 className="text-[20px] font-semibold text-on-surface mt-0.5">{getGreeting()}</h1>
           </div>
-          <div className="w-10 h-10 rounded-full bg-[#e1e8fd] flex items-center justify-center text-[#003fb1]">
+          <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
             <span className="material-symbols-outlined text-[24px]">wb_sunny</span>
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-2 bg-[#f1f3ff] px-3 py-2 rounded-lg">
-          <span className="material-symbols-outlined text-[#003fb1] text-[18px]">verified</span>
-          <span className="text-[13px] text-[#434654]">{todayClasses.length} driving sessions scheduled for today</span>
+        <div className="mt-3 flex items-center gap-2 bg-surface-container px-3 py-2 rounded-xl">
+          <span className="material-symbols-outlined text-primary text-[18px]">verified</span>
+          <span className="text-[13px] text-on-surface-variant">{todayClasses.length} driving sessions scheduled for today</span>
         </div>
       </div>
 
@@ -188,14 +188,14 @@ export default function Home() {
       <div className="grid grid-cols-2 gap-2">
         <button
           onClick={() => setShowAddCustomer(true)}
-          className="flex items-center justify-center gap-2 bg-[#003fb1] text-white py-3 px-4 rounded-lg shadow-sm active:scale-95 transition-transform duration-150"
+          className="h-11 flex items-center justify-center gap-2 bg-primary text-on-primary px-4 rounded-xl shadow-sm active:scale-95 transition-transform duration-150"
         >
           <span className="material-symbols-outlined text-[20px]">person_add</span>
           <span className="text-[14px] font-semibold">Enroll Learner</span>
         </button>
         <button
           onClick={() => setShowAddClass(true)}
-          className="flex items-center justify-center gap-2 bg-[#dce2f7] text-[#003fb1] py-3 px-4 rounded-lg active:scale-95 transition-transform duration-150"
+          className="h-11 flex items-center justify-center gap-2 bg-surface-container-high text-primary px-4 rounded-xl active:scale-95 transition-transform duration-150"
         >
           <span className="material-symbols-outlined text-[20px]">add_circle</span>
           <span className="text-[14px] font-semibold">Log a Class</span>
@@ -212,8 +212,8 @@ export default function Home() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
-              <h2 className="text-[16px] font-semibold text-[#141b2b]">Ongoing Class</h2>
-              <span className="px-2 py-0.5 rounded-full bg-[#e8f5e9] text-[#1b5e20] text-[11px] font-bold uppercase tracking-wide">
+              <h2 className="text-[16px] font-semibold text-on-surface">Ongoing Class</h2>
+              <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed/30 text-tertiary text-[11px] font-bold uppercase tracking-wide">
                 Live Now
               </span>
             </div>
@@ -222,7 +222,7 @@ export default function Home() {
           {ongoingClasses.map(cls => {
             const hasPhone = isValidPhone(cls.phone_number)
             return (
-              <div key={cls.id} className="bg-white p-4 rounded-2xl shadow-sm border border-emerald-200/80 flex flex-col space-y-3">
+              <div key={cls.id} className="bg-white p-4 rounded-xl shadow-sm border border-emerald-200/80 flex flex-col space-y-3">
                 {/* Header Pill */}
                 <div className="flex items-center justify-between">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-bold tracking-wide uppercase">
@@ -230,7 +230,7 @@ export default function Home() {
                     <span>CURRENT • {cls.start_time ? formatTime(cls.start_time) : ''}{cls.end_time ? ` - ${formatTime(cls.end_time)}` : ''}</span>
                   </div>
                   {cls.amount_pending > 0 && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#ffdad6] text-[#ba1a1a] text-[12px] font-semibold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">
                       Due ₹{cls.amount_pending.toLocaleString('en-IN')}
                     </span>
                   )}
@@ -238,25 +238,25 @@ export default function Home() {
 
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-[#003fb1] flex items-center justify-center text-[16px] font-bold text-white shadow-sm">
+                    <div className="w-11 h-11 rounded-full bg-primary flex items-center justify-center text-[16px] font-bold text-on-primary shadow-sm">
                       {getInitials(cls.full_name)}
                     </div>
                     <div className="flex flex-col">
                       <span
-                        className="text-[15px] font-bold text-[#141b2b] cursor-pointer hover:text-[#003fb1]"
+                        className="text-[15px] font-bold text-on-surface cursor-pointer hover:text-primary"
                         onClick={() => navigate(`/customers/${cls.customer_id}`)}
                       >
                         {cls.full_name}
                       </span>
-                      <span className="text-[12px] text-[#434654] mt-0.5">
+                      <span className="text-[12px] text-on-surface-variant mt-0.5">
                         Class {cls.classes_completed + 1} of {cls.package_classes}
                         {cls.notes ? ` • ${cls.notes}` : ' • Practical Drive'}
                       </span>
                     </div>
                   </div>
                   {cls.location && (
-                    <div className="flex items-center gap-0.5 text-[#434654] bg-[#f1f3ff] px-2 py-1 rounded-lg">
-                      <span className="material-symbols-outlined text-[14px] text-[#003fb1]">location_on</span>
+                    <div className="flex items-center gap-0.5 text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">
+                      <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
                       <span className="text-[11px] font-medium max-w-[120px] truncate">{cls.location}</span>
                     </div>
                   )}
@@ -267,7 +267,7 @@ export default function Home() {
                   <button
                     onClick={() => markDone(cls.id)}
                     disabled={markingDone === cls.id}
-                    className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-[#003fb1] text-white rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
+                    className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-primary text-on-primary rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
                   >
                     {markingDone === cls.id ? (
                       <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
@@ -280,7 +280,7 @@ export default function Home() {
                   {hasPhone ? (
                     <a
                       href={`tel:${cls.phone_number}`}
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#e9edff] text-[#003fb1] hover:bg-[#dbe1ff] active:scale-95 transition-all shrink-0 shadow-sm"
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-primary-fixed text-primary hover:bg-primary-fixed-dim active:scale-95 transition-all shrink-0 shadow-sm"
                       title={`Call ${cls.full_name}`}
                     >
                       <span className="material-symbols-outlined text-[20px]">call</span>
@@ -288,7 +288,7 @@ export default function Home() {
                   ) : (
                     <button
                       disabled
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#f1f3ff] text-[#737686] opacity-40 cursor-not-allowed shrink-0"
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
                       title="Phone number not available"
                     >
                       <span className="material-symbols-outlined text-[20px]">call</span>
@@ -301,7 +301,7 @@ export default function Home() {
                       href={getWhatsAppUrl(cls.phone_number)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#e8f5e9] text-[#1b5e20] hover:bg-[#c8e6c9] active:scale-95 transition-all shrink-0 shadow-sm"
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-tertiary-fixed/30 text-tertiary hover:bg-tertiary-fixed/50 active:scale-95 transition-all shrink-0 shadow-sm"
                       title={`WhatsApp ${cls.full_name}`}
                     >
                       <WhatsAppIcon className="w-5 h-5" />
@@ -309,7 +309,7 @@ export default function Home() {
                   ) : (
                     <button
                       disabled
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#f1f3ff] text-[#737686] opacity-40 cursor-not-allowed shrink-0"
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
                       title="Phone number not available"
                     >
                       <WhatsAppIcon className="w-5 h-5" />
@@ -326,14 +326,14 @@ export default function Home() {
       <div className="flex flex-col space-y-3">
         <div className="flex items-center justify-between pt-1 px-0.5">
           <div className="flex items-center gap-2">
-            <h2 className="text-[16px] font-semibold text-[#141b2b]">Today's Classes</h2>
-            <span className="px-2 py-0.5 rounded-full bg-[#e1e8fd] text-[#003fb1] text-[12px] font-semibold">
+            <h2 className="text-[16px] font-semibold text-on-surface">Today's Classes</h2>
+            <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-primary text-[12px] font-semibold">
               {upcomingClasses.length}
             </span>
           </div>
           <button
             onClick={() => navigate('/attendance')}
-            className="text-[13px] text-[#003fb1] flex items-center gap-0.5 hover:underline"
+            className="text-[13px] text-primary flex items-center gap-0.5 hover:underline"
           >
             <span>Attendance</span>
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -343,7 +343,7 @@ export default function Home() {
         {loading && (
           <div className="space-y-3">
             {[1, 2].map(i => (
-              <div key={i} className="bg-white p-4 rounded-2xl shadow-sm animate-pulse h-24" />
+              <div key={i} className="bg-white p-4 rounded-xl shadow-sm animate-pulse h-24" />
             ))}
           </div>
         )}
@@ -351,20 +351,20 @@ export default function Home() {
         {!loading && upcomingClasses.length === 0 && (
           <>
             {ongoingClasses.length > 0 ? (
-              <div className="bg-white p-6 rounded-2xl shadow-sm text-center">
-                <span className="material-symbols-outlined text-[#003fb1] text-[32px]">schedule</span>
-                <p className="text-[15px] font-semibold text-[#141b2b] mt-2">No more upcoming classes</p>
-                <p className="text-[12px] text-[#434654] mt-0.5">See ongoing class above or completed below</p>
+              <div className="bg-white p-6 rounded-xl shadow-sm text-center">
+                <span className="material-symbols-outlined text-primary text-[32px]">schedule</span>
+                <p className="text-[15px] font-semibold text-on-surface mt-2">No more upcoming classes</p>
+                <p className="text-[12px] text-on-surface-variant mt-0.5">See ongoing class above or completed below</p>
               </div>
             ) : completedClasses.length > 0 ? (
-              <div className="bg-white p-6 rounded-2xl shadow-sm text-center">
-                <span className="material-symbols-outlined text-[#005623] text-[32px]">task_alt</span>
-                <p className="text-[15px] font-semibold text-[#141b2b] mt-2">All classes completed for today!</p>
-                <p className="text-[12px] text-[#434654] mt-0.5">See completed classes below</p>
+              <div className="bg-white p-6 rounded-xl shadow-sm text-center">
+                <span className="material-symbols-outlined text-tertiary text-[32px]">task_alt</span>
+                <p className="text-[15px] font-semibold text-on-surface mt-2">All classes completed for today!</p>
+                <p className="text-[12px] text-on-surface-variant mt-0.5">See completed classes below</p>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                <div className="bg-gradient-to-br from-[#e8eeff] to-[#f1f3ff] px-6 pt-8 pb-6 flex flex-col items-center">
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-br from-surface-container to-surface-container-low px-6 pt-8 pb-6 flex flex-col items-center">
                   <svg viewBox="0 0 200 160" className="w-48 h-36" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <ellipse cx="100" cy="140" rx="90" ry="18" fill="#dbe1ff" opacity="0.5" />
                     <circle cx="160" cy="38" r="20" fill="#fbbf24" opacity="0.9" />
@@ -402,13 +402,13 @@ export default function Home() {
                   </svg>
                 </div>
                 <div className="px-6 py-5 text-center">
-                  <h3 className="text-[17px] font-bold text-[#141b2b]">A free day ahead! ☀️</h3>
-                  <p className="text-[13px] text-[#434654] mt-1.5 leading-relaxed">
+                  <h3 className="text-[17px] font-bold text-on-surface">A free day ahead! ☀️</h3>
+                  <p className="text-[13px] text-on-surface-variant mt-1.5 leading-relaxed">
                     No classes scheduled for today. A great time to plan tomorrow's sessions or catch up on enrollments.
                   </p>
                   <button
                     onClick={() => setShowAddClass(true)}
-                    className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#003fb1] text-white text-[13px] font-semibold active:scale-95 transition-all shadow-sm"
+                    className="mt-4 inline-flex items-center justify-center gap-2 px-4 h-11 rounded-xl bg-primary text-on-primary text-[13px] font-semibold active:scale-95 transition-all shadow-sm"
                   >
                     <span className="material-symbols-outlined text-[18px]">add_circle</span>
                     Log a Class
@@ -426,15 +426,15 @@ export default function Home() {
 
           if (isUpNext) {
             return (
-              <div key={cls.id} className="bg-white p-4 rounded-2xl shadow-sm border border-[#dbe1ff] flex flex-col space-y-3">
+              <div key={cls.id} className="bg-white p-4 rounded-xl shadow-sm border border-primary-fixed flex flex-col space-y-3">
                 {/* UP NEXT Badge Header */}
                 <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#e1e8fd] text-[#003fb1] text-[11px] font-bold tracking-wide uppercase">
-                    <span className="w-2 h-2 rounded-full bg-[#003fb1]"></span>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-primary text-[11px] font-bold tracking-wide uppercase">
+                    <span className="w-2 h-2 rounded-full bg-primary"></span>
                     <span>UP NEXT • {cls.start_time ? formatTime(cls.start_time) : ''}{cls.end_time ? ` - ${formatTime(cls.end_time)}` : ''}</span>
                   </div>
                   {cls.amount_pending > 0 && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#ffdad6] text-[#ba1a1a] text-[12px] font-semibold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">
                       Due ₹{cls.amount_pending.toLocaleString('en-IN')}
                     </span>
                   )}
@@ -442,25 +442,25 @@ export default function Home() {
 
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-[#003fb1] flex items-center justify-center text-[16px] font-bold text-white shadow-sm">
+                    <div className="w-11 h-11 rounded-full bg-primary flex items-center justify-center text-[16px] font-bold text-on-primary shadow-sm">
                       {getInitials(cls.full_name)}
                     </div>
                     <div className="flex flex-col">
                       <span
-                        className="text-[15px] font-bold text-[#141b2b] cursor-pointer hover:text-[#003fb1]"
+                        className="text-[15px] font-bold text-on-surface cursor-pointer hover:text-primary"
                         onClick={() => navigate(`/customers/${cls.customer_id}`)}
                       >
                         {cls.full_name}
                       </span>
-                      <span className="text-[12px] text-[#434654] mt-0.5">
+                      <span className="text-[12px] text-on-surface-variant mt-0.5">
                         Class {cls.classes_completed + 1} of {cls.package_classes}
                         {cls.notes ? ` • ${cls.notes}` : ' • Practical Drive'}
                       </span>
                     </div>
                   </div>
                   {cls.location && (
-                    <div className="flex items-center gap-0.5 text-[#434654] bg-[#f1f3ff] px-2 py-1 rounded-lg">
-                      <span className="material-symbols-outlined text-[14px] text-[#003fb1]">location_on</span>
+                    <div className="flex items-center gap-0.5 text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">
+                      <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
                       <span className="text-[11px] font-medium max-w-[120px] truncate">{cls.location}</span>
                     </div>
                   )}
@@ -472,7 +472,7 @@ export default function Home() {
                     <button
                       onClick={() => markDone(cls.id)}
                       disabled={markingDone === cls.id}
-                      className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-[#003fb1] text-white rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
+                      className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-primary text-on-primary rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
                     >
                       {markingDone === cls.id ? (
                         <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
@@ -483,7 +483,7 @@ export default function Home() {
                   ) : (
                     <button
                       disabled
-                      className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-[#f1f3ff] text-[#737686] rounded-xl text-[13px] font-medium opacity-70 cursor-not-allowed"
+                      className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-surface-container text-outline rounded-xl text-[13px] font-medium opacity-70 cursor-not-allowed"
                       title={`Cannot mark done before scheduled time (${cls.start_time ? formatTime(cls.start_time) : ''})`}
                     >
                       <span className="material-symbols-outlined text-[18px]">lock_clock</span>
@@ -495,7 +495,7 @@ export default function Home() {
                   {hasPhone ? (
                     <a
                       href={`tel:${cls.phone_number}`}
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#e9edff] text-[#003fb1] hover:bg-[#dbe1ff] active:scale-95 transition-all shrink-0 shadow-sm"
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-primary-fixed text-primary hover:bg-primary-fixed-dim active:scale-95 transition-all shrink-0 shadow-sm"
                       title={`Call ${cls.full_name}`}
                     >
                       <span className="material-symbols-outlined text-[20px]">call</span>
@@ -503,7 +503,7 @@ export default function Home() {
                   ) : (
                     <button
                       disabled
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#f1f3ff] text-[#737686] opacity-40 cursor-not-allowed shrink-0"
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
                       title="Phone number not available"
                     >
                       <span className="material-symbols-outlined text-[20px]">call</span>
@@ -516,7 +516,7 @@ export default function Home() {
                       href={getWhatsAppUrl(cls.phone_number)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#e8f5e9] text-[#1b5e20] hover:bg-[#c8e6c9] active:scale-95 transition-all shrink-0 shadow-sm"
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-tertiary-fixed/30 text-tertiary hover:bg-tertiary-fixed/50 active:scale-95 transition-all shrink-0 shadow-sm"
                       title={`WhatsApp ${cls.full_name}`}
                     >
                       <WhatsAppIcon className="w-5 h-5" />
@@ -524,7 +524,7 @@ export default function Home() {
                   ) : (
                     <button
                       disabled
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#f1f3ff] text-[#737686] opacity-40 cursor-not-allowed shrink-0"
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
                       title="Phone number not available"
                     >
                       <WhatsAppIcon className="w-5 h-5" />
@@ -537,20 +537,20 @@ export default function Home() {
 
           // Regular scheduled card
           return (
-            <div key={cls.id} className="bg-white p-4 rounded-2xl shadow-sm flex flex-col space-y-3">
+            <div key={cls.id} className="bg-white p-4 rounded-xl shadow-sm flex flex-col space-y-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#e1e8fd] flex items-center justify-center text-[16px] font-semibold text-[#003fb1]">
+                  <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-[16px] font-semibold text-primary">
                     {getInitials(cls.full_name)}
                   </div>
                   <div className="flex flex-col">
                     <span
-                      className="text-[14px] font-semibold text-[#141b2b] cursor-pointer hover:text-[#003fb1]"
+                      className="text-[14px] font-semibold text-on-surface cursor-pointer hover:text-primary"
                       onClick={() => navigate(`/customers/${cls.customer_id}`)}
                     >
                       {cls.full_name}
                     </span>
-                    <span className="text-[11px] text-[#434654] mt-0.5">
+                    <span className="text-[11px] text-on-surface-variant mt-0.5">
                       Class {cls.classes_completed + 1} of {cls.package_classes}
                     </span>
                   </div>
@@ -558,8 +558,8 @@ export default function Home() {
                 <div className="flex flex-col items-end gap-1">
                   {statusBadge(cls.status)}
                   {cls.location && (
-                    <div className="flex items-center gap-0.5 text-[#434654] mt-0.5">
-                      <span className="material-symbols-outlined text-[13px] text-[#003fb1]">location_on</span>
+                    <div className="flex items-center gap-0.5 text-on-surface-variant mt-0.5">
+                      <span className="material-symbols-outlined text-[13px] text-primary">location_on</span>
                       <span className="text-[11px] font-medium max-w-[140px] truncate text-right">{cls.location}</span>
                     </div>
                   )}
@@ -567,15 +567,15 @@ export default function Home() {
               </div>
 
               {/* Time row */}
-              <div className="flex items-center justify-between bg-[#f1f3ff] px-3 py-2 rounded-lg">
-                <div className="flex items-center gap-2 text-[#434654]">
+              <div className="flex items-center justify-between bg-surface-container px-3 py-2 rounded-xl">
+                <div className="flex items-center gap-2 text-on-surface-variant">
                   <span className="material-symbols-outlined text-[16px]">schedule</span>
-                  <span className="text-[13px] font-medium text-[#141b2b]">
+                  <span className="text-[13px] font-medium text-on-surface">
                     {cls.start_time ? formatTime(cls.start_time) : 'Time TBD'}{cls.end_time ? ` - ${formatTime(cls.end_time)}` : ''}
                   </span>
                 </div>
                 {cls.amount_pending > 0 && (
-                  <span className="text-[11px] text-[#ba1a1a] font-semibold">
+                  <span className="text-[11px] text-error font-semibold">
                     Fee Pending: ₹{cls.amount_pending.toLocaleString('en-IN')}
                   </span>
                 )}
@@ -587,7 +587,7 @@ export default function Home() {
                   <button
                     onClick={() => markDone(cls.id)}
                     disabled={markingDone === cls.id}
-                    className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-[#003fb1] text-white rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
+                    className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-primary text-on-primary rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
                   >
                     {markingDone === cls.id ? (
                       <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
@@ -598,7 +598,7 @@ export default function Home() {
                 ) : (
                   <button
                     disabled
-                    className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-[#f1f3ff] text-[#737686] rounded-xl text-[13px] font-medium opacity-70 cursor-not-allowed"
+                    className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-surface-container text-outline rounded-xl text-[13px] font-medium opacity-70 cursor-not-allowed"
                     title={`Cannot mark done before scheduled time (${cls.start_time ? formatTime(cls.start_time) : ''})`}
                   >
                     <span className="material-symbols-outlined text-[18px]">lock_clock</span>
@@ -610,7 +610,7 @@ export default function Home() {
                 {hasPhone ? (
                   <a
                     href={`tel:${cls.phone_number}`}
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#e9edff] text-[#003fb1] hover:bg-[#dbe1ff] active:scale-95 transition-all shrink-0 shadow-sm"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-primary-fixed text-primary hover:bg-primary-fixed-dim active:scale-95 transition-all shrink-0 shadow-sm"
                     title={`Call ${cls.full_name}`}
                   >
                     <span className="material-symbols-outlined text-[20px]">call</span>
@@ -618,7 +618,7 @@ export default function Home() {
                 ) : (
                   <button
                     disabled
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#f1f3ff] text-[#737686] opacity-40 cursor-not-allowed shrink-0"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
                     title="Phone number not available"
                   >
                     <span className="material-symbols-outlined text-[20px]">call</span>
@@ -631,7 +631,7 @@ export default function Home() {
                     href={getWhatsAppUrl(cls.phone_number)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#e8f5e9] text-[#1b5e20] hover:bg-[#c8e6c9] active:scale-95 transition-all shrink-0 shadow-sm"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-tertiary-fixed/30 text-tertiary hover:bg-tertiary-fixed/50 active:scale-95 transition-all shrink-0 shadow-sm"
                     title={`WhatsApp ${cls.full_name}`}
                   >
                     <WhatsAppIcon className="w-5 h-5" />
@@ -639,7 +639,7 @@ export default function Home() {
                 ) : (
                   <button
                     disabled
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#f1f3ff] text-[#737686] opacity-40 cursor-not-allowed shrink-0"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
                     title="Phone number not available"
                   >
                     <WhatsAppIcon className="w-5 h-5" />
@@ -655,8 +655,8 @@ export default function Home() {
       {!loading && completedClasses.length > 0 && (
         <div className="flex flex-col space-y-3 pt-2">
           <div className="flex items-center gap-2 pt-1 px-0.5">
-            <h2 className="text-[16px] font-semibold text-[#141b2b]">Completed Classes</h2>
-            <span className="px-2 py-0.5 rounded-full bg-[#6bff8f]/30 text-[#005623] text-[12px] font-semibold">
+            <h2 className="text-[16px] font-semibold text-on-surface">Completed Classes</h2>
+            <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed/30 text-tertiary text-[12px] font-semibold">
               {completedClasses.length}
             </span>
           </div>
@@ -664,20 +664,20 @@ export default function Home() {
           {completedClasses.map(cls => {
             const hasPhone = isValidPhone(cls.phone_number)
             return (
-              <div key={cls.id} className="bg-white p-4 rounded-2xl shadow-sm flex flex-col space-y-3 opacity-90">
+              <div key={cls.id} className="bg-white p-4 rounded-xl shadow-sm flex flex-col space-y-3 opacity-90">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#6bff8f]/30 flex items-center justify-center text-[16px] font-semibold text-[#005623]">
+                    <div className="w-10 h-10 rounded-full bg-tertiary-fixed/30 flex items-center justify-center text-[16px] font-semibold text-tertiary">
                       {getInitials(cls.full_name)}
                     </div>
                     <div className="flex flex-col">
                       <span
-                        className="text-[14px] font-semibold text-[#141b2b] cursor-pointer hover:text-[#003fb1]"
+                        className="text-[14px] font-semibold text-on-surface cursor-pointer hover:text-primary"
                         onClick={() => navigate(`/customers/${cls.customer_id}`)}
                       >
                         {cls.full_name}
                       </span>
-                      <span className="text-[11px] text-[#434654] mt-0.5">
+                      <span className="text-[11px] text-on-surface-variant mt-0.5">
                         Class {cls.classes_completed} of {cls.package_classes}
                       </span>
                     </div>
@@ -685,8 +685,8 @@ export default function Home() {
                   <div className="flex flex-col items-end gap-1">
                     {statusBadge('done')}
                     {cls.location && (
-                      <div className="flex items-center gap-0.5 text-[#434654] mt-0.5">
-                        <span className="material-symbols-outlined text-[13px] text-[#003fb1]">location_on</span>
+                      <div className="flex items-center gap-0.5 text-on-surface-variant mt-0.5">
+                        <span className="material-symbols-outlined text-[13px] text-primary">location_on</span>
                         <span className="text-[11px] font-medium max-w-[140px] truncate text-right">{cls.location}</span>
                       </div>
                     )}
@@ -694,15 +694,15 @@ export default function Home() {
                 </div>
 
                 {/* Time row */}
-                <div className="flex items-center justify-between bg-[#f1f3ff] px-3 py-2 rounded-lg">
-                  <div className="flex items-center gap-2 text-[#434654]">
+                <div className="flex items-center justify-between bg-surface-container px-3 py-2 rounded-xl">
+                  <div className="flex items-center gap-2 text-on-surface-variant">
                     <span className="material-symbols-outlined text-[16px]">schedule</span>
-                    <span className="text-[13px] font-medium text-[#141b2b]">
+                    <span className="text-[13px] font-medium text-on-surface">
                       {cls.start_time ? formatTime(cls.start_time) : 'Time TBD'}
                     </span>
                   </div>
                   {cls.amount_pending > 0 && (
-                    <span className="text-[11px] text-[#ba1a1a] font-semibold">
+                    <span className="text-[11px] text-error font-semibold">
                       Fee Pending: ₹{cls.amount_pending.toLocaleString('en-IN')}
                     </span>
                   )}
@@ -711,14 +711,14 @@ export default function Home() {
                 {/* Contact actions for completed class */}
                 {hasPhone && (
                   <div className="flex items-center justify-between pt-0.5">
-                    <div className="flex items-center gap-1.5 text-[#005623] text-[13px] font-medium">
+                    <div className="flex items-center gap-1.5 text-tertiary text-[13px] font-medium">
                       <span className="material-symbols-outlined text-[18px]">check_circle</span>
                       <span>Class Completed</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <a
                         href={`tel:${cls.phone_number}`}
-                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#e9edff] text-[#003fb1] hover:bg-[#dbe1ff] active:scale-95 transition-all shadow-sm"
+                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-primary-fixed text-primary hover:bg-primary-fixed-dim active:scale-95 transition-all shadow-sm"
                         title={`Call ${cls.full_name}`}
                       >
                         <span className="material-symbols-outlined text-[18px]">call</span>
@@ -727,7 +727,7 @@ export default function Home() {
                         href={getWhatsAppUrl(cls.phone_number)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#e8f5e9] text-[#1b5e20] hover:bg-[#c8e6c9] active:scale-95 transition-all shadow-sm"
+                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-tertiary-fixed/30 text-tertiary hover:bg-tertiary-fixed/50 active:scale-95 transition-all shadow-sm"
                         title={`WhatsApp ${cls.full_name}`}
                       >
                         <WhatsAppIcon className="w-4 h-4" />

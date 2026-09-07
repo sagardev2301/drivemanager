@@ -100,8 +100,8 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-[20px] font-semibold text-[#141b2b]">{mode === 'schedule' ? 'Schedule a Class' : 'Log a Class'}</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-[#434654] hover:bg-[#e9edff]">
+          <h2 className="text-[20px] font-semibold text-on-surface">{mode === 'schedule' ? 'Schedule a Class' : 'Log a Class'}</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container">
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
@@ -109,11 +109,11 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {!defaultCustomerId && (
             <div>
-              <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Customer *</label>
+              <label className="text-[11px] text-on-surface-variant block mb-1 uppercase tracking-wider">Customer *</label>
               <select
                 value={form.customer_id}
                 onChange={e => set('customer_id', e.target.value)}
-                className={`w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all ${errors.customer_id ? 'border border-[#ba1a1a]' : ''}`}
+                className={`w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-[14px] focus:outline-none focus:bg-white transition-all ${errors.customer_id ? 'border border-error' : ''}`}
               >
                 <option value="">Select customer...</option>
                 {customers.map(c => (
@@ -123,55 +123,55 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
                 ))}
               </select>
               {errors.customer_id && (
-                <p className="text-[12px] text-[#ba1a1a] mt-1">{errors.customer_id}</p>
+                <p className="text-[12px] text-error mt-1">{errors.customer_id}</p>
               )}
             </div>
           )}
           <div>
-            <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Date *</label>
+            <label className="text-[11px] text-on-surface-variant block mb-1 uppercase tracking-wider">Date *</label>
             <input
               type="date"
               value={form.class_date}
               onChange={e => set('class_date', e.target.value)}
-              className={`w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all ${errors.class_date ? 'border border-[#ba1a1a]' : ''}`}
+              className={`w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-[14px] focus:outline-none focus:bg-white transition-all ${errors.class_date ? 'border border-error' : ''}`}
             />
             {errors.class_date && (
-              <p className="text-[12px] text-[#ba1a1a] mt-1">{errors.class_date}</p>
+              <p className="text-[12px] text-error mt-1">{errors.class_date}</p>
             )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Start Time *</label>
+              <label className="text-[11px] text-on-surface-variant block mb-1 uppercase tracking-wider">Start Time *</label>
               <input
                 type="time"
                 value={form.start_time}
                 onChange={e => set('start_time', e.target.value)}
-                className={`w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all ${errors.start_time ? 'border border-[#ba1a1a]' : ''}`}
+                className={`w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-[14px] focus:outline-none focus:bg-white transition-all ${errors.start_time ? 'border border-error' : ''}`}
               />
               {errors.start_time && (
-                <p className="text-[12px] text-[#ba1a1a] mt-1">{errors.start_time}</p>
+                <p className="text-[12px] text-error mt-1">{errors.start_time}</p>
               )}
             </div>
             <div>
-              <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">End Time</label>
+              <label className="text-[11px] text-on-surface-variant block mb-1 uppercase tracking-wider">End Time</label>
               <input
                 type="time"
                 value={form.end_time}
                 onChange={e => set('end_time', e.target.value)}
-                className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all"
+                className="w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-[14px] focus:outline-none focus:bg-white transition-all"
               />
             </div>
           </div>
           {mode !== 'schedule' && (
             <div>
-              <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Status</label>
+              <label className="text-[11px] text-on-surface-variant block mb-1 uppercase tracking-wider">Status</label>
               <div className="grid grid-cols-2 gap-2">
                 {(['scheduled', 'done'] as const).map(s => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => set('status', s)}
-                    className={`h-10 rounded-lg text-[12px] font-semibold transition-all ${form.status === s ? 'bg-[#003fb1] text-white' : 'bg-[#f1f3ff] text-[#141b2b]'}`}
+                    className={`h-9 rounded-xl text-[12px] font-semibold transition-all ${form.status === s ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface'}`}
                   >
                     {s === 'scheduled' ? 'Scheduled' : 'Mark Done'}
                   </button>
@@ -180,18 +180,18 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
             </div>
           )}
           <div>
-            <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Notes (optional)</label>
+            <label className="text-[11px] text-on-surface-variant block mb-1 uppercase tracking-wider">Notes (optional)</label>
             <input
               type="text"
               value={form.notes}
               onChange={e => set('notes', e.target.value)}
               placeholder="Eg. Parking practice"
-              className="w-full h-11 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[14px] focus:outline-none focus:bg-white transition-all placeholder:text-[#737686]"
+              className="w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-[14px] focus:outline-none focus:bg-white transition-all placeholder:text-outline"
             />
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 bg-[#ffdad6] text-[#93000a] px-3 py-2 rounded-xl text-[13px]">
+            <div className="flex items-center gap-2 bg-error-container text-on-error-container px-3 py-2 rounded-xl text-[13px]">
               <span className="material-symbols-outlined text-[16px]">error</span>
               <span>{error}</span>
             </div>
@@ -200,7 +200,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
           <button
             type="submit"
             disabled={saving}
-            className="w-full h-12 mt-1 bg-[#003fb1] text-white rounded-xl text-[14px] font-semibold flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all disabled:opacity-60"
+            className="w-full h-11 mt-1 bg-primary text-on-primary rounded-xl text-[14px] font-semibold flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all disabled:opacity-60"
           >
             {saving ? (
               <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>

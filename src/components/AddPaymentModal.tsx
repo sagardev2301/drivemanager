@@ -69,16 +69,16 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
       >
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-[20px] font-semibold text-[#141b2b]">Record Payment</h2>
-            <p className="text-[13px] text-[#434654] mt-0.5">For {customerName}</p>
+            <h2 className="text-[20px] font-semibold text-on-surface">Record Payment</h2>
+            <p className="text-[13px] text-on-surface-variant mt-0.5">For {customerName}</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-[#434654] hover:bg-[#e9edff]">
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container">
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
 
         {amountPending > 0 && (
-          <div className="flex items-center gap-2 bg-[#b5c4ff]/20 text-[#1a3f9c] px-3 py-2 rounded-xl text-[13px] mb-4">
+          <div className="flex items-center gap-2 bg-primary-fixed-dim/20 text-on-secondary-fixed-variant px-3 py-2 rounded-xl text-[13px] mb-4">
             <span className="material-symbols-outlined text-[16px]">info</span>
             <span>Outstanding balance: ₹{amountPending.toLocaleString('en-IN')}</span>
           </div>
@@ -86,7 +86,7 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="text-[11px] text-[#434654] block mb-1 uppercase tracking-wider">Amount Received (₹) *</label>
+            <label className="text-[11px] text-on-surface-variant block mb-1 uppercase tracking-wider">Amount Received (₹) *</label>
             <input
               type="number"
               required
@@ -98,18 +98,18 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
                 setError('')
               }}
               placeholder="0"
-              className="w-full h-12 px-3 rounded-xl bg-[#f1f3ff] text-[#141b2b] text-[20px] font-bold focus:outline-none focus:bg-white transition-all placeholder:text-[#737686] placeholder:font-normal placeholder:text-[14px]"
+              className="w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-[20px] font-bold focus:outline-none focus:bg-white transition-all placeholder:text-outline placeholder:font-normal placeholder:text-[14px]"
             />
           </div>
           <div>
-            <label className="text-[11px] text-[#434654] block mb-2 uppercase tracking-wider">Payment Mode *</label>
+            <label className="text-[11px] text-on-surface-variant block mb-2 uppercase tracking-wider">Payment Mode *</label>
             <div className="grid grid-cols-3 gap-2">
               {MODES.map(m => (
                 <button
                   key={m.key}
                   type="button"
                   onClick={() => setMode(m.key)}
-                  className={`h-10 rounded-lg text-[12px] font-semibold transition-all active:scale-95 ${mode === m.key ? 'bg-[#003fb1] text-white' : 'bg-[#f1f3ff] text-[#141b2b]'}`}
+                  className={`h-9 rounded-xl text-[12px] font-semibold transition-all active:scale-95 ${mode === m.key ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface'}`}
                 >
                   {m.label}
                 </button>
@@ -118,7 +118,7 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 bg-[#ffdad6] text-[#93000a] px-3 py-2 rounded-xl text-[13px]">
+            <div className="flex items-center gap-2 bg-error-container text-on-error-container px-3 py-2 rounded-xl text-[13px]">
               <span className="material-symbols-outlined text-[16px]">error</span>
               <span>{error}</span>
             </div>
@@ -127,7 +127,7 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
           <button
             type="submit"
             disabled={saving}
-            className="w-full h-12 mt-1 bg-[#003fb1] text-white rounded-xl text-[14px] font-semibold flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all disabled:opacity-60"
+            className="w-full h-11 mt-1 bg-primary text-on-primary rounded-xl text-[14px] font-semibold flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all disabled:opacity-60"
           >
             {saving ? (
               <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>

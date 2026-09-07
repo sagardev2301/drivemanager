@@ -42,12 +42,12 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f9f9ff] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#003fb1] flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center">
             <span className="material-symbols-outlined text-white text-[24px] animate-spin">refresh</span>
           </div>
-          <span className="text-[13px] text-[#434654]">Loading...</span>
+          <span className="text-[13px] text-on-surface-variant">Loading...</span>
         </div>
       </div>
     )

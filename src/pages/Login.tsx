@@ -31,7 +31,7 @@ export default function Login() {
         </div>
 
         {/* Login Card */}
-        <div className="bg-surface-container-lowest rounded-2xl shadow-sm p-6">
+        <div className="bg-surface-container-lowest rounded-xl shadow-sm p-6">
           <h2 className="text-headline-sm font-semibold text-on-surface mb-1">Sign in</h2>
           <p className="text-body-sm text-on-surface-variant mb-6">Enter your instructor credentials</p>
 
@@ -44,7 +44,7 @@ export default function Login() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@drivingschool.com"
-                className="w-full h-11 px-3 rounded-lg bg-surface-container-low text-on-surface text-body-base focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-outline-variant/30"
+                className="w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-body-base focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-outline-variant/30"
               />
             </div>
             <div>
@@ -55,12 +55,12 @@ export default function Login() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full h-11 px-3 rounded-lg bg-surface-container-low text-on-surface text-body-base focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-outline-variant/30"
+                className="w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-body-base focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-outline-variant/30"
               />
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 bg-error-container text-on-error-container px-3 py-2 rounded-lg text-body-sm">
+              <div className="flex items-center gap-2 bg-error-container text-on-error-container px-3 py-2 rounded-xl text-body-sm">
                 <span className="material-symbols-outlined text-[16px]">error</span>
                 <span>{error}</span>
               </div>
@@ -69,7 +69,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-primary hover:bg-primary-container text-on-primary rounded-xl font-semibold text-body-base flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
+              className="w-full h-11 bg-primary hover:bg-primary-container text-on-primary rounded-xl font-semibold text-body-base flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
             >
               {loading ? (
                 <>

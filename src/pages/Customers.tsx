@@ -124,16 +124,16 @@ export default function Customers() {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   function paymentBadge(c: CustomerSummary) {
-    if (c.amount_pending <= 0) return <span className="shrink-0 whitespace-nowrap inline-flex items-center px-2.5 py-1 rounded-full bg-[#6bff8f]/30 text-[#005321] text-[12px] font-semibold">Fully Paid</span>
-    if (c.payment_status === 'partial') return <span className="shrink-0 whitespace-nowrap inline-flex items-center px-2.5 py-1 rounded-full bg-[#b5c4ff]/40 text-[#1a3f9c] text-[12px] font-semibold">₹{c.amount_pending.toLocaleString('en-IN')} Pending</span>
-    return <span className="shrink-0 whitespace-nowrap inline-flex items-center px-2.5 py-1 rounded-full bg-[#ffdad6] text-[#93000a] text-[12px] font-semibold">₹{c.amount_pending.toLocaleString('en-IN')} Pending</span>
+    if (c.amount_pending <= 0) return <span className="shrink-0 whitespace-nowrap inline-flex items-center px-2.5 py-1 rounded-full bg-tertiary-fixed/30 text-on-tertiary-fixed-variant text-[12px] font-semibold">Fully Paid</span>
+    if (c.payment_status === 'partial') return <span className="shrink-0 whitespace-nowrap inline-flex items-center px-2.5 py-1 rounded-full bg-primary-fixed-dim/40 text-on-secondary-fixed-variant text-[12px] font-semibold">₹{c.amount_pending.toLocaleString('en-IN')} Pending</span>
+    return <span className="shrink-0 whitespace-nowrap inline-flex items-center px-2.5 py-1 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">₹{c.amount_pending.toLocaleString('en-IN')} Pending</span>
   }
 
   const progressBarColor: Record<string, string> = {
-    active: 'bg-[#003fb1]', completed: 'bg-[#005623]', dropped: 'bg-[#ba1a1a]',
+    active: 'bg-primary', completed: 'bg-tertiary', dropped: 'bg-error',
   }
   const progressLabelColor: Record<string, string> = {
-    active: 'text-[#141b2b]', completed: 'text-[#005623]', dropped: 'text-[#ba1a1a]',
+    active: 'text-on-surface', completed: 'text-tertiary', dropped: 'text-error',
   }
 
   const pills: { key: FilterKey; label: string }[] = [
@@ -145,7 +145,7 @@ export default function Customers() {
 
   return (
     <div
-      className="fixed inset-x-0 flex flex-col bg-[#f9f9ff] z-10 overflow-hidden"
+      className="fixed inset-x-0 flex flex-col bg-background z-10 overflow-hidden"
       style={{
         top: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
         bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))',
@@ -157,12 +157,12 @@ export default function Customers() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-[20px] font-semibold text-[#141b2b] tracking-tight">Enrolled Customers</h1>
-              <p className="text-[11px] text-[#434654] mt-0.5">Manage training records &amp; fee dues</p>
+              <h1 className="text-[20px] font-semibold text-on-surface tracking-tight">Enrolled Customers</h1>
+              <p className="text-[11px] text-on-surface-variant mt-0.5">Manage training records &amp; fee dues</p>
             </div>
             <button
               onClick={() => setShowAddCustomer(true)}
-              className="flex items-center gap-1 bg-[#003fb1] text-white px-4 py-2 rounded-2xl shadow-sm active:scale-95 transition-all"
+              className="flex items-center gap-1 h-11 bg-primary text-on-primary px-4 rounded-xl shadow-sm active:scale-95 transition-all"
             >
               <span className="material-symbols-outlined text-[18px]">person_add</span>
               <span className="text-[14px] font-semibold">+ Add</span>
@@ -171,11 +171,11 @@ export default function Customers() {
 
           {/* Search Bar */}
           <div className="relative w-full">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#737686]">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-outline">
               <span className="material-symbols-outlined text-[20px]">search</span>
             </div>
             <input
-              className="w-full h-11 pl-10 pr-10 rounded-2xl bg-white text-[#141b2b] placeholder:text-[#737686] text-[14px] shadow-sm focus:outline-none focus:bg-white transition-colors"
+              className="w-full h-11 pl-10 pr-10 rounded-xl bg-white text-on-surface placeholder:text-outline text-[14px] shadow-sm focus:outline-none focus:bg-white transition-colors"
               placeholder="Search by name or phone..."
               type="text"
               value={search}
@@ -183,7 +183,7 @@ export default function Customers() {
             />
             {search && (
               <button
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#737686]"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-outline"
                 onClick={() => { setSearch(''); setDebouncedSearch('') }}
               >
                 <span className="material-symbols-outlined text-[18px]">cancel</span>
@@ -198,7 +198,7 @@ export default function Customers() {
                 key={p.key}
                 onClick={() => setFilter(p.key)}
                 className={`shrink-0 px-4 py-2 rounded-full text-[12px] font-semibold transition-all active:scale-95 ${
-                  filter === p.key ? 'bg-[#003fb1] text-white shadow-sm' : 'bg-[#e9edff] text-[#434654]'
+                  filter === p.key ? 'bg-primary text-on-primary shadow-sm' : 'bg-surface-container text-on-surface-variant'
                 }`}
               >
                 {p.label}
@@ -208,7 +208,7 @@ export default function Customers() {
 
           {/* Result summary */}
           {!loadingPage && (
-            <p className="text-[11px] text-[#737686] -mt-1">
+            <p className="text-[11px] text-outline -mt-1">
               {debouncedSearch
                 ? `${totalCount} result${totalCount !== 1 ? 's' : ''} for "${debouncedSearch}"`
                 : `Showing ${customers.length} of ${totalCount} customers`}
@@ -219,13 +219,13 @@ export default function Customers() {
         {/* Scrollable Customer Cards List */}
         <div ref={listRef} className="flex-1 overflow-y-auto space-y-3 pb-24 min-h-0 -mx-1 px-1">
           {loadingPage && [1, 2, 3].map(i => (
-            <div key={i} className="bg-white p-4 rounded-2xl shadow-sm animate-pulse h-28" />
+            <div key={i} className="bg-white p-4 rounded-xl shadow-sm animate-pulse h-28" />
           ))}
 
           {!loadingPage && customers.length === 0 && (
-            <div className="bg-white p-6 rounded-2xl shadow-sm text-center">
-              <span className="material-symbols-outlined text-[#737686] text-[32px]">person_search</span>
-              <p className="text-[14px] text-[#434654] mt-2">No customers found</p>
+            <div className="bg-white p-6 rounded-xl shadow-sm text-center">
+              <span className="material-symbols-outlined text-outline text-[32px]">person_search</span>
+              <p className="text-[14px] text-on-surface-variant mt-2">No customers found</p>
             </div>
           )}
 
@@ -235,27 +235,27 @@ export default function Customers() {
               <div
                 key={c.customer_id}
                 onClick={() => navigate(`/customers/${c.customer_id}`)}
-                className="bg-white rounded-2xl p-4 shadow-sm active:bg-[#f1f3ff] transition-all cursor-pointer"
+                className="bg-white rounded-xl p-4 shadow-sm active:bg-surface-container-low transition-all cursor-pointer"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className={c.course_status === 'completed' ? 'w-11 h-11 rounded-full flex items-center justify-center text-[14px] font-semibold shrink-0 bg-[#e9edff] text-[#005623]' : 'w-11 h-11 rounded-full flex items-center justify-center text-[14px] font-semibold shrink-0 bg-[#e9edff] text-[#003fb1]'}>
+                    <div className={c.course_status === 'completed' ? 'w-11 h-11 rounded-full flex items-center justify-center text-[14px] font-semibold shrink-0 bg-surface-container text-tertiary' : 'w-11 h-11 rounded-full flex items-center justify-center text-[14px] font-semibold shrink-0 bg-surface-container text-primary'}>
                       {getInitials(c.full_name)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1 min-w-0">
-                        <h2 className="text-[16px] font-semibold text-[#141b2b] truncate" title={c.full_name}>{c.full_name}</h2>
+                        <h2 className="text-[16px] font-semibold text-on-surface truncate" title={c.full_name}>{c.full_name}</h2>
                         {c.course_status === 'completed' && (
-                          <span className="material-symbols-outlined text-[#005623] text-[16px] shrink-0">check_circle</span>
+                          <span className="material-symbols-outlined text-tertiary text-[16px] shrink-0">check_circle</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 text-[#434654] mt-0.5 min-w-0">
+                      <div className="flex items-center gap-1 text-on-surface-variant mt-0.5 min-w-0">
                         <span className="material-symbols-outlined text-[14px] shrink-0">phone</span>
                         <span className="text-[11px] tracking-wide truncate">{c.phone_number}</span>
                       </div>
                       {c.location && (
-                        <div className="flex items-center gap-1 text-[#434654] mt-0.5 min-w-0">
-                          <span className="material-symbols-outlined text-[14px] text-[#003fb1] shrink-0">location_on</span>
+                        <div className="flex items-center gap-1 text-on-surface-variant mt-0.5 min-w-0">
+                          <span className="material-symbols-outlined text-[14px] text-primary shrink-0">location_on</span>
                           <span className="text-[11px] tracking-wide truncate">{c.location}</span>
                         </div>
                       )}
@@ -268,18 +268,18 @@ export default function Customers() {
                 <div className="mt-4 pt-1 flex items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[11px] text-[#434654]">
+                      <span className="text-[11px] text-on-surface-variant">
                         {c.course_status === 'completed' ? 'Course Complete' : 'Training Progress'}
                       </span>
-                      <span className={progressLabelColor[c.course_status] ?? 'text-[#141b2b]'} style={{ fontSize: '14px', fontWeight: 600 }}>
+                      <span className={progressLabelColor[c.course_status] ?? 'text-on-surface'} style={{ fontSize: '14px', fontWeight: 600 }}>
                         {c.classes_completed} / {c.package_classes} classes
                       </span>
                     </div>
-                    <div className="w-full h-1.5 bg-[#e9edff] rounded-full overflow-hidden">
-                      <div className={progressBarColor[c.course_status] ?? 'bg-[#003fb1]'} style={{ width: `${progress}%`, height: '100%', borderRadius: '9999px' }} />
+                    <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+                      <div className={progressBarColor[c.course_status] ?? 'bg-primary'} style={{ width: `${progress}%`, height: '100%', borderRadius: '9999px' }} />
                     </div>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-[#f1f3ff] flex items-center justify-center text-[#434654] shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant shrink-0">
                     <span className="material-symbols-outlined text-[20px]">chevron_right</span>
                   </div>
                 </div>
@@ -309,7 +309,7 @@ export default function Customers() {
                 <button
                   onClick={() => goToPage(page - 1)}
                   disabled={page === 0}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#f1f3ff] text-[#003fb1] disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-primary disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
                   aria-label="Previous page"
                 >
                   <span className="material-symbols-outlined text-[20px]">chevron_left</span>
@@ -318,8 +318,8 @@ export default function Customers() {
                 {/* First page + ellipsis */}
                 {startPage > 0 && (
                   <>
-                    <button onClick={() => goToPage(0)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-[#f1f3ff] text-[#434654] active:scale-95 transition-all">1</button>
-                    {startPage > 1 && <span className="text-[#737686] text-[13px] px-0.5">…</span>}
+                    <button onClick={() => goToPage(0)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-surface-container-low text-on-surface-variant active:scale-95 transition-all">1</button>
+                    {startPage > 1 && <span className="text-outline text-[13px] px-0.5">…</span>}
                   </>
                 )}
 
@@ -330,8 +330,8 @@ export default function Customers() {
                     onClick={() => goToPage(p)}
                     className={`w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold transition-all active:scale-95 ${
                       p === page
-                        ? 'bg-[#003fb1] text-white shadow-sm'
-                        : 'bg-[#f1f3ff] text-[#434654]'
+                        ? 'bg-primary text-on-primary shadow-sm'
+                        : 'bg-surface-container-low text-on-surface-variant'
                     }`}
                   >
                     {p + 1}
@@ -341,8 +341,8 @@ export default function Customers() {
                 {/* Ellipsis + last page */}
                 {endPage < totalPages - 1 && (
                   <>
-                    {endPage < totalPages - 2 && <span className="text-[#737686] text-[13px] px-0.5">…</span>}
-                    <button onClick={() => goToPage(totalPages - 1)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-[#f1f3ff] text-[#434654] active:scale-95 transition-all">{totalPages}</button>
+                    {endPage < totalPages - 2 && <span className="text-outline text-[13px] px-0.5">…</span>}
+                    <button onClick={() => goToPage(totalPages - 1)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-surface-container-low text-on-surface-variant active:scale-95 transition-all">{totalPages}</button>
                   </>
                 )}
 
@@ -350,14 +350,14 @@ export default function Customers() {
                 <button
                   onClick={() => goToPage(page + 1)}
                   disabled={page >= totalPages - 1}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#f1f3ff] text-[#003fb1] disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-primary disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
                   aria-label="Next page"
                 >
                   <span className="material-symbols-outlined text-[20px]">chevron_right</span>
                 </button>
 
                 {/* Page label */}
-                <span className="ml-auto text-[11px] text-[#737686] whitespace-nowrap pl-1">
+                <span className="ml-auto text-[11px] text-outline whitespace-nowrap pl-1">
                   {page + 1} / {totalPages}
                 </span>
               </div>
