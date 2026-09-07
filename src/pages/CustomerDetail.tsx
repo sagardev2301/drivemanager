@@ -8,6 +8,7 @@ import AddCustomerModal from '../components/AddCustomerModal'
 import { Header, BottomNav } from '../components/Layout'
 import { toLocalDateString } from '../lib/dateUtils'
 import { invalidateCustomerCache } from '../lib/customerCache'
+import { isDemoMode } from '../lib/demoStore'
 
 function getInitials(name: string) {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -139,7 +140,7 @@ export default function CustomerDetail() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header title="Customer Profile" showBack onBack={() => navigate(-1)} />
-      <main className="flex flex-col w-full px-4 pt-14 pb-24 bg-background min-h-screen">
+      <main className={`flex flex-col w-full px-4 ${isDemoMode() ? 'pt-20' : 'pt-14'} pb-24 bg-background min-h-screen`}>
         <div className="flex flex-col w-full pb-8">
           {/* Back + Status */}
           <div className="flex items-center justify-between py-3 mb-1">

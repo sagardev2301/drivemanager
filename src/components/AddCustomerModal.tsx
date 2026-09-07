@@ -100,6 +100,7 @@ export default function AddCustomerModal({ onClose, onSaved, customer }: Props) 
         })
         if (err) {
           setError('Something went wrong saving this. Please try again.')
+          setError(err.message || 'Something went wrong saving this. Please try again.')
           setSaving(false)
           return
         }

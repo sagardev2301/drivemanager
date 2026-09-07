@@ -1,9 +1,42 @@
 import { createClient } from '@supabase/supabase-js'
+import { isDemoMode, setDemoMode } from './demoStore'
+import { DemoQueryBuilder } from './demoQueryBuilder'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const realSupabase = createClient(supabaseUrl, supabaseAnonKey)
+
+export const supabase = new Proxy(realSupabase, {
+  get(target, prop, receiver) {
+    if (prop === 'from') {
+      return (table: string) => {
+        if (isDemoMode()) {
+          return new DemoQueryBuilder(table)
+        }
+        return target.from(table)
+      }
+    }
+    if (prop === 'auth') {
+      const realAuth = target.auth
+      return new Proxy(realAuth, {
+        get(authTarget, authProp, authReceiver) {
+          if (authProp === 'signOut') {
+            return async (...args: any[]) => {
+              if (isDemoMode()) {
+                setDemoMode(false)
+                return { error: null }
+              }
+              return (authTarget.signOut as any)(...args)
+            }
+          }
+          return Reflect.get(authTarget, authProp, authReceiver)
+        },
+      })
+    }
+    return Reflect.get(target, prop, receiver)
+  },
+}) as unknown as typeof realSupabase
 
 // Type helpers based on actual schema
 export type CourseStatus = 'active' | 'completed' | 'dropped'
