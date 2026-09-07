@@ -7,6 +7,7 @@ import AddPaymentModal from '../components/AddPaymentModal'
 import AddCustomerModal from '../components/AddCustomerModal'
 import { Header, BottomNav } from '../components/Layout'
 import { toLocalDateString } from '../lib/dateUtils'
+import { invalidateCustomerCache } from '../lib/customerCache'
 
 function getInitials(name: string) {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -34,10 +35,11 @@ export default function CustomerDetail() {
   const [showAddClass, setShowAddClass] = useState(false)
   const [showAddPayment, setShowAddPayment] = useState(false)
   const [showEditCustomer, setShowEditCustomer] = useState(false)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
 
-  async function fetchAll() {
+  async function fetchAll(showLoading = true) {
     if (!id) return
-    setLoading(true)
+    if (showLoading) setLoading(true)
     const [{ data: sumData }, { data: classData }, { data: payData }, { data: custData }] = await Promise.all([
       supabase.from('customer_summary').select('*').eq('customer_id', id).single(),
       supabase.from('classes').select('*').eq('customer_id', id).order('class_date', { ascending: false }).order('start_time', { ascending: false }),
@@ -48,6 +50,37 @@ export default function CustomerDetail() {
     if (classData) setClasses(classData)
     if (payData) setPayments(payData)
     setLoading(false)
+  }
+
+  async function handleToggleCourseStatus() {
+    if (!id || !customer || updatingStatus) return
+    const isCompleted = customer.course_status === 'completed'
+    const targetStatus = isCompleted ? 'active' : 'completed'
+
+    const confirmMsg = isCompleted
+      ? `Reactivate course for ${customer.full_name}?`
+      : `Mark classes & course as completed for ${customer.full_name}?`
+
+    if (!window.confirm(confirmMsg)) return
+
+    setUpdatingStatus(true)
+    try {
+      const { error } = await supabase
+        .from('customers')
+        .update({ course_status: targetStatus })
+        .eq('id', id)
+
+      if (error) {
+        alert('Failed to update course status: ' + error.message)
+      } else {
+        invalidateCustomerCache()
+        await fetchAll(false)
+      }
+    } catch {
+      alert('Error updating course status')
+    } finally {
+      setUpdatingStatus(false)
+    }
   }
 
   useEffect(() => { fetchAll() }, [id])
@@ -214,14 +247,40 @@ export default function CustomerDetail() {
             </div>
           </div>
 
-          {/* Action Button */}
-          <div className="mb-3">
+          {/* Action Buttons (50% / 50%) */}
+          <div className="grid grid-cols-2 gap-2 mb-3">
             <button
               onClick={() => setShowAddClass(true)}
-              className="w-full h-12 bg-[#003fb1] text-white rounded-2xl text-[14px] font-semibold flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-transform"
+              className="h-12 bg-[#003fb1] text-white rounded-2xl text-[14px] font-semibold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-transform px-2"
             >
               <span className="material-symbols-outlined text-[20px]">add_circle</span>
-              <span>Log Class for {customer.full_name.split(' ')[0]}</span>
+              <span className="truncate">Log Class for {customer.full_name.split(' ')[0]}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleToggleCourseStatus}
+              disabled={updatingStatus}
+              title={customer.course_status === 'completed' ? 'Course marked as completed (click to reactivate)' : 'Mark course as completed'}
+              className={`h-12 rounded-2xl text-[13px] font-semibold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-transform px-2 disabled:opacity-60 ${
+                customer.course_status === 'completed'
+                  ? 'bg-[#e8f5e9] text-[#005623] border border-[#a5d6a7]'
+                  : 'bg-[#005623] text-white hover:bg-[#00421b]'
+              }`}
+            >
+              {updatingStatus ? (
+                <span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>
+              ) : customer.course_status === 'completed' ? (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                  <span className="truncate">Completed</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">task_alt</span>
+                  <span className="truncate">Complete Course</span>
+                </>
+              )}
             </button>
           </div>
 
