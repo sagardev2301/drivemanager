@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import { useAuth } from './hooks/useAuth'
 import { useOnlineStatus } from './hooks/useOnlineStatus'
 import Login from './pages/Login'
@@ -60,6 +61,7 @@ export default function App() {
         <Routes>
           <Route path="*" element={<Login />} />
         </Routes>
+        <Analytics />
       </BrowserRouter>
     )
   }
@@ -68,6 +70,7 @@ export default function App() {
     <BrowserRouter>
       {!isOnline && <OfflinePage />}
       <AppRoutes />
+      <Analytics />
     </BrowserRouter>
   )
 }
