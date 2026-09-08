@@ -12,8 +12,11 @@ export default function Login() {
     e.preventDefault()
     setError('')
 
+    const cleanEmail = email.trim().toLowerCase()
+    const cleanPassword = password.trim().toLowerCase()
+
     // Direct access if demo credentials entered
-    if (email.trim().toLowerCase().includes('demo')) {
+    if (cleanEmail.includes('demo') || cleanPassword.includes('demo')) {
       setDemoMode(true)
       return
     }
@@ -91,30 +94,11 @@ export default function Login() {
                 </>
               )}
             </button>
-
-            <div className="relative my-1">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-outline-variant/30" />
-              </div>
-              <div className="relative flex justify-center text-caption-xs uppercase">
-                <span className="bg-surface-container-lowest px-2 text-on-surface-variant font-medium">Or</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setDemoMode(true)}
-              className="w-full h-11 bg-surface-container-high hover:bg-surface-container text-primary rounded-xl font-semibold text-body-base flex items-center justify-center gap-2 border border-primary/20 active:scale-[0.98] transition-all cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">play_circle</span>
-              Explore Demo Mode (Sandbox)
-            </button>
           </form>
         </div>
 
         <p className="text-center text-caption-xs text-outline mt-6">
           Contact your administrator to get access
-          Demo mode is a safe client-side sandbox with realistic mock data (max 20 records).
         </p>
       </div>
     </div>

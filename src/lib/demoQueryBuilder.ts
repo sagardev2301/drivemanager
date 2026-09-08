@@ -2,9 +2,15 @@ import { demoStore } from './demoStore'
 
 type FilterOp =
   | { type: 'eq'; col: string; val: any }
+  | { type: 'neq'; col: string; val: any }
   | { type: 'gt'; col: string; val: any }
   | { type: 'gte'; col: string; val: any }
+  | { type: 'lt'; col: string; val: any }
+  | { type: 'lte'; col: string; val: any }
   | { type: 'in'; col: string; vals: any[] }
+  | { type: 'is'; col: string; val: any }
+  | { type: 'like'; col: string; val: string }
+  | { type: 'ilike'; col: string; val: string }
 
 export class DemoQueryBuilder {
   private table: string
@@ -12,7 +18,10 @@ export class DemoQueryBuilder {
   private withCount: boolean = false
   private isSingle: boolean = false
   private filters: FilterOp[] = []
+  private orClauses: string[] = []
   private orders: { col: string; ascending: boolean }[] = []
+  private rangeBounds: { from: number; to: number } | null = null
+  private limitCount: number | null = null
   private mutationType: 'insert' | 'update' | 'delete' | null = null
   private mutationPayload: any = null
 
@@ -31,6 +40,11 @@ export class DemoQueryBuilder {
     return this
   }
 
+  neq(col: string, val: any) {
+    this.filters.push({ type: 'neq', col, val })
+    return this
+  }
+
   gt(col: string, val: any) {
     this.filters.push({ type: 'gt', col, val })
     return this
@@ -41,13 +55,53 @@ export class DemoQueryBuilder {
     return this
   }
 
+  lt(col: string, val: any) {
+    this.filters.push({ type: 'lt', col, val })
+    return this
+  }
+
+  lte(col: string, val: any) {
+    this.filters.push({ type: 'lte', col, val })
+    return this
+  }
+
   in(col: string, vals: any[]) {
     this.filters.push({ type: 'in', col, vals })
     return this
   }
 
+  is(col: string, val: any) {
+    this.filters.push({ type: 'is', col, val })
+    return this
+  }
+
+  like(col: string, val: string) {
+    this.filters.push({ type: 'like', col, val })
+    return this
+  }
+
+  ilike(col: string, val: string) {
+    this.filters.push({ type: 'ilike', col, val })
+    return this
+  }
+
+  or(clause: string) {
+    this.orClauses.push(clause)
+    return this
+  }
+
   order(col: string, options?: { ascending?: boolean }) {
     this.orders.push({ col, ascending: options?.ascending ?? true })
+    return this
+  }
+
+  range(from: number, to: number) {
+    this.rangeBounds = { from, to }
+    return this
+  }
+
+  limit(count: number) {
+    this.limitCount = count
     return this
   }
 
@@ -154,18 +208,82 @@ export class DemoQueryBuilder {
         rows = demoStore.getSummary()
       }
 
-      // Apply filters
+      // Apply standard filters
       let filtered = [...rows]
       for (const f of this.filters) {
         if (f.type === 'eq') {
           filtered = filtered.filter(row => row[f.col] === f.val)
+        } else if (f.type === 'neq') {
+          filtered = filtered.filter(row => row[f.col] !== f.val)
         } else if (f.type === 'gt') {
-          filtered = filtered.filter(row => Number(row[f.col]) > Number(f.val))
+          filtered = filtered.filter(row => {
+            const rVal = row[f.col]
+            if (typeof rVal === 'number' || (!isNaN(Number(rVal)) && !isNaN(Number(f.val)))) {
+              return Number(rVal) > Number(f.val)
+            }
+            return String(rVal) > String(f.val)
+          })
         } else if (f.type === 'gte') {
-          filtered = filtered.filter(row => String(row[f.col]) >= String(f.val))
+          filtered = filtered.filter(row => {
+            const rVal = row[f.col]
+            if (typeof rVal === 'number' || (!isNaN(Number(rVal)) && !isNaN(Number(f.val)))) {
+              return Number(rVal) >= Number(f.val)
+            }
+            return String(rVal) >= String(f.val)
+          })
+        } else if (f.type === 'lt') {
+          filtered = filtered.filter(row => {
+            const rVal = row[f.col]
+            if (typeof rVal === 'number' || (!isNaN(Number(rVal)) && !isNaN(Number(f.val)))) {
+              return Number(rVal) < Number(f.val)
+            }
+            return String(rVal) < String(f.val)
+          })
+        } else if (f.type === 'lte') {
+          filtered = filtered.filter(row => {
+            const rVal = row[f.col]
+            if (typeof rVal === 'number' || (!isNaN(Number(rVal)) && !isNaN(Number(f.val)))) {
+              return Number(rVal) <= Number(f.val)
+            }
+            return String(rVal) <= String(f.val)
+          })
         } else if (f.type === 'in') {
           filtered = filtered.filter(row => f.vals.includes(row[f.col]))
+        } else if (f.type === 'is') {
+          filtered = filtered.filter(row => (f.val === null ? row[f.col] == null : row[f.col] === f.val))
+        } else if (f.type === 'like') {
+          const raw = String(f.val).replace(/^%|%$/g, '')
+          filtered = filtered.filter(row => String(row[f.col] ?? '').includes(raw))
+        } else if (f.type === 'ilike') {
+          const raw = String(f.val).replace(/^%|%$/g, '').toLowerCase()
+          filtered = filtered.filter(row => String(row[f.col] ?? '').toLowerCase().includes(raw))
         }
+      }
+
+      // Apply OR filters (PostgREST format: "col.op.val,col2.op.val")
+      for (const clause of this.orClauses) {
+        const parts = clause.split(',').map(s => s.trim())
+        filtered = filtered.filter(row => {
+          return parts.some(part => {
+            const segments = part.split('.')
+            if (segments.length >= 3) {
+              const col = segments[0]
+              const op = segments[1]
+              const rawVal = segments.slice(2).join('.').replace(/^%|%$/g, '')
+              const rowVal = String(row[col] ?? '')
+              if (op === 'ilike') {
+                return rowVal.toLowerCase().includes(rawVal.toLowerCase())
+              }
+              if (op === 'like') {
+                return rowVal.includes(rawVal)
+              }
+              if (op === 'eq') {
+                return rowVal.toLowerCase() === rawVal.toLowerCase()
+              }
+            }
+            return false
+          })
+        })
       }
 
       // Apply ordering
@@ -179,7 +297,18 @@ export class DemoQueryBuilder {
         })
       }
 
+      // Count of filtered results BEFORE range/limit slicing
       const totalCount = this.withCount ? filtered.length : null
+
+      // Apply range slicing (pagination)
+      if (this.rangeBounds) {
+        filtered = filtered.slice(this.rangeBounds.from, this.rangeBounds.to + 1)
+      }
+
+      // Apply limit
+      if (this.limitCount !== null) {
+        filtered = filtered.slice(0, this.limitCount)
+      }
 
       if (this.isHead) {
         return { data: null, error: null, count: totalCount }

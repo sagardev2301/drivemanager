@@ -73,24 +73,29 @@ export default function Customers() {
   // ── Fetch a page and REPLACE the list (not append) ───────────────────────
   async function fetchPage(pageNum: number, q: string, fil: FilterKey) {
     setLoadingPage(true)
+    try {
+      const from = pageNum * PAGE_SIZE
+      const to   = from + PAGE_SIZE - 1
 
-    const from = pageNum * PAGE_SIZE
-    const to   = from + PAGE_SIZE - 1
+      const { data: summaryData, count } = await buildQuery(q, fil).range(from, to)
 
-    const { data: summaryData, count } = await buildQuery(q, fil).range(from, to)
+      if (summaryData && summaryData.length > 0) {
+        const ids = summaryData.map((c: CustomerSummary) => c.customer_id)
+        const { data: locationData } = await supabase.from('customers').select('id, location').in('id', ids)
+        const locationMap = new Map((locationData ?? []).map((c: { id: string; location: string | null }) => [c.id, c.location]))
+        const enriched = summaryData.map((c: CustomerSummary) => ({ ...c, location: locationMap.get(c.customer_id) ?? null }))
+        setCustomers(enriched)
+      } else {
+        setCustomers([])
+      }
 
-    if (summaryData && summaryData.length > 0) {
-      const ids = summaryData.map((c: CustomerSummary) => c.customer_id)
-      const { data: locationData } = await supabase.from('customers').select('id, location').in('id', ids)
-      const locationMap = new Map((locationData ?? []).map((c: { id: string; location: string | null }) => [c.id, c.location]))
-      const enriched = summaryData.map((c: CustomerSummary) => ({ ...c, location: locationMap.get(c.customer_id) ?? null }))
-      setCustomers(enriched)
-    } else {
+      setTotalCount(count ?? 0)
+    } catch (err) {
+      console.error('Failed to load customers page:', err)
       setCustomers([])
+    } finally {
+      setLoadingPage(false)
     }
-
-    setTotalCount(count ?? 0)
-    setLoadingPage(false)
   }
 
   // ── On mount: initial data + counts ──────────────────────────────────────
