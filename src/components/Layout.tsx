@@ -167,7 +167,7 @@ export function Layout({ title }: { title: string }) {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header title={title} />
-      <main className={`flex flex-col w-full px-4 ${isDemo ? 'pt-20' : 'pt-14'} pb-24 bg-background min-h-screen`}>
+      <main className={`flex flex-col w-full px-4 ${isDemo ? 'pt-[92px]' : 'pt-[64px]'} pb-24 bg-background min-h-screen`}>
         <Outlet />
       </main>
       <BottomNav />

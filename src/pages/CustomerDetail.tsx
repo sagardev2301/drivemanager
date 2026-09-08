@@ -90,7 +90,7 @@ export default function CustomerDetail() {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Header title="Customer Profile" showBack onBack={() => navigate(-1)} />
-        <div className="flex flex-col w-full px-4 pt-14 pb-24 space-y-3 pt-6">
+        <div className={`flex flex-col w-full px-4 ${isDemoMode() ? 'pt-[92px]' : 'pt-[64px]'} pb-24 space-y-3`}>
           {[1, 2, 3].map(i => (
             <div key={i} className="bg-white p-4 rounded-xl shadow-sm animate-pulse h-24" />
           ))}
@@ -104,7 +104,7 @@ export default function CustomerDetail() {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Header title="Customer Profile" showBack onBack={() => navigate(-1)} />
-        <div className="flex flex-col items-center justify-center flex-1 px-4 pt-20">
+        <div className={`flex flex-col items-center justify-center flex-1 px-4 ${isDemoMode() ? 'pt-[92px]' : 'pt-[64px]'}`}>
           <span className="material-symbols-outlined text-outline text-[48px]">person_off</span>
           <p className="text-[14px] text-on-surface-variant mt-2">Customer not found</p>
         </div>
@@ -140,17 +140,10 @@ export default function CustomerDetail() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header title="Customer Profile" showBack onBack={() => navigate(-1)} />
-      <main className={`flex flex-col w-full px-4 ${isDemoMode() ? 'pt-20' : 'pt-14'} pb-24 bg-background min-h-screen`}>
+      <main className={`flex flex-col w-full px-4 ${isDemoMode() ? 'pt-[92px]' : 'pt-[64px]'} pb-24 bg-background min-h-screen`}>
         <div className="flex flex-col w-full pb-8">
-          {/* Back + Status */}
-          <div className="flex items-center justify-between py-3 mb-1">
-            <button
-              onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-1 text-primary text-[14px] font-semibold py-1 -ml-1 transition-opacity active:opacity-70"
-            >
-              <span className="material-symbols-outlined text-[20px]">chevron_left</span>
-              <span>Customers</span>
-            </button>
+          {/* Status Badge */}
+          <div className="flex items-center justify-end py-2 mb-1">
             <span className={courseStatusBadgeClass[customer.course_status] ?? 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-fixed/50 text-[12px] font-semibold text-on-surface-variant'}>
               <span className="w-1.5 h-1.5 rounded-full bg-current" />
               {customer.course_status.charAt(0).toUpperCase() + customer.course_status.slice(1)} • Class {customer.classes_completed}/{customer.package_classes}

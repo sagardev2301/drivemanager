@@ -74,8 +74,8 @@ export default function Attendance() {
   }, [selectedDate])
 
   function changeDate(delta: number) {
-    const d = new Date(selectedDate + 'T00:00:00')
-    d.setDate(d.getDate() + delta)
+    const [y, m, day] = selectedDate.split('-').map(Number)
+    const d = new Date(y, m - 1, day + delta)
     setSelectedDate(toLocalDateString(d))
   }
 
@@ -83,8 +83,8 @@ export default function Attendance() {
     setCopying(true)
     setCopyMessage(null)
     try {
-      const prevDateObj = new Date(selectedDate + 'T00:00:00')
-      prevDateObj.setDate(prevDateObj.getDate() - 1)
+      const [y, m, day] = selectedDate.split('-').map(Number)
+      const prevDateObj = new Date(y, m - 1, day - 1)
       const prevDate = toLocalDateString(prevDateObj)
 
       const { data: prevClasses, error: fetchErr } = await supabase
@@ -162,40 +162,70 @@ export default function Attendance() {
   }
 
   return (
-    <div className="flex flex-col w-full pb-12 pt-4">
+    <div className="flex flex-col w-full pb-12 pt-1">
       {/* Date Navigator */}
       <div className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm mb-3">
         <button
           aria-label="Previous day"
           onClick={() => changeDate(-1)}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all"
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all cursor-pointer"
         >
           <span className="material-symbols-outlined text-[20px]">chevron_left</span>
         </button>
-        <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1">
+        <div className="relative flex flex-col items-center">
+          <label className="flex items-center gap-1 cursor-pointer">
             <span className="material-symbols-outlined text-primary text-[18px]">calendar_today</span>
             <span className="text-[16px] font-semibold text-on-surface">{formatDate(selectedDate)}</span>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={e => e.target.value && setSelectedDate(e.target.value)}
+              className="sr-only"
+            />
+          </label>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[11px] text-on-surface-variant">Instructor Log</span>
+            {selectedDate !== toLocalDateString(new Date()) && (
+              <button
+                onClick={() => setSelectedDate(toLocalDateString(new Date()))}
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+              >
+                Jump to Today
+              </button>
+            )}
           </div>
-          <span className="text-[11px] text-on-surface-variant">Instructor Log</span>
         </div>
         <button
           aria-label="Next day"
           onClick={() => changeDate(1)}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all"
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all cursor-pointer"
         >
           <span className="material-symbols-outlined text-[20px]">chevron_right</span>
         </button>
       </div>
 
-      {/* Progress Pill */}
-      {!loading && totalCount > 0 && (
-        <div className="flex items-center justify-between bg-primary-fixed/60 px-4 py-2 rounded-full mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-[12px] font-semibold text-on-primary-fixed">Daily Progress</span>
+      {/* Daily Progress Section */}
+      {!loading && (
+        <div className="bg-white p-4 rounded-xl shadow-sm mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-[13px] font-semibold text-on-surface">Daily Progress</span>
+            </div>
+            <span className="text-[13px] font-bold text-primary">
+              {totalCount === 0
+                ? 'No classes scheduled'
+                : `${doneCount} of ${totalCount} Completed (${Math.round((doneCount / totalCount) * 100)}%)`}
+            </span>
           </div>
-          <span className="text-[12px] font-bold text-primary">{doneCount} of {totalCount} Completed</span>
+          <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${
+                totalCount > 0 && doneCount === totalCount ? 'bg-tertiary' : 'bg-primary'
+              }`}
+              style={{ width: `${totalCount > 0 ? (doneCount / totalCount) * 100 : 0}%` }}
+            />
+          </div>
         </div>
       )}
 

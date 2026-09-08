@@ -9,15 +9,21 @@ export function getInitialDemoData(): {
   const today = toLocalDateString(new Date())
 
   // Calculate dates relative to today for realistic attendance
-  const d = new Date()
-  d.setDate(d.getDate() - 1)
-  const yesterday = toLocalDateString(d)
+  const dYesterday = new Date()
+  dYesterday.setDate(dYesterday.getDate() - 1)
+  const yesterday = toLocalDateString(dYesterday)
 
-  d.setDate(d.getDate() - 2)
-  const threeDaysAgo = toLocalDateString(d)
+  const dTomorrow = new Date()
+  dTomorrow.setDate(dTomorrow.getDate() + 1)
+  const tomorrow = toLocalDateString(dTomorrow)
 
-  d.setDate(d.getDate() - 4)
-  const fiveDaysAgo = toLocalDateString(d)
+  const dThreeDaysAgo = new Date()
+  dThreeDaysAgo.setDate(dThreeDaysAgo.getDate() - 3)
+  const threeDaysAgo = toLocalDateString(dThreeDaysAgo)
+
+  const dFiveDaysAgo = new Date()
+  dFiveDaysAgo.setDate(dFiveDaysAgo.getDate() - 5)
+  const fiveDaysAgo = toLocalDateString(dFiveDaysAgo)
 
   const customers: Customer[] = [
     {
@@ -140,6 +146,44 @@ export function getInitialDemoData(): {
       start_time: '16:00',
       end_time: '16:45',
       notes: 'Clutch control on slope',
+    },
+
+    // Tomorrow's scheduled classes
+    {
+      id: 'demo-cls-301',
+      customer_id: 'demo-cust-001',
+      status: 'scheduled',
+      class_date: tomorrow,
+      start_time: '07:30',
+      end_time: '08:15',
+      notes: 'Highway merging & overtakes',
+    },
+    {
+      id: 'demo-cls-302',
+      customer_id: 'demo-cust-002',
+      status: 'scheduled',
+      class_date: tomorrow,
+      start_time: '08:30',
+      end_time: '09:15',
+      notes: 'Night/dusk driving simulation',
+    },
+    {
+      id: 'demo-cls-303',
+      customer_id: 'demo-cust-003',
+      status: 'scheduled',
+      class_date: tomorrow,
+      start_time: '10:00',
+      end_time: '10:45',
+      notes: 'Emergency braking & hazards',
+    },
+    {
+      id: 'demo-cls-304',
+      customer_id: 'demo-cust-006',
+      status: 'scheduled',
+      class_date: tomorrow,
+      start_time: '16:00',
+      end_time: '16:45',
+      notes: 'City peak traffic navigation',
     },
 
     // Past classes for Rahul Sharma (cust 1)

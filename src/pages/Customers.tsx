@@ -116,13 +116,11 @@ export default function Customers() {
     fetchPage(0, debouncedSearch, filter)
   }
 
-  const listRef = useRef<HTMLDivElement>(null)
-
   // ── Navigate to a specific page ───────────────────────────────────────────
   function goToPage(pageNum: number) {
     setPage(pageNum)
     fetchPage(pageNum, debouncedSearch, filter)
-    listRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
@@ -149,14 +147,7 @@ export default function Customers() {
   ]
 
   return (
-    <div
-      className="fixed inset-x-0 flex flex-col bg-background z-10 overflow-hidden"
-      style={{
-        top: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
-        bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))',
-      }}
-    >
-      <div className="flex flex-col w-full max-w-lg mx-auto h-full px-4 pt-3 relative">
+    <div className="flex flex-col w-full max-w-lg mx-auto pb-12 pt-1">
         {/* Top Fixed Section */}
         <div className="shrink-0 space-y-3 pb-2">
           {/* Header */}
@@ -221,8 +212,8 @@ export default function Customers() {
           )}
         </div>
 
-        {/* Scrollable Customer Cards List */}
-        <div ref={listRef} className="flex-1 overflow-y-auto space-y-3 pb-24 min-h-0 -mx-1 px-1">
+        {/* Customer Cards List */}
+        <div className="space-y-3 mt-1">
           {loadingPage && [1, 2, 3].map(i => (
             <div key={i} className="bg-white p-4 rounded-xl shadow-sm animate-pulse h-28" />
           ))}
@@ -306,15 +297,15 @@ export default function Customers() {
           for (let i = startPage; i <= endPage; i++) pageButtons.push(i)
 
           return (
-            <div className="absolute bottom-2 left-0 right-0 z-20 flex justify-center pointer-events-none px-4">
+            <div className="mt-6 flex justify-center pb-4">
               <div
-                className="flex items-center gap-1.5 bg-white/95 backdrop-blur-xl shadow-[0_-2px_16px_rgba(0,0,0,0.10)] rounded-2xl px-3 py-2 pointer-events-auto w-full max-w-[480px]"
+                className="flex items-center gap-1.5 bg-white shadow-sm border border-outline-variant/30 rounded-2xl px-3 py-2 w-full max-w-[480px]"
               >
                 {/* Prev */}
                 <button
                   onClick={() => goToPage(page - 1)}
                   disabled={page === 0}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-primary disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-primary disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all cursor-pointer"
                   aria-label="Previous page"
                 >
                   <span className="material-symbols-outlined text-[20px]">chevron_left</span>
@@ -323,7 +314,7 @@ export default function Customers() {
                 {/* First page + ellipsis */}
                 {startPage > 0 && (
                   <>
-                    <button onClick={() => goToPage(0)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-surface-container-low text-on-surface-variant active:scale-95 transition-all">1</button>
+                    <button onClick={() => goToPage(0)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-surface-container-low text-on-surface-variant active:scale-95 transition-all cursor-pointer">1</button>
                     {startPage > 1 && <span className="text-outline text-[13px] px-0.5">…</span>}
                   </>
                 )}
@@ -333,7 +324,7 @@ export default function Customers() {
                   <button
                     key={p}
                     onClick={() => goToPage(p)}
-                    className={`w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold transition-all active:scale-95 ${
+                    className={`w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold transition-all active:scale-95 cursor-pointer ${
                       p === page
                         ? 'bg-primary text-on-primary shadow-sm'
                         : 'bg-surface-container-low text-on-surface-variant'
@@ -347,7 +338,7 @@ export default function Customers() {
                 {endPage < totalPages - 1 && (
                   <>
                     {endPage < totalPages - 2 && <span className="text-outline text-[13px] px-0.5">…</span>}
-                    <button onClick={() => goToPage(totalPages - 1)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-surface-container-low text-on-surface-variant active:scale-95 transition-all">{totalPages}</button>
+                    <button onClick={() => goToPage(totalPages - 1)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-surface-container-low text-on-surface-variant active:scale-95 transition-all cursor-pointer">{totalPages}</button>
                   </>
                 )}
 
@@ -355,7 +346,7 @@ export default function Customers() {
                 <button
                   onClick={() => goToPage(page + 1)}
                   disabled={page >= totalPages - 1}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-primary disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-primary disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all cursor-pointer"
                   aria-label="Next page"
                 >
                   <span className="material-symbols-outlined text-[20px]">chevron_right</span>
@@ -369,7 +360,6 @@ export default function Customers() {
             </div>
           )
         })()}
-      </div>
 
       {showAddCustomer && (
         <AddCustomerModal onClose={() => setShowAddCustomer(false)} onSaved={handleSaved} />
