@@ -2,6 +2,7 @@ import { toLocalDateString } from './dateUtils'
 import type { Customer, Class, Payment } from './supabase'
 
 export function getInitialDemoData(): {
+  anchorDate: string
   customers: Customer[]
   classes: Class[]
   payments: Payment[]
@@ -13,9 +14,17 @@ export function getInitialDemoData(): {
   dYesterday.setDate(dYesterday.getDate() - 1)
   const yesterday = toLocalDateString(dYesterday)
 
+  const dTwoDaysAgo = new Date()
+  dTwoDaysAgo.setDate(dTwoDaysAgo.getDate() - 2)
+  const twoDaysAgo = toLocalDateString(dTwoDaysAgo)
+
   const dTomorrow = new Date()
   dTomorrow.setDate(dTomorrow.getDate() + 1)
   const tomorrow = toLocalDateString(dTomorrow)
+
+  const dDayAfterTomorrow = new Date()
+  dDayAfterTomorrow.setDate(dDayAfterTomorrow.getDate() + 2)
+  const dayAfterTomorrow = toLocalDateString(dDayAfterTomorrow)
 
   const dThreeDaysAgo = new Date()
   dThreeDaysAgo.setDate(dThreeDaysAgo.getDate() - 3)
@@ -186,7 +195,36 @@ export function getInitialDemoData(): {
       notes: 'City peak traffic navigation',
     },
 
-    // Past classes for Rahul Sharma (cust 1)
+    // Day after tomorrow's scheduled classes
+    {
+      id: 'demo-cls-401',
+      customer_id: 'demo-cust-001',
+      status: 'scheduled',
+      class_date: dayAfterTomorrow,
+      start_time: '07:30',
+      end_time: '08:15',
+      notes: 'Flyover & speed management',
+    },
+    {
+      id: 'demo-cls-402',
+      customer_id: 'demo-cust-002',
+      status: 'scheduled',
+      class_date: dayAfterTomorrow,
+      start_time: '08:30',
+      end_time: '09:15',
+      notes: 'Parallel parking in tight spot',
+    },
+    {
+      id: 'demo-cls-403',
+      customer_id: 'demo-cust-004',
+      status: 'scheduled',
+      class_date: dayAfterTomorrow,
+      start_time: '11:30',
+      end_time: '12:15',
+      notes: 'Main road merge & roundabout',
+    },
+
+    // Yesterday's classes
     {
       id: 'demo-cls-106',
       customer_id: 'demo-cust-001',
@@ -196,6 +234,55 @@ export function getInitialDemoData(): {
       end_time: '08:15',
       notes: 'Basic steering and pedals',
     },
+    {
+      id: 'demo-cls-108',
+      customer_id: 'demo-cust-002',
+      status: 'done',
+      class_date: yesterday,
+      start_time: '08:30',
+      end_time: '09:15',
+      notes: 'Roundabout navigation',
+    },
+    {
+      id: 'demo-cls-110',
+      customer_id: 'demo-cust-003',
+      status: 'done',
+      class_date: yesterday,
+      start_time: '10:00',
+      end_time: '10:45',
+      notes: 'Gear changing & clutch friction point',
+    },
+    {
+      id: 'demo-cls-111',
+      customer_id: 'demo-cust-006',
+      status: 'done',
+      class_date: yesterday,
+      start_time: '16:00',
+      end_time: '16:45',
+      notes: 'First drive - cockpit drill & mirrors',
+    },
+
+    // 2 days ago classes
+    {
+      id: 'demo-cls-112',
+      customer_id: 'demo-cust-001',
+      status: 'done',
+      class_date: twoDaysAgo,
+      start_time: '07:30',
+      end_time: '08:15',
+      notes: 'Ground maneuvers & steering 8-shape',
+    },
+    {
+      id: 'demo-cls-113',
+      customer_id: 'demo-cust-002',
+      status: 'done',
+      class_date: twoDaysAgo,
+      start_time: '08:30',
+      end_time: '09:15',
+      notes: 'Pedal coordination & braking',
+    },
+
+    // Past classes for Rahul Sharma (cust 1)
     {
       id: 'demo-cls-107',
       customer_id: 'demo-cust-001',
@@ -207,15 +294,6 @@ export function getInitialDemoData(): {
     },
 
     // Past classes for Priya Patel (cust 2)
-    {
-      id: 'demo-cls-108',
-      customer_id: 'demo-cust-002',
-      status: 'done',
-      class_date: yesterday,
-      start_time: '08:30',
-      end_time: '09:15',
-      notes: 'Roundabout navigation',
-    },
     {
       id: 'demo-cls-109',
       customer_id: 'demo-cust-002',
@@ -289,6 +367,6 @@ export function getInitialDemoData(): {
     },
   ]
 
-  return { customers, classes, payments }
+  return { anchorDate: today, customers, classes, payments }
 }
 

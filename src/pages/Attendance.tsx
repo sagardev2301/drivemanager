@@ -7,13 +7,26 @@ import { toLocalDateString, canMarkClassDone } from '../lib/dateUtils'
 import { invalidateCustomerCache } from '../lib/customerCache'
 
 function formatDate(dateStr: string) {
-  const d = new Date(dateStr + 'T00:00:00')
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const diff = Math.round((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-  if (diff === 0) return `Today, ${d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}`
-  if (diff === -1) return `Yesterday, ${d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}`
-  if (diff === 1) return `Tomorrow, ${d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}`
+  const [y, m, day] = dateStr.split('-').map(Number)
+  const d = new Date(y, m - 1, day, 12, 0, 0)
+  const todayStr = toLocalDateString(new Date())
+
+  if (dateStr === todayStr) {
+    return `Today, ${d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}`
+  }
+
+  const yDate = new Date()
+  yDate.setDate(yDate.getDate() - 1)
+  if (dateStr === toLocalDateString(yDate)) {
+    return `Yesterday, ${d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}`
+  }
+
+  const tDate = new Date()
+  tDate.setDate(tDate.getDate() + 1)
+  if (dateStr === toLocalDateString(tDate)) {
+    return `Tomorrow, ${d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}`
+  }
+
   return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
@@ -64,6 +77,8 @@ export default function Attendance() {
         payment_status: c.customer_summary?.payment_status ?? 'unknown',
         amount_pending: c.customer_summary?.amount_pending ?? 0,
       })))
+    } else {
+      setClasses([])
     }
     setLoading(false)
   }
@@ -75,7 +90,7 @@ export default function Attendance() {
 
   function changeDate(delta: number) {
     const [y, m, day] = selectedDate.split('-').map(Number)
-    const d = new Date(y, m - 1, day + delta)
+    const d = new Date(y, m - 1, day + delta, 12, 0, 0)
     setSelectedDate(toLocalDateString(d))
   }
 
@@ -152,7 +167,9 @@ export default function Attendance() {
   }
 
   const doneCount = classes.filter(c => c.status === 'done').length
+  const scheduledCount = classes.filter(c => c.status === 'scheduled').length
   const totalCount = classes.length
+  const progressPercent = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0
 
   const statusBadge = (status: string) => {
     if (status === 'done') return <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed/40 text-tertiary text-[12px] font-semibold">Done</span>
@@ -168,64 +185,147 @@ export default function Attendance() {
         <button
           aria-label="Previous day"
           onClick={() => changeDate(-1)}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all cursor-pointer"
+          className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-90 transition-all cursor-pointer shrink-0"
+          title="Previous day"
         >
-          <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+          <span className="material-symbols-outlined text-[22px]">chevron_left</span>
         </button>
-        <div className="relative flex flex-col items-center">
-          <label className="flex items-center gap-1 cursor-pointer">
-            <span className="material-symbols-outlined text-primary text-[18px]">calendar_today</span>
-            <span className="text-[16px] font-semibold text-on-surface">{formatDate(selectedDate)}</span>
+
+        <div className="relative flex flex-col items-center flex-1 min-w-0 px-1">
+          <div className="relative flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group max-w-full">
+            <span className="material-symbols-outlined text-primary text-[20px] shrink-0">calendar_today</span>
+            <span className="text-[15px] sm:text-[16px] font-semibold text-on-surface truncate select-none">
+              {formatDate(selectedDate)}
+            </span>
+            <span className="material-symbols-outlined text-on-surface-variant text-[18px] opacity-60 group-hover:opacity-100 shrink-0">
+              arrow_drop_down
+            </span>
             <input
               type="date"
               value={selectedDate}
               onChange={e => e.target.value && setSelectedDate(e.target.value)}
-              className="sr-only"
+              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+              title="Click to pick a date"
             />
-          </label>
+          </div>
+
           <div className="flex items-center gap-2 mt-0.5">
             <span className="text-[11px] text-on-surface-variant">Instructor Log</span>
             {selectedDate !== toLocalDateString(new Date()) && (
               <button
                 onClick={() => setSelectedDate(toLocalDateString(new Date()))}
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 active:scale-95 transition-all cursor-pointer"
               >
                 Jump to Today
               </button>
             )}
           </div>
         </div>
+
         <button
           aria-label="Next day"
           onClick={() => changeDate(1)}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all cursor-pointer"
+          className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-90 transition-all cursor-pointer shrink-0"
+          title="Next day"
         >
-          <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+          <span className="material-symbols-outlined text-[22px]">chevron_right</span>
         </button>
       </div>
 
       {/* Daily Progress Section */}
-      {!loading && (
-        <div className="bg-white p-4 rounded-xl shadow-sm mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-[13px] font-semibold text-on-surface">Daily Progress</span>
-            </div>
-            <span className="text-[13px] font-bold text-primary">
-              {totalCount === 0
-                ? 'No classes scheduled'
-                : `${doneCount} of ${totalCount} Completed (${Math.round((doneCount / totalCount) * 100)}%)`}
-            </span>
-          </div>
-          <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${
+      <div className="bg-white p-4 rounded-xl shadow-sm mb-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <span
+              className={`w-2.5 h-2.5 rounded-full ${
                 totalCount > 0 && doneCount === totalCount ? 'bg-tertiary' : 'bg-primary'
-              }`}
-              style={{ width: `${totalCount > 0 ? (doneCount / totalCount) * 100 : 0}%` }}
+              } ${loading ? 'animate-pulse' : ''}`}
             />
+            <span className="text-[13px] font-semibold text-on-surface">Daily Progress</span>
           </div>
+          <span
+            className={`text-[13px] font-bold ${
+              totalCount > 0 && doneCount === totalCount ? 'text-tertiary' : 'text-primary'
+            }`}
+          >
+            {loading ? (
+              <span className="text-on-surface-variant font-normal">Loading...</span>
+            ) : totalCount === 0 ? (
+              'No classes scheduled'
+            ) : dateContext === 'future' && doneCount === 0 ? (
+              `${totalCount} ${totalCount === 1 ? 'Class' : 'Classes'} Scheduled`
+            ) : (
+              `${doneCount} of ${totalCount} Completed (${progressPercent}%)`
+            )}
+          </span>
+        </div>
+
+        <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden mb-2">
+          <div
+            className={`h-full rounded-full transition-all duration-300 ${
+              totalCount > 0 && doneCount === totalCount ? 'bg-tertiary' : 'bg-primary'
+            }`}
+            style={{ width: `${totalCount > 0 ? progressPercent : 0}%` }}
+          />
+        </div>
+
+        {!loading && totalCount > 0 && (
+          <div className="flex items-center gap-2 pt-1.5 border-t border-surface-container/60 text-[11px]">
+            <span className="flex items-center gap-1 text-on-surface-variant">
+              <span className="w-2 h-2 rounded-full bg-tertiary inline-block" />
+              Done: <strong className="text-on-surface">{doneCount}</strong>
+            </span>
+            <span className="text-outline/40">•</span>
+            <span className="flex items-center gap-1 text-on-surface-variant">
+              <span className="w-2 h-2 rounded-full bg-primary inline-block" />
+              Scheduled: <strong className="text-on-surface">{scheduledCount}</strong>
+            </span>
+            {totalCount - doneCount - scheduledCount > 0 && (
+              <>
+                <span className="text-outline/40">•</span>
+                <span className="flex items-center gap-1 text-on-surface-variant">
+                  <span className="w-2 h-2 rounded-full bg-error inline-block" />
+                  Other: <strong className="text-on-surface">{totalCount - doneCount - scheduledCount}</strong>
+                </span>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Action Buttons — moved to top of the list */}
+      <div className="flex flex-col sm:flex-row gap-2.5 mb-3">
+        {dateContext === 'today' && classes.length === 0 && !loading && (
+          <button
+            onClick={copyPreviousDaySchedule}
+            disabled={copying}
+            className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container hover:bg-primary-fixed text-primary text-[14px] font-semibold shadow-sm active:scale-95 transition-all disabled:opacity-60 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[20px]">{copying ? 'refresh' : 'content_copy'}</span>
+            <span>{copying ? 'Copying Schedule...' : "Copy Yesterday's Schedule"}</span>
+          </button>
+        )}
+
+        <button
+          onClick={() => setShowAddClass(true)}
+          className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-[14px] font-semibold shadow-sm active:scale-95 transition-all cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-primary text-[20px]">
+            {dateContext === 'future' ? 'calendar_add_on' : 'add_circle'}
+          </span>
+          <span>
+            {dateContext === 'future'
+              ? 'Schedule Class'
+              : dateContext === 'today'
+              ? 'Add Unscheduled Class'
+              : 'Add Class Record'}
+          </span>
+        </button>
+      </div>
+
+      {copyMessage && (
+        <div className="mb-3 p-3 rounded-xl bg-error-container text-on-error-container text-[13px] text-center">
+          {copyMessage}
         </div>
       )}
 
@@ -325,48 +425,6 @@ export default function Attendance() {
           )
         })}
       </div>
-
-      {/* Action Buttons — only show for today and future */}
-      {!loading && dateContext !== 'past' && (
-        <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-          {/* Today: Copy Yesterday's Schedule (when no classes) + Add Unscheduled Class */}
-          {dateContext === 'today' && classes.length === 0 && (
-            <button
-              onClick={copyPreviousDaySchedule}
-              disabled={copying}
-              className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container hover:bg-primary-fixed text-primary text-[14px] font-semibold shadow-sm active:scale-95 transition-all disabled:opacity-60"
-            >
-              <span className="material-symbols-outlined text-[20px]">{copying ? 'refresh' : 'content_copy'}</span>
-              <span>{copying ? 'Copying Schedule...' : "Copy Yesterday's Schedule"}</span>
-            </button>
-          )}
-          {dateContext === 'today' && (
-            <button
-              onClick={() => setShowAddClass(true)}
-              className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container-high text-on-surface text-[14px] font-semibold shadow-sm active:scale-95 transition-all"
-            >
-              <span className="material-symbols-outlined text-primary text-[20px]">add_circle</span>
-              <span>Add Unscheduled Class</span>
-            </button>
-          )}
-          {/* Future: Schedule Class button */}
-          {dateContext === 'future' && (
-            <button
-              onClick={() => setShowAddClass(true)}
-              className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container-high text-on-surface text-[14px] font-semibold shadow-sm active:scale-95 transition-all"
-            >
-              <span className="material-symbols-outlined text-primary text-[20px]">calendar_add_on</span>
-              <span>Schedule Class</span>
-            </button>
-          )}
-        </div>
-      )}
-
-      {copyMessage && (
-        <div className="mt-3 p-3 rounded-xl bg-error-container text-on-error-container text-[13px] text-center">
-          {copyMessage}
-        </div>
-      )}
 
       {showAddClass && (
         <AddClassModal

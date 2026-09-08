@@ -1,4 +1,5 @@
 import { getInitialDemoData } from './demoData'
+import { toLocalDateString } from './dateUtils'
 import type { Customer, Class, Payment, CustomerSummary } from './supabase'
 
 const STORAGE_KEY = 'DRIVEMANAGER_DEMO_DATA'
@@ -6,6 +7,7 @@ const DEMO_MODE_KEY = 'DRIVEMANAGER_IS_DEMO_MODE'
 export const MAX_DEMO_CUSTOMERS = 20
 
 export interface DemoState {
+  anchorDate?: string
   customers: Customer[]
   classes: Class[]
   payments: Payment[]
@@ -41,7 +43,46 @@ export function getDemoData(): DemoState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
-      return JSON.parse(raw)
+      const state: DemoState = JSON.parse(raw)
+      const today = toLocalDateString(new Date())
+
+      // If missing anchorDate (older demo schema), reload with fresh data
+      if (!state.anchorDate) {
+        const fresh = getInitialDemoData()
+        saveDemoData(fresh)
+        return fresh
+      }
+
+      // If anchor date differs from today, shift all dates by the day difference
+      if (state.anchorDate !== today) {
+        const [oy, om, od] = state.anchorDate.split('-').map(Number)
+        const [ty, tm, td] = today.split('-').map(Number)
+        const oldAnchor = new Date(oy, om - 1, od, 12, 0, 0)
+        const newAnchor = new Date(ty, tm - 1, td, 12, 0, 0)
+        const diffDays = Math.round((newAnchor.getTime() - oldAnchor.getTime()) / (1000 * 60 * 60 * 24))
+
+        if (diffDays !== 0) {
+          const shiftDate = (dStr: string | null | undefined) => {
+            if (!dStr) return dStr
+            const [y, m, d] = dStr.split('-').map(Number)
+            const shifted = new Date(y, m - 1, d + diffDays, 12, 0, 0)
+            return toLocalDateString(shifted)
+          }
+
+          state.classes = (state.classes || []).map(c => ({
+            ...c,
+            class_date: shiftDate(c.class_date) || c.class_date,
+          }))
+          state.customers = (state.customers || []).map(cust => ({
+            ...cust,
+            enrollment_date: shiftDate(cust.enrollment_date) || cust.enrollment_date,
+          }))
+          state.anchorDate = today
+          saveDemoData(state)
+        }
+      }
+
+      return state
     }
   } catch (err) {
     console.error('Failed to parse demo data from localStorage, resetting to defaults', err)
