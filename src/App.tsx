@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
 import { useAuth } from './hooks/useAuth'
 import { useOnlineStatus } from './hooks/useOnlineStatus'
@@ -10,6 +10,7 @@ import Customers from './pages/Customers'
 import CustomerDetail from './pages/CustomerDetail'
 import { Layout } from './components/Layout'
 import OfflinePage from './components/OfflinePage'
+import NotFound from './pages/NotFound'
 
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Home',
@@ -32,7 +33,7 @@ function AppRoutes() {
       </Route>
       {/* Customer Detail has its own header (back button, no bottom nav inside Layout) */}
       <Route path="/customers/:id" element={<CustomerDetail />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }
@@ -59,7 +60,9 @@ export default function App() {
       <BrowserRouter>
         {!isOnline && <OfflinePage />}
         <Routes>
-          <Route path="*" element={<Login />} />
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
         <Analytics />
       </BrowserRouter>
