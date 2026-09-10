@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import type { Class } from '../lib/supabase'
 import AddClassModal from '../components/AddClassModal'
+import DatePickerModal from '../components/DatePickerModal'
 import { toLocalDateString, canMarkClassDone } from '../lib/dateUtils'
 import { invalidateCustomerCache } from '../lib/customerCache'
 
@@ -40,6 +41,7 @@ export default function Attendance() {
   const [loading, setLoading] = useState(true)
   const [markingDone, setMarkingDone] = useState<string | null>(null)
   const [showAddClass, setShowAddClass] = useState(false)
+  const [showDatePicker, setShowDatePicker] = useState(false)
   const [copying, setCopying] = useState(false)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
   const [classToDelete, setClassToDelete] = useState<EnrichedClass | null>(null)
@@ -162,45 +164,63 @@ export default function Attendance() {
   }
 
   return (
-    <div className="flex flex-col w-full pb-12 pt-4">
-      {/* Date Navigator */}
-      <div className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm mb-3">
-        <button
-          aria-label="Previous day"
-          onClick={() => changeDate(-1)}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all"
-        >
-          <span className="material-symbols-outlined text-[20px]">chevron_left</span>
-        </button>
-        <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-primary text-[18px]">calendar_today</span>
-            <span className="text-[16px] font-semibold text-on-surface">{formatDate(selectedDate)}</span>
+    <div
+      className="fixed inset-x-0 flex flex-col bg-background z-10 overflow-hidden"
+      style={{
+        top: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
+        bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))',
+      }}
+    >
+      <div className="flex flex-col w-full max-w-lg mx-auto h-full px-4 pt-3 relative">
+        {/* Pinned Date Navigator & Progress Pill */}
+        <div className="shrink-0 space-y-3 pb-3 bg-background z-20">
+          {/* Date Navigator */}
+          <div className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm">
+            <button
+              aria-label="Previous day"
+              onClick={() => changeDate(-1)}
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all"
+            >
+              <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDatePicker(true)}
+              className="flex flex-col items-center px-3 py-1 -my-1 rounded-xl hover:bg-surface-container-low transition-colors active:scale-95 cursor-pointer"
+              aria-label="Select date"
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-primary text-[18px]">calendar_today</span>
+                <span className="text-[16px] font-semibold text-on-surface">{formatDate(selectedDate)}</span>
+                <span className="material-symbols-outlined text-outline text-[16px]">expand_more</span>
+              </div>
+              <span className="text-[11px] text-on-surface-variant">Instructor Log</span>
+            </button>
+            <button
+              aria-label="Next day"
+              onClick={() => changeDate(1)}
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all"
+            >
+              <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+            </button>
           </div>
-          <span className="text-[11px] text-on-surface-variant">Instructor Log</span>
-        </div>
-        <button
-          aria-label="Next day"
-          onClick={() => changeDate(1)}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all"
-        >
-          <span className="material-symbols-outlined text-[20px]">chevron_right</span>
-        </button>
-      </div>
 
-      {/* Progress Pill */}
-      {!loading && totalCount > 0 && (
-        <div className="flex items-center justify-between bg-primary-fixed/60 px-4 py-2 rounded-full mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-[12px] font-semibold text-on-primary-fixed">Daily Progress</span>
-          </div>
-          <span className="text-[12px] font-bold text-primary">{doneCount} of {totalCount} Completed</span>
+          {/* Progress Pill */}
+          {!loading && totalCount > 0 && (
+            <div className="flex items-center justify-between bg-primary-fixed/60 px-4 py-2 rounded-full">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-[12px] font-semibold text-on-primary-fixed">Daily Progress</span>
+              </div>
+              <span className="text-[12px] font-bold text-primary">{doneCount} of {totalCount} Completed</span>
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Class Cards */}
-      <div className="flex flex-col gap-3">
+        {/* Scrollable Class Cards & Action Buttons */}
+        <div className="flex-1 overflow-y-auto min-h-0 pb-20 pt-1 -mx-1 px-1">
+          {/* Class Cards */}
+          <div className="flex flex-col gap-3">
         {loading && [1, 2, 3].map(i => (
           <div key={i} className="bg-white p-4 rounded-xl shadow-sm animate-pulse h-28" />
         ))}
@@ -336,6 +356,17 @@ export default function Attendance() {
         <div className="mt-3 p-3 rounded-xl bg-error-container text-on-error-container text-[13px] text-center">
           {copyMessage}
         </div>
+      )}
+        </div>
+      </div>
+
+      {showDatePicker && (
+        <DatePickerModal
+          isOpen={showDatePicker}
+          selectedDate={selectedDate}
+          onSelectDate={(newDate) => setSelectedDate(newDate)}
+          onClose={() => setShowDatePicker(false)}
+        />
       )}
 
       {showAddClass && (
