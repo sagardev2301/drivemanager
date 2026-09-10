@@ -1,34 +1,26 @@
-I'm working on the Attendance page (`src/pages/Attendance.tsx`) of a React + TypeScript + Tailwind + Vite app (Supabase backend). I want two related UX upgrades to the date navigation area at the top of the page. This is a mobile-first app — the primary user is on a phone.
+I'm working on the Customers page (`src/pages/Customers.tsx`, "Enrolled Customers" list) of a React + TypeScript + Tailwind + Vite app (Supabase backend). This is a mobile-first app.
 
 ## Current behavior
-- The top of the page has a date navigation bar: a left arrow, a center block showing a calendar icon + the selected date (e.g. "Sat, 5 Sept") + an "Instructor Log" subtitle, and a right arrow.
-- Below that is a "Daily Progress" summary bar (e.g. "7 of 7 Completed").
-- Below that is the scrollable list of attendance cards (one per class/customer for the selected date).
-- Currently the ENTIRE page — including the date nav and daily progress bar — scrolls together with the attendance list. Left/right arrows are the only way to change the date.
+- The customer list is paginated (currently 25 customers per page, 529 total customers, so ~22 pages).
+- The pagination control (prev arrow, page numbers, next arrow, "1/22" indicator) is currently always visible on screen — it appears to be fixed/anchored near the bottom of the viewport regardless of scroll position, which eats into the visible list area and is visible even when the instructor hasn't finished scrolling through the current page's results.
 
 ## What I want changed
+- The pagination control should only become visible once the instructor has scrolled to the bottom of the current page's customer list (i.e. past the last customer card).
+- While scrolling through the list, the pagination control should be hidden (or at least out of the way) so the list gets full screen space.
+- Once pagination becomes visible, tapping a page number / prev / next should behave exactly as it does today (loads that page of customers) — don't change the pagination logic itself, only its visibility/positioning behavior.
+- After switching pages, the list should scroll back to the top (so the instructor isn't left mid-scroll on the new page with the pagination control still showing from the old scroll position) — confirm with me if there's already scroll-restoration logic here before adding new logic.
 
-### 1. Sticky header
-- Make the date navigation block AND the "Daily Progress" bar fixed/sticky at the top of the viewport.
-- Only the attendance card list below should scroll; the header stays pinned as the user scrolls through the day's classes.
-- Preserve the existing page header ("DriveManager" / "Attendance" title bar with the profile icon) — clarify with me whether that outer header should also stay fixed or is already fixed/separate, based on the current Layout component structure, before assuming.
-- Make sure the sticky header doesn't overlap content or cause a jump when the list scrolls under it (correct z-index, background color so list items don't show through, and appropriate padding-top on the scrollable list so the first card isn't hidden behind the sticky header on load).
-
-### 2. Functional calendar date picker
-- Currently the center date text + calendar icon are purely decorative/static — only the left/right chevrons change the date.
-- Make the calendar icon + date text tappable. On tap, open a calendar date-picker (a popover on desktop-width, a bottom sheet/modal on mobile) where the instructor can pick any date directly, instead of only stepping day-by-day.
-- On date selection, close the picker and reload the attendance list for the selected date, exactly as the arrow navigation already does today — reuse the existing date-change logic/state (whatever function currently runs when the arrows are clicked) rather than duplicating the data-fetch logic.
-- Respect the existing IST timezone handling already fixed in this file — do not reintroduce the `.toISOString().split('T')[0]` UTC-shift bug when wiring up the new picker's date value.
-- Keep the arrows working as-is alongside the new picker — this is additive, not a replacement.
-- Match the existing visual style (colors, border-radius, spacing) already used elsewhere on this page rather than introducing a default/unstyled picker component.
-
-## Implementation notes
-- Check what's already installed in package.json before adding a new date-picker dependency — reuse an existing library if one is already in the project; otherwise pick a small, well-maintained one (e.g. `react-day-picker`) and tell me what you added.
-- Keep this change scoped to the Attendance page and its date-nav sub-component — don't touch Dashboard, Customers, or CustomerDetail.
+## Implementation guidance
+- Two reasonable approaches — pick whichever fits the existing layout structure better, and tell me which you used:
+  1. **Inline at end of list**: render the pagination control as a normal block element after the last customer card (not fixed/sticky), so it naturally only becomes visible when the user scrolls to the bottom, then is part of normal document flow.
+  2. **Scroll-triggered reveal**: keep it positioned at the bottom of the viewport but track scroll position (e.g. via an IntersectionObserver on a sentinel element placed after the last card, or a scroll-position check) and only render/show it once the bottom is reached, hiding it otherwise.
+- Prefer the simplest approach that matches how the rest of the page is already structured — check whether the current pagination is using `fixed`/`sticky` positioning or is already in normal flow before deciding.
+- Keep the visual style (colors, spacing, border-radius) of the existing pagination control unchanged — this is a visibility/positioning fix only, not a redesign.
+- Don't touch the search bar, filter pills (All/Active/Pending Fee/Completed), or the customer card layout — scope this to the pagination control only.
 
 ## After implementing
 - Run the dev server and confirm:
-  - Scrolling the attendance list keeps the date nav + progress bar pinned at the top.
-  - Tapping the date opens the calendar, picking a date loads that date's attendance correctly (verify against a date with known data if possible).
-  - Left/right arrow navigation still works and stays in sync with the picker (e.g. if you arrow forward, then open the picker, it should show the current date highlighted, not the old one).
-- Give me a summary of files changed and any new dependency added.
+  - Pagination is not visible while scrolling through the middle of a customer page's list.
+  - Pagination appears once the instructor scrolls to the bottom of the current page's results.
+  - Changing pages via the pagination control still works correctly and loads the right customers.
+- Give me a summary of what approach was used and which files changed.
