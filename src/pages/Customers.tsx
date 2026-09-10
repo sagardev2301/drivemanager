@@ -102,6 +102,7 @@ export default function Customers() {
   useEffect(() => {
     setPage(0)
     fetchPage(0, debouncedSearch, filter)
+    listRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }, [debouncedSearch, filter])
 
   // ── Refetch counts when a new customer is added ───────────────────────────
@@ -109,6 +110,7 @@ export default function Customers() {
     fetchCounts()
     setPage(0)
     fetchPage(0, debouncedSearch, filter)
+    listRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const listRef = useRef<HTMLDivElement>(null)
@@ -217,7 +219,7 @@ export default function Customers() {
         </div>
 
         {/* Scrollable Customer Cards List */}
-        <div ref={listRef} className="flex-1 overflow-y-auto space-y-3 pb-24 min-h-0 -mx-1 px-1">
+        <div ref={listRef} className="flex-1 overflow-y-auto space-y-3 pb-6 min-h-0 -mx-1 px-1">
           {loadingPage && [1, 2, 3].map(i => (
             <div key={i} className="bg-white p-4 rounded-xl shadow-sm animate-pulse h-28" />
           ))}
@@ -286,84 +288,84 @@ export default function Customers() {
               </div>
             )
           })}
-        </div>
 
-        {/* Fixed Pagination Bar — sits above bottom navbar */}
-        {!loadingPage && totalPages > 1 && (() => {
-          // Show up to 5 page buttons centered on current page
-          const maxButtons = 5
-          let startPage = Math.max(0, page - Math.floor(maxButtons / 2))
-          let endPage   = Math.min(totalPages - 1, startPage + maxButtons - 1)
-          if (endPage - startPage + 1 < maxButtons) {
-            startPage = Math.max(0, endPage - maxButtons + 1)
-          }
-          const pageButtons = []
-          for (let i = startPage; i <= endPage; i++) pageButtons.push(i)
+          {/* Inline Pagination Bar — sits at end of list, visible only when scrolled to bottom */}
+          {!loadingPage && totalPages > 1 && (() => {
+            // Show up to 5 page buttons centered on current page
+            const maxButtons = 5
+            let startPage = Math.max(0, page - Math.floor(maxButtons / 2))
+            let endPage   = Math.min(totalPages - 1, startPage + maxButtons - 1)
+            if (endPage - startPage + 1 < maxButtons) {
+              startPage = Math.max(0, endPage - maxButtons + 1)
+            }
+            const pageButtons = []
+            for (let i = startPage; i <= endPage; i++) pageButtons.push(i)
 
-          return (
-            <div className="absolute bottom-2 left-0 right-0 z-20 flex justify-center pointer-events-none px-4">
-              <div
-                className="flex items-center gap-1.5 bg-white/95 backdrop-blur-xl shadow-[0_-2px_16px_rgba(0,0,0,0.10)] rounded-2xl px-3 py-2 pointer-events-auto w-full max-w-[480px]"
-              >
-                {/* Prev */}
-                <button
-                  onClick={() => goToPage(page - 1)}
-                  disabled={page === 0}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-primary disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
-                  aria-label="Previous page"
+            return (
+              <div className="pt-2 pb-2 flex justify-center">
+                <div
+                  className="flex items-center gap-1.5 bg-white/95 backdrop-blur-xl shadow-[0_-2px_16px_rgba(0,0,0,0.10)] rounded-2xl px-3 py-2 w-full max-w-[480px]"
                 >
-                  <span className="material-symbols-outlined text-[20px]">chevron_left</span>
-                </button>
-
-                {/* First page + ellipsis */}
-                {startPage > 0 && (
-                  <>
-                    <button onClick={() => goToPage(0)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-surface-container-low text-on-surface-variant active:scale-95 transition-all">1</button>
-                    {startPage > 1 && <span className="text-outline text-[13px] px-0.5">…</span>}
-                  </>
-                )}
-
-                {/* Page number buttons */}
-                {pageButtons.map(p => (
+                  {/* Prev */}
                   <button
-                    key={p}
-                    onClick={() => goToPage(p)}
-                    className={`w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold transition-all active:scale-95 ${
-                      p === page
-                        ? 'bg-primary text-on-primary shadow-sm'
-                        : 'bg-surface-container-low text-on-surface-variant'
-                    }`}
+                    onClick={() => goToPage(page - 1)}
+                    disabled={page === 0}
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-primary disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
+                    aria-label="Previous page"
                   >
-                    {p + 1}
+                    <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                   </button>
-                ))}
 
-                {/* Ellipsis + last page */}
-                {endPage < totalPages - 1 && (
-                  <>
-                    {endPage < totalPages - 2 && <span className="text-outline text-[13px] px-0.5">…</span>}
-                    <button onClick={() => goToPage(totalPages - 1)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-surface-container-low text-on-surface-variant active:scale-95 transition-all">{totalPages}</button>
-                  </>
-                )}
+                  {/* First page + ellipsis */}
+                  {startPage > 0 && (
+                    <>
+                      <button onClick={() => goToPage(0)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-surface-container-low text-on-surface-variant active:scale-95 transition-all">1</button>
+                      {startPage > 1 && <span className="text-outline text-[13px] px-0.5">…</span>}
+                    </>
+                  )}
 
-                {/* Next */}
-                <button
-                  onClick={() => goToPage(page + 1)}
-                  disabled={page >= totalPages - 1}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-primary disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
-                  aria-label="Next page"
-                >
-                  <span className="material-symbols-outlined text-[20px]">chevron_right</span>
-                </button>
+                  {/* Page number buttons */}
+                  {pageButtons.map(p => (
+                    <button
+                      key={p}
+                      onClick={() => goToPage(p)}
+                      className={`w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold transition-all active:scale-95 ${
+                        p === page
+                          ? 'bg-primary text-on-primary shadow-sm'
+                          : 'bg-surface-container-low text-on-surface-variant'
+                      }`}
+                    >
+                      {p + 1}
+                    </button>
+                  ))}
 
-                {/* Page label */}
-                <span className="ml-auto text-[11px] text-outline whitespace-nowrap pl-1">
-                  {page + 1} / {totalPages}
-                </span>
+                  {/* Ellipsis + last page */}
+                  {endPage < totalPages - 1 && (
+                    <>
+                      {endPage < totalPages - 2 && <span className="text-outline text-[13px] px-0.5">…</span>}
+                      <button onClick={() => goToPage(totalPages - 1)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-surface-container-low text-on-surface-variant active:scale-95 transition-all">{totalPages}</button>
+                    </>
+                  )}
+
+                  {/* Next */}
+                  <button
+                    onClick={() => goToPage(page + 1)}
+                    disabled={page >= totalPages - 1}
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-primary disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
+                    aria-label="Next page"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                  </button>
+
+                  {/* Page label */}
+                  <span className="ml-auto text-[11px] text-outline whitespace-nowrap pl-1">
+                    {page + 1} / {totalPages}
+                  </span>
+                </div>
               </div>
-            </div>
-          )
-        })()}
+            )
+          })()}
+        </div>
       </div>
 
       {showAddCustomer && (
