@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
-import { toLocalDateString } from '../lib/dateUtils'
+import { toLocalDateString, addHoursToTime } from '../lib/dateUtils'
 import { getActiveCustomers, invalidateCustomerCache } from '../lib/customerCache'
 import type { ActiveCustomerOption } from '../lib/customerCache'
 
@@ -19,7 +19,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
     customer_id: defaultCustomerId ?? '',
     class_date: defaultDate ?? toLocalDateString(new Date()),
     start_time: '08:00',
-    end_time: '08:50',
+    end_time: addHoursToTime('08:00', 1),
     notes: '',
     status: 'scheduled' as const,
   })
@@ -38,6 +38,22 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
       setErrors(prev => {
         const next = { ...prev }
         delete next[field]
+        return next
+      })
+    }
+  }
+
+  function handleStartTimeChange(value: string) {
+    const calculatedEndTime = addHoursToTime(value, 1)
+    setForm(prev => ({
+      ...prev,
+      start_time: value,
+      ...(calculatedEndTime ? { end_time: calculatedEndTime } : {}),
+    }))
+    if (errors.start_time) {
+      setErrors(prev => {
+        const next = { ...prev }
+        delete next.start_time
         return next
       })
     }
@@ -145,7 +161,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
               <input
                 type="time"
                 value={form.start_time}
-                onChange={e => set('start_time', e.target.value)}
+                onChange={e => handleStartTimeChange(e.target.value)}
                 className={`w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-[14px] focus:outline-none focus:bg-white transition-all ${errors.start_time ? 'border border-error' : ''}`}
               />
               {errors.start_time && (
