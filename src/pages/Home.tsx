@@ -175,7 +175,7 @@ export default function Home() {
       return (
         <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold flex items-center gap-1">
           <span className="material-symbols-outlined text-[14px]">cancel</span>
-          Not Done
+          Not Completed
         </span>
       )
     }
@@ -613,16 +613,11 @@ export default function Home() {
                 </div>
 
                 {/* Status indicator row with Call & WhatsApp */}
-                <div className="flex items-center justify-between pt-0.5">
-                  {isDone ? (
+                <div className={`flex items-center pt-0.5 ${isDone ? 'justify-between' : 'justify-end'}`}>
+                  {isDone && (
                     <div className="flex items-center gap-1.5 text-tertiary text-[13px] font-medium">
                       <span className="material-symbols-outlined text-[18px]">check_circle</span>
                       <span>Class Completed</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1.5 text-error text-[13px] font-medium">
-                      <span className="material-symbols-outlined text-[18px]">cancel</span>
-                      <span>Not Completed</span>
                     </div>
                   )}
 
