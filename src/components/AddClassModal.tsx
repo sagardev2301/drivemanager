@@ -1,9 +1,22 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
-import { toLocalDateString } from '../lib/dateUtils'
+import type { ClassStatus } from '../lib/supabase'
+import { toLocalDateString, addHoursToTime } from '../lib/dateUtils'
 import { getActiveCustomers, invalidateCustomerCache } from '../lib/customerCache'
 import type { ActiveCustomerOption } from '../lib/customerCache'
+
+export interface ClassToEdit {
+  id: string
+  customer_id: string
+  class_date: string
+  start_time: string | null
+  end_time: string | null
+  notes: string | null
+  status: ClassStatus
+  full_name?: string
+  customers?: { full_name: string; phone_number?: string }
+}
 
 interface Props {
   onClose: () => void
@@ -11,17 +24,27 @@ interface Props {
   defaultDate?: string
   defaultCustomerId?: string
   mode?: 'log' | 'schedule'
+  classToEdit?: ClassToEdit | null
 }
 
-export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCustomerId, mode = 'log' }: Props) {
+export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCustomerId, mode = 'log', classToEdit }: Props) {
   const [customers, setCustomers] = useState<ActiveCustomerOption[]>([])
-  const [form, setForm] = useState({
-    customer_id: defaultCustomerId ?? '',
-    class_date: defaultDate ?? toLocalDateString(new Date()),
-    start_time: '08:00',
-    end_time: '08:50',
-    notes: '',
-    status: 'scheduled' as const,
+  const [form, setForm] = useState(() => {
+    const initialStartTime = classToEdit?.start_time ?? '08:00'
+    const initialEndTime = classToEdit?.end_time
+      ? classToEdit.end_time
+      : classToEdit?.start_time
+      ? addHoursToTime(classToEdit.start_time, 1)
+      : addHoursToTime('08:00', 1)
+
+    return {
+      customer_id: classToEdit?.customer_id ?? defaultCustomerId ?? '',
+      class_date: classToEdit?.class_date ?? defaultDate ?? toLocalDateString(new Date()),
+      start_time: initialStartTime,
+      end_time: initialEndTime,
+      notes: classToEdit?.notes ?? '',
+      status: (classToEdit?.status ?? 'scheduled') as ClassStatus,
+    }
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -29,8 +52,24 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
 
   useEffect(() => {
     if (defaultCustomerId) return
-    getActiveCustomers().then(setCustomers)
-  }, [defaultCustomerId])
+    getActiveCustomers().then(list => {
+      if (classToEdit && !list.some(c => c.id === classToEdit.customer_id)) {
+        const customerName = classToEdit.full_name || classToEdit.customers?.full_name || 'Selected Customer'
+        const phoneNumber = classToEdit.customers?.phone_number || ''
+        setCustomers([
+          {
+            id: classToEdit.customer_id,
+            full_name: customerName,
+            phone_number: phoneNumber,
+            enrollment_date: '',
+          },
+          ...list,
+        ])
+      } else {
+        setCustomers(list)
+      }
+    })
+  }, [defaultCustomerId, classToEdit])
 
   function set(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -38,6 +77,22 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
       setErrors(prev => {
         const next = { ...prev }
         delete next[field]
+        return next
+      })
+    }
+  }
+
+  function handleStartTimeChange(value: string) {
+    const calculatedEndTime = addHoursToTime(value, 1)
+    setForm(prev => ({
+      ...prev,
+      start_time: value,
+      ...(calculatedEndTime ? { end_time: calculatedEndTime } : {}),
+    }))
+    if (errors.start_time) {
+      setErrors(prev => {
+        const next = { ...prev }
+        delete next.start_time
         return next
       })
     }
@@ -65,23 +120,44 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
 
     setSaving(true)
     try {
-      const { error: err } = await supabase.from('classes').insert({
-        customer_id: form.customer_id,
-        class_date: form.class_date,
-        start_time: form.start_time || null,
-        end_time: form.end_time || null,
-        notes: form.notes || null,
-        status: form.status,
-      })
-      if (err) {
-        if (err.message?.includes('payment_exceeds_fee')) {
-          setError('This payment would exceed the remaining balance for this customer.')
-        } else {
-          setError('Something went wrong saving this. Please try again.')
+      if (classToEdit) {
+        const { error: err } = await supabase
+          .from('classes')
+          .update({
+            customer_id: form.customer_id,
+            class_date: form.class_date,
+            start_time: form.start_time || null,
+            end_time: form.end_time || null,
+            notes: form.notes || null,
+            status: form.status,
+          })
+          .eq('id', classToEdit.id)
+
+        if (err) {
+          setError('Something went wrong updating this class. Please try again.')
+          setSaving(false)
+          return
         }
-        setSaving(false)
-        return
+      } else {
+        const { error: err } = await supabase.from('classes').insert({
+          customer_id: form.customer_id,
+          class_date: form.class_date,
+          start_time: form.start_time || null,
+          end_time: form.end_time || null,
+          notes: form.notes || null,
+          status: form.status,
+        })
+        if (err) {
+          if (err.message?.includes('payment_exceeds_fee')) {
+            setError('This payment would exceed the remaining balance for this customer.')
+          } else {
+            setError('Something went wrong saving this. Please try again.')
+          }
+          setSaving(false)
+          return
+        }
       }
+
       invalidateCustomerCache()
       onSaved()
       onClose()
@@ -100,7 +176,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-[20px] font-semibold text-on-surface">{mode === 'schedule' ? 'Schedule a Class' : 'Log a Class'}</h2>
+          <h2 className="text-[20px] font-semibold text-on-surface">{classToEdit ? 'Update Class' : mode === 'schedule' ? 'Schedule a Class' : 'Log a Class'}</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container">
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
@@ -145,7 +221,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
               <input
                 type="time"
                 value={form.start_time}
-                onChange={e => set('start_time', e.target.value)}
+                onChange={e => handleStartTimeChange(e.target.value)}
                 className={`w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-[14px] focus:outline-none focus:bg-white transition-all ${errors.start_time ? 'border border-error' : ''}`}
               />
               {errors.start_time && (
@@ -204,6 +280,8 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
           >
             {saving ? (
               <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
+            ) : classToEdit ? (
+              <><span className="material-symbols-outlined text-[18px]">edit_calendar</span>Update Class</>
             ) : mode === 'schedule' ? (
               <><span className="material-symbols-outlined text-[18px]">calendar_add_on</span>Schedule Class</>
             ) : (

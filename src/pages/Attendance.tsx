@@ -46,8 +46,13 @@ export default function Attendance() {
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
   const [classToDelete, setClassToDelete] = useState<EnrichedClass | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [classToEdit, setClassToEdit] = useState<EnrichedClass | null>(null)
 
   const dateContext = getDateContext(selectedDate)
+  const tomorrowObj = new Date()
+  tomorrowObj.setDate(tomorrowObj.getDate() + 1)
+  const tomorrowStr = toLocalDateString(tomorrowObj)
+  const isTomorrow = selectedDate === tomorrowStr
 
   async function fetchClasses(date: string) {
     setLoading(true)
@@ -98,7 +103,7 @@ export default function Attendance() {
       if (fetchErr) throw fetchErr
 
       if (!prevClasses || prevClasses.length === 0) {
-        setCopyMessage("No classes found on previous day to copy.")
+        setCopyMessage(isTomorrow ? "No classes found on today's schedule to copy." : "No classes found on previous day to copy.")
         setCopying(false)
         return
       }
@@ -298,16 +303,56 @@ export default function Attendance() {
                         </button>
                       )
                     )}
-                    <button
-                      onClick={() => setClassToDelete(cls)}
-                      disabled={isSaving || deletingId === cls.id}
-                      className={`${dateContext === 'today' ? 'w-11 h-11' : 'w-full h-11'} flex items-center justify-center gap-1.5 rounded-xl bg-error-container/50 hover:bg-error-container text-error text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0`}
-                      title="Delete scheduled class"
-                      aria-label="Delete scheduled class"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">delete</span>
-                      {dateContext !== 'today' && <span>Delete Class</span>}
-                    </button>
+                    {dateContext !== 'today' ? (
+                      <>
+                        <button
+                          onClick={() => {
+                            setClassToEdit(cls)
+                            setShowAddClass(true)
+                          }}
+                          disabled={isSaving || deletingId === cls.id}
+                          className="flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50"
+                          title="Edit scheduled class"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">edit</span>
+                          <span>Edit Class</span>
+                        </button>
+                        <button
+                          onClick={() => setClassToDelete(cls)}
+                          disabled={isSaving || deletingId === cls.id}
+                          className="h-11 px-4 flex items-center justify-center gap-1.5 rounded-xl bg-error-container/50 hover:bg-error-container text-error text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                          title="Delete scheduled class"
+                          aria-label="Delete scheduled class"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">delete</span>
+                          <span>Delete</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setClassToEdit(cls)
+                            setShowAddClass(true)
+                          }}
+                          disabled={isSaving || deletingId === cls.id}
+                          className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                          title="Edit scheduled class"
+                          aria-label="Edit scheduled class"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">edit</span>
+                        </button>
+                        <button
+                          onClick={() => setClassToDelete(cls)}
+                          disabled={isSaving || deletingId === cls.id}
+                          className="w-11 h-11 flex items-center justify-center rounded-xl bg-error-container/50 hover:bg-error-container text-error text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                          title="Delete scheduled class"
+                          aria-label="Delete scheduled class"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">delete</span>
+                        </button>
+                      </>
+                    )}
                   </div>
                 )
               })()}
@@ -319,30 +364,36 @@ export default function Attendance() {
       {/* Action Buttons — only show for today and future */}
       {!loading && dateContext !== 'past' && (
         <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-          {/* Today: Copy Yesterday's Schedule (when no classes) + Add Unscheduled Class */}
-          {dateContext === 'today' && classes.length === 0 && (
-            <button
-              onClick={copyPreviousDaySchedule}
-              disabled={copying}
-              className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container hover:bg-primary-fixed text-primary text-[14px] font-semibold shadow-sm active:scale-95 transition-all disabled:opacity-60"
-            >
-              <span className="material-symbols-outlined text-[20px]">{copying ? 'refresh' : 'content_copy'}</span>
-              <span>{copying ? 'Copying Schedule...' : "Copy Yesterday's Schedule"}</span>
-            </button>
-          )}
+          {/* Today: Add Unscheduled Class */}
           {dateContext === 'today' && (
             <button
-              onClick={() => setShowAddClass(true)}
+              onClick={() => {
+                setClassToEdit(null)
+                setShowAddClass(true)
+              }}
               className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container-high text-on-surface text-[14px] font-semibold shadow-sm active:scale-95 transition-all"
             >
               <span className="material-symbols-outlined text-primary text-[20px]">add_circle</span>
               <span>Add Unscheduled Class</span>
             </button>
           )}
-          {/* Future: Schedule Class button */}
+          {/* Future: Copy Schedule (when no classes) + Schedule Class button */}
+          {dateContext === 'future' && classes.length === 0 && (
+            <button
+              onClick={copyPreviousDaySchedule}
+              disabled={copying}
+              className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container hover:bg-primary-fixed text-primary text-[14px] font-semibold shadow-sm active:scale-95 transition-all disabled:opacity-60"
+            >
+              <span className="material-symbols-outlined text-[20px]">{copying ? 'refresh' : 'content_copy'}</span>
+              <span>{copying ? 'Copying Schedule...' : (isTomorrow ? "Copy Today's Schedule" : "Copy Previous Day Schedule")}</span>
+            </button>
+          )}
           {dateContext === 'future' && (
             <button
-              onClick={() => setShowAddClass(true)}
+              onClick={() => {
+                setClassToEdit(null)
+                setShowAddClass(true)
+              }}
               className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container-high text-on-surface text-[14px] font-semibold shadow-sm active:scale-95 transition-all"
             >
               <span className="material-symbols-outlined text-primary text-[20px]">calendar_add_on</span>
@@ -371,10 +422,15 @@ export default function Attendance() {
 
       {showAddClass && (
         <AddClassModal
-          onClose={() => setShowAddClass(false)}
+          key={classToEdit ? classToEdit.id : 'new'}
+          onClose={() => {
+            setShowAddClass(false)
+            setClassToEdit(null)
+          }}
           onSaved={() => fetchClasses(selectedDate)}
           defaultDate={selectedDate}
           mode={dateContext === 'future' ? 'schedule' : 'log'}
+          classToEdit={classToEdit}
         />
       )}
 

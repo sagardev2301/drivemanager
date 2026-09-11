@@ -13,3 +13,14 @@ export function canMarkClassDone(startTime: string | null): boolean {
   const classMinutes = h * 60 + (m || 0)
   return currentMinutes >= classMinutes
 }
+
+export function addHoursToTime(time: string, hours = 1): string {
+  if (!time) return ''
+  const parts = time.split(':')
+  if (parts.length < 2) return ''
+  const h = parseInt(parts[0], 10)
+  const m = parseInt(parts[1], 10)
+  if (isNaN(h) || isNaN(m)) return ''
+  const newH = ((h + hours) % 24 + 24) % 24
+  return `${String(newH).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
