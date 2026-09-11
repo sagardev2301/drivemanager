@@ -128,7 +128,7 @@ export default function CustomerDetail() {
   const classStatusBadge = (status: string) => {
     if (status === 'done') return <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed/30 text-tertiary text-[12px] font-semibold">Done</span>
     if (status === 'cancelled') return <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">Cancelled</span>
-    if (status === 'not_completed') return <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">Not Done</span>
+    if (status === 'not_completed') return <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">Not Completed</span>
     return <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[12px]">Scheduled</span>
   }
 

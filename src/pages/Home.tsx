@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import type { Class } from '../lib/supabase'
 import AddCustomerModal from '../components/AddCustomerModal'
 import AddClassModal from '../components/AddClassModal'
-import { toLocalDateString, canMarkClassDone } from '../lib/dateUtils'
+import { toLocalDateString, isClassExpired, isClassLive, parseTimeToMinutes } from '../lib/dateUtils'
 import { invalidateCustomerCache } from '../lib/customerCache'
 
 function getInitials(name: string) {
@@ -57,24 +57,6 @@ function WhatsAppIcon({ className = "w-5 h-5" }: { className?: string }) {
   )
 }
 
-function isClassOngoing(cls: { start_time: string | null; end_time?: string | null; status: string }): boolean {
-  if (cls.status !== 'scheduled' || !cls.start_time) return false
-  const now = new Date()
-  const currentMinutes = now.getHours() * 60 + now.getMinutes()
-  const [sH, sM] = cls.start_time.split(':').map(Number)
-  const startMinutes = sH * 60 + (sM || 0)
-
-  let endMinutes: number
-  if (cls.end_time) {
-    const [eH, eM] = cls.end_time.split(':').map(Number)
-    endMinutes = eH * 60 + (eM || 0)
-  } else {
-    endMinutes = startMinutes + 50
-  }
-
-  return currentMinutes >= startMinutes && currentMinutes <= endMinutes + 15
-}
-
 export default function Home() {
   const navigate = useNavigate()
   const [todayClasses, setTodayClasses] = useState<(Class & { full_name: string; phone_number: string; location: string | null; classes_completed: number; package_classes: number; amount_pending: number })[]>([])
@@ -99,6 +81,28 @@ export default function Home() {
     ])
 
     if (classData) {
+      // Find any scheduled classes for today whose scheduled time has already passed
+      const expiredClasses = classData.filter((c: any) => c.status === 'scheduled' && isClassExpired(c))
+      if (expiredClasses.length > 0) {
+        const expiredIds = expiredClasses.map((c: any) => c.id)
+        await supabase
+          .from('classes')
+          .update({ status: 'not_completed' })
+          .in('id', expiredIds)
+        invalidateCustomerCache()
+        expiredClasses.forEach((c: any) => {
+          c.status = 'not_completed'
+        })
+      }
+
+      // Also clean up any historical dangling scheduled classes from previous dates
+      supabase
+        .from('classes')
+        .update({ status: 'not_completed' })
+        .lt('class_date', today)
+        .eq('status', 'scheduled')
+        .then(() => {})
+
       const enriched = classData.map((c: any) => {
         const sum = sumData?.find((s: any) => s.customer_id === c.customer_id)
         return {
@@ -118,39 +122,37 @@ export default function Home() {
 
   useEffect(() => { fetchData() }, [today])
 
-  // Periodic ticker to refresh ongoing status and locked time buttons
-  const [, setTick] = useState(0)
+  // Periodic ticker to check for expired classes and refresh UP NEXT every 30 seconds
   useEffect(() => {
-    const timer = setInterval(() => setTick(t => t + 1), 30000)
+    const timer = setInterval(() => {
+      fetchData()
+    }, 30000)
     return () => clearInterval(timer)
-  }, [])
+  }, [today])
 
-  // All scheduled classes ordered by start_time
-  const scheduledClasses = todayClasses
-    .filter(c => c.status === 'scheduled')
-    .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
+  // Active scheduled classes for today that have not expired yet
+  const activeScheduledClasses = todayClasses
+    .filter(c => c.status === 'scheduled' && !isClassExpired(c))
+    .sort((a, b) => {
+      const aMin = parseTimeToMinutes(a.start_time) ?? 0
+      const bMin = parseTimeToMinutes(b.start_time) ?? 0
+      return aMin - bMin
+    })
 
-  // Ongoing classes currently in session
-  const ongoingClasses = scheduledClasses.filter(isClassOngoing)
+  // The UP NEXT class is the earliest active scheduled class
+  const upNextClass = activeScheduledClasses.length > 0 ? activeScheduledClasses[0] : null
 
-  // Upcoming scheduled classes not currently ongoing
-  const upcomingClasses = scheduledClasses.filter(c => !isClassOngoing(c))
+  // Future scheduled classes are all active scheduled classes after UP NEXT
+  const futureClasses = activeScheduledClasses.slice(1)
 
-  // Completed classes ordered by start_time
-  const completedClasses = todayClasses
-    .filter(c => c.status === 'done')
-    .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
-
-  // Identify UP NEXT class in upcoming classes:
-  // The first class starting after current time; or the earliest upcoming class
-  const now = new Date()
-  const currentMinutes = now.getHours() * 60 + now.getMinutes()
-  const nextFutureClass = upcomingClasses.find(c => {
-    if (!c.start_time) return false
-    const [h, m] = c.start_time.split(':').map(Number)
-    return (h * 60 + (m || 0)) > currentMinutes
-  })
-  const upNextId = nextFutureClass ? nextFutureClass.id : (upcomingClasses[0]?.id ?? null)
+  // Past classes (completed or not completed)
+  const pastClasses = todayClasses
+    .filter(c => c.status === 'done' || c.status === 'not_completed')
+    .sort((a, b) => {
+      const aMin = parseTimeToMinutes(a.start_time) ?? 0
+      const bMin = parseTimeToMinutes(b.start_time) ?? 0
+      return aMin - bMin
+    })
 
   async function markDone(classId: string) {
     setMarkingDone(classId)
@@ -161,8 +163,27 @@ export default function Home() {
   }
 
   const statusBadge = (status: string) => {
-    if (status === 'done') return <span className="px-2 py-1 rounded-full bg-tertiary-fixed/40 text-tertiary text-[12px] font-semibold flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">check_circle</span>Done</span>
-    return <span className="px-2 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-[12px] font-semibold">Scheduled</span>
+    if (status === 'done') {
+      return (
+        <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed/40 text-tertiary text-[12px] font-semibold flex items-center gap-1">
+          <span className="material-symbols-outlined text-[14px]">check_circle</span>
+          Done
+        </span>
+      )
+    }
+    if (status === 'not_completed') {
+      return (
+        <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold flex items-center gap-1">
+          <span className="material-symbols-outlined text-[14px]">cancel</span>
+          Not Completed
+        </span>
+      )
+    }
+    return (
+      <span className="px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed text-[12px] font-semibold">
+        Scheduled
+      </span>
+    )
   }
 
   return (
@@ -203,132 +224,13 @@ export default function Home() {
       </div>
 
 
-      {/* Ongoing / Current Class Section */}
-      {!loading && ongoingClasses.length > 0 && (
-        <div className="flex flex-col space-y-3">
-          <div className="flex items-center justify-between pt-1 px-0.5">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-              </span>
-              <h2 className="text-[16px] font-semibold text-on-surface">Ongoing Class</h2>
-              <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed/30 text-tertiary text-[11px] font-bold uppercase tracking-wide">
-                Live Now
-              </span>
-            </div>
-          </div>
-
-          {ongoingClasses.map(cls => {
-            const hasPhone = isValidPhone(cls.phone_number)
-            return (
-              <div key={cls.id} className="bg-white p-4 rounded-xl shadow-sm border border-emerald-200/80 flex flex-col space-y-3">
-                {/* Header Pill */}
-                <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-bold tracking-wide uppercase">
-                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-                    <span>CURRENT • {cls.start_time ? formatTime(cls.start_time) : ''}{cls.end_time ? ` - ${formatTime(cls.end_time)}` : ''}</span>
-                  </div>
-                  {cls.amount_pending > 0 && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">
-                      Due ₹{cls.amount_pending.toLocaleString('en-IN')}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-primary flex items-center justify-center text-[16px] font-bold text-on-primary shadow-sm">
-                      {getInitials(cls.full_name)}
-                    </div>
-                    <div className="flex flex-col">
-                      <span
-                        className="text-[15px] font-bold text-on-surface cursor-pointer hover:text-primary"
-                        onClick={() => navigate(`/customers/${cls.customer_id}`)}
-                      >
-                        {cls.full_name}
-                      </span>
-                      <span className="text-[12px] text-on-surface-variant mt-0.5">
-                        Class {cls.classes_completed + 1} of {cls.package_classes}
-                        {cls.notes ? ` • ${cls.notes}` : ' • Practical Drive'}
-                      </span>
-                    </div>
-                  </div>
-                  {cls.location && (
-                    <div className="flex items-center gap-0.5 text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">
-                      <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
-                      <span className="text-[11px] font-medium max-w-[120px] truncate">{cls.location}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Mark Done row with Call & WhatsApp */}
-                <div className="flex items-center gap-2 pt-0.5">
-                  <button
-                    onClick={() => markDone(cls.id)}
-                    disabled={markingDone === cls.id}
-                    className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-primary text-on-primary rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
-                  >
-                    {markingDone === cls.id ? (
-                      <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
-                    ) : (
-                      <><span className="material-symbols-outlined text-[20px]">check</span>Mark Done</>
-                    )}
-                  </button>
-
-                  {/* Call button */}
-                  {hasPhone ? (
-                    <a
-                      href={`tel:${cls.phone_number}`}
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-primary-fixed text-primary hover:bg-primary-fixed-dim active:scale-95 transition-all shrink-0 shadow-sm"
-                      title={`Call ${cls.full_name}`}
-                    >
-                      <span className="material-symbols-outlined text-[20px]">call</span>
-                    </a>
-                  ) : (
-                    <button
-                      disabled
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
-                      title="Phone number not available"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">call</span>
-                    </button>
-                  )}
-
-                  {/* WhatsApp button */}
-                  {hasPhone ? (
-                    <a
-                      href={getWhatsAppUrl(cls.phone_number)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-tertiary-fixed/30 text-tertiary hover:bg-tertiary-fixed/50 active:scale-95 transition-all shrink-0 shadow-sm"
-                      title={`WhatsApp ${cls.full_name}`}
-                    >
-                      <WhatsAppIcon className="w-5 h-5" />
-                    </a>
-                  ) : (
-                    <button
-                      disabled
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
-                      title="Phone number not available"
-                    >
-                      <WhatsAppIcon className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
       {/* Today's Classes */}
       <div className="flex flex-col space-y-3">
         <div className="flex items-center justify-between pt-1 px-0.5">
           <div className="flex items-center gap-2">
             <h2 className="text-[16px] font-semibold text-on-surface">Today's Classes</h2>
             <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-primary text-[12px] font-semibold">
-              {upcomingClasses.length}
+              {activeScheduledClasses.length}
             </span>
           </div>
           <button
@@ -348,19 +250,23 @@ export default function Home() {
           </div>
         )}
 
-        {!loading && upcomingClasses.length === 0 && (
+        {!loading && activeScheduledClasses.length === 0 && (
           <>
-            {ongoingClasses.length > 0 ? (
+            {pastClasses.length > 0 ? (
               <div className="bg-white p-6 rounded-xl shadow-sm text-center">
-                <span className="material-symbols-outlined text-primary text-[32px]">schedule</span>
-                <p className="text-[15px] font-semibold text-on-surface mt-2">No more upcoming classes</p>
-                <p className="text-[12px] text-on-surface-variant mt-0.5">See ongoing class above or completed below</p>
-              </div>
-            ) : completedClasses.length > 0 ? (
-              <div className="bg-white p-6 rounded-xl shadow-sm text-center">
-                <span className="material-symbols-outlined text-tertiary text-[32px]">task_alt</span>
-                <p className="text-[15px] font-semibold text-on-surface mt-2">All classes completed for today!</p>
-                <p className="text-[12px] text-on-surface-variant mt-0.5">See completed classes below</p>
+                {pastClasses.every(c => c.status === 'done') ? (
+                  <>
+                    <span className="material-symbols-outlined text-tertiary text-[32px]">task_alt</span>
+                    <p className="text-[15px] font-semibold text-on-surface mt-2">All classes completed for today!</p>
+                    <p className="text-[12px] text-on-surface-variant mt-0.5">See completed classes below</p>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-primary text-[32px]">schedule</span>
+                    <p className="text-[15px] font-semibold text-on-surface mt-2">No more upcoming classes</p>
+                    <p className="text-[12px] text-on-surface-variant mt-0.5">All scheduled sessions for today have concluded. See past classes below.</p>
+                  </>
+                )}
               </div>
             ) : (
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -419,123 +325,129 @@ export default function Home() {
           </>
         )}
 
-        {!loading && upcomingClasses.map(cls => {
-          const isUpNext = cls.id === upNextId
+        {/* UP NEXT Class Card (Only this card has Mark Done ENABLED) */}
+        {!loading && upNextClass && (() => {
+          const cls = upNextClass
           const hasPhone = isValidPhone(cls.phone_number)
-          const canMark = canMarkClassDone(cls.start_time)
-
-          if (isUpNext) {
-            return (
-              <div key={cls.id} className="bg-white p-4 rounded-xl shadow-sm border border-primary-fixed flex flex-col space-y-3">
-                {/* UP NEXT Badge Header */}
-                <div className="flex items-center justify-between">
+          const isLive = isClassLive(cls)
+          return (
+            <div
+              key={cls.id}
+              className={`bg-white p-4 rounded-xl shadow-sm flex flex-col space-y-3 ${
+                isLive ? 'border-2 border-emerald-400' : 'border border-primary-fixed'
+              }`}
+            >
+              {/* Header Pill */}
+              <div className="flex items-center justify-between">
+                {isLive ? (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-bold tracking-wide uppercase">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                    <span>LIVE NOW • {cls.start_time ? formatTime(cls.start_time) : ''}{cls.end_time ? ` - ${formatTime(cls.end_time)}` : ''}</span>
+                  </div>
+                ) : (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-primary text-[11px] font-bold tracking-wide uppercase">
                     <span className="w-2 h-2 rounded-full bg-primary"></span>
                     <span>UP NEXT • {cls.start_time ? formatTime(cls.start_time) : ''}{cls.end_time ? ` - ${formatTime(cls.end_time)}` : ''}</span>
                   </div>
-                  {cls.amount_pending > 0 && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">
-                      Due ₹{cls.amount_pending.toLocaleString('en-IN')}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-primary flex items-center justify-center text-[16px] font-bold text-on-primary shadow-sm">
-                      {getInitials(cls.full_name)}
-                    </div>
-                    <div className="flex flex-col">
-                      <span
-                        className="text-[15px] font-bold text-on-surface cursor-pointer hover:text-primary"
-                        onClick={() => navigate(`/customers/${cls.customer_id}`)}
-                      >
-                        {cls.full_name}
-                      </span>
-                      <span className="text-[12px] text-on-surface-variant mt-0.5">
-                        Class {cls.classes_completed + 1} of {cls.package_classes}
-                        {cls.notes ? ` • ${cls.notes}` : ' • Practical Drive'}
-                      </span>
-                    </div>
-                  </div>
-                  {cls.location && (
-                    <div className="flex items-center gap-0.5 text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">
-                      <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
-                      <span className="text-[11px] font-medium max-w-[120px] truncate">{cls.location}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Mark Done row with Call & WhatsApp */}
-                <div className="flex items-center gap-2 pt-0.5">
-                  {canMark ? (
-                    <button
-                      onClick={() => markDone(cls.id)}
-                      disabled={markingDone === cls.id}
-                      className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-primary text-on-primary rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
-                    >
-                      {markingDone === cls.id ? (
-                        <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
-                      ) : (
-                        <><span className="material-symbols-outlined text-[20px]">check</span>Mark Done</>
-                      )}
-                    </button>
-                  ) : (
-                    <button
-                      disabled
-                      className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-surface-container text-outline rounded-xl text-[13px] font-medium opacity-70 cursor-not-allowed"
-                      title={`Cannot mark done before scheduled time (${cls.start_time ? formatTime(cls.start_time) : ''})`}
-                    >
-                      <span className="material-symbols-outlined text-[18px]">lock_clock</span>
-                      <span>Starts at {cls.start_time ? formatTime(cls.start_time) : 'TBD'}</span>
-                    </button>
-                  )}
-
-                  {/* Call button */}
-                  {hasPhone ? (
-                    <a
-                      href={`tel:${cls.phone_number}`}
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-primary-fixed text-primary hover:bg-primary-fixed-dim active:scale-95 transition-all shrink-0 shadow-sm"
-                      title={`Call ${cls.full_name}`}
-                    >
-                      <span className="material-symbols-outlined text-[20px]">call</span>
-                    </a>
-                  ) : (
-                    <button
-                      disabled
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
-                      title="Phone number not available"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">call</span>
-                    </button>
-                  )}
-
-                  {/* WhatsApp button */}
-                  {hasPhone ? (
-                    <a
-                      href={getWhatsAppUrl(cls.phone_number)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-tertiary-fixed/30 text-tertiary hover:bg-tertiary-fixed/50 active:scale-95 transition-all shrink-0 shadow-sm"
-                      title={`WhatsApp ${cls.full_name}`}
-                    >
-                      <WhatsAppIcon className="w-5 h-5" />
-                    </a>
-                  ) : (
-                    <button
-                      disabled
-                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
-                      title="Phone number not available"
-                    >
-                      <WhatsAppIcon className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
+                )}
+                {cls.amount_pending > 0 && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">
+                    Due ₹{cls.amount_pending.toLocaleString('en-IN')}
+                  </span>
+                )}
               </div>
-            )
-          }
 
-          // Regular scheduled card
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-11 h-11 rounded-full flex items-center justify-center text-[16px] font-bold shadow-sm ${
+                      isLive ? 'bg-emerald-600 text-white' : 'bg-primary text-on-primary'
+                    }`}
+                  >
+                    {getInitials(cls.full_name)}
+                  </div>
+                  <div className="flex flex-col">
+                    <span
+                      className="text-[15px] font-bold text-on-surface cursor-pointer hover:text-primary"
+                      onClick={() => navigate(`/customers/${cls.customer_id}`)}
+                    >
+                      {cls.full_name}
+                    </span>
+                    <span className="text-[12px] text-on-surface-variant mt-0.5">
+                      Class {cls.classes_completed + 1} of {cls.package_classes}
+                      {cls.notes ? ` • ${cls.notes}` : ' • Practical Drive'}
+                    </span>
+                  </div>
+                </div>
+                {cls.location && (
+                  <div className="flex items-center gap-0.5 text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">
+                    <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
+                    <span className="text-[11px] font-medium max-w-[120px] truncate">{cls.location}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Mark Done row with Call & WhatsApp */}
+              <div className="flex items-center gap-2 pt-0.5">
+                <button
+                  onClick={() => markDone(cls.id)}
+                  disabled={markingDone === cls.id}
+                  className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-primary text-on-primary rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
+                >
+                  {markingDone === cls.id ? (
+                    <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
+                  ) : (
+                    <><span className="material-symbols-outlined text-[20px]">check</span>Mark Done</>
+                  )}
+                </button>
+
+                {/* Call button */}
+                {hasPhone ? (
+                  <a
+                    href={`tel:${cls.phone_number}`}
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-primary-fixed text-primary hover:bg-primary-fixed-dim active:scale-95 transition-all shrink-0 shadow-sm"
+                    title={`Call ${cls.full_name}`}
+                  >
+                    <span className="material-symbols-outlined text-[20px]">call</span>
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
+                    title="Phone number not available"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">call</span>
+                  </button>
+                )}
+
+                {/* WhatsApp button */}
+                {hasPhone ? (
+                  <a
+                    href={getWhatsAppUrl(cls.phone_number)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-tertiary-fixed/30 text-tertiary hover:bg-tertiary-fixed/50 active:scale-95 transition-all shrink-0 shadow-sm"
+                    title={`WhatsApp ${cls.full_name}`}
+                  >
+                    <WhatsAppIcon className="w-5 h-5" />
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
+                    title="Phone number not available"
+                  >
+                    <WhatsAppIcon className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* Future Classes (Mark Done DISABLED) */}
+        {!loading && futureClasses.map(cls => {
+          const hasPhone = isValidPhone(cls.phone_number)
           return (
             <div key={cls.id} className="bg-white p-4 rounded-xl shadow-sm flex flex-col space-y-3">
               <div className="flex items-start justify-between">
@@ -581,30 +493,16 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Mark Done row with Call & WhatsApp */}
+              {/* Mark Done row - DISABLED for future classes */}
               <div className="flex items-center gap-2 pt-0.5">
-                {canMark ? (
-                  <button
-                    onClick={() => markDone(cls.id)}
-                    disabled={markingDone === cls.id}
-                    className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-primary text-on-primary rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
-                  >
-                    {markingDone === cls.id ? (
-                      <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
-                    ) : (
-                      <><span className="material-symbols-outlined text-[20px]">check</span>Mark Done</>
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    disabled
-                    className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-surface-container text-outline rounded-xl text-[13px] font-medium opacity-70 cursor-not-allowed"
-                    title={`Cannot mark done before scheduled time (${cls.start_time ? formatTime(cls.start_time) : ''})`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">lock_clock</span>
-                    <span>Starts at {cls.start_time ? formatTime(cls.start_time) : 'TBD'}</span>
-                  </button>
-                )}
+                <button
+                  disabled
+                  className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-surface-container text-outline rounded-xl text-[13px] font-medium opacity-60 cursor-not-allowed"
+                  title="Mark Done will be enabled when this class is Up Next"
+                >
+                  <span className="material-symbols-outlined text-[18px]">lock</span>
+                  <span>Mark Done</span>
+                </button>
 
                 {/* Call button */}
                 {hasPhone ? (
@@ -651,23 +549,28 @@ export default function Home() {
         })}
       </div>
 
-      {/* Completed Classes Section */}
-      {!loading && completedClasses.length > 0 && (
+      {/* Past Classes Section (Completed & Not Completed) */}
+      {!loading && pastClasses.length > 0 && (
         <div className="flex flex-col space-y-3 pt-2">
           <div className="flex items-center gap-2 pt-1 px-0.5">
-            <h2 className="text-[16px] font-semibold text-on-surface">Completed Classes</h2>
-            <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed/30 text-tertiary text-[12px] font-semibold">
-              {completedClasses.length}
+            <h2 className="text-[16px] font-semibold text-on-surface">Past Classes</h2>
+            <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[12px] font-semibold">
+              {pastClasses.length}
             </span>
           </div>
 
-          {completedClasses.map(cls => {
+          {pastClasses.map(cls => {
             const hasPhone = isValidPhone(cls.phone_number)
+            const isDone = cls.status === 'done'
             return (
               <div key={cls.id} className="bg-white p-4 rounded-xl shadow-sm flex flex-col space-y-3 opacity-90">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-tertiary-fixed/30 flex items-center justify-center text-[16px] font-semibold text-tertiary">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-[16px] font-semibold ${
+                        isDone ? 'bg-tertiary-fixed/30 text-tertiary' : 'bg-error-container/50 text-error'
+                      }`}
+                    >
                       {getInitials(cls.full_name)}
                     </div>
                     <div className="flex flex-col">
@@ -678,12 +581,13 @@ export default function Home() {
                         {cls.full_name}
                       </span>
                       <span className="text-[11px] text-on-surface-variant mt-0.5">
-                        Class {cls.classes_completed} of {cls.package_classes}
+                        Class {cls.classes_completed + (isDone ? 0 : 1)} of {cls.package_classes}
+                        {cls.notes ? ` • ${cls.notes}` : ' • Practical Drive'}
                       </span>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    {statusBadge('done')}
+                    {statusBadge(cls.status)}
                     {cls.location && (
                       <div className="flex items-center gap-0.5 text-on-surface-variant mt-0.5">
                         <span className="material-symbols-outlined text-[13px] text-primary">location_on</span>
@@ -698,7 +602,7 @@ export default function Home() {
                   <div className="flex items-center gap-2 text-on-surface-variant">
                     <span className="material-symbols-outlined text-[16px]">schedule</span>
                     <span className="text-[13px] font-medium text-on-surface">
-                      {cls.start_time ? formatTime(cls.start_time) : 'Time TBD'}
+                      {cls.start_time ? formatTime(cls.start_time) : 'Time TBD'}{cls.end_time ? ` - ${formatTime(cls.end_time)}` : ''}
                     </span>
                   </div>
                   {cls.amount_pending > 0 && (
@@ -708,14 +612,18 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* Contact actions for completed class */}
-                {hasPhone && (
-                  <div className="flex items-center justify-between pt-0.5">
+                {/* Status indicator row with Call & WhatsApp */}
+                <div className={`flex items-center pt-0.5 ${isDone ? 'justify-between' : 'justify-end'}`}>
+                  {isDone && (
                     <div className="flex items-center gap-1.5 text-tertiary text-[13px] font-medium">
                       <span className="material-symbols-outlined text-[18px]">check_circle</span>
                       <span>Class Completed</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                  )}
+
+                  {/* Call & WhatsApp actions */}
+                  <div className="flex items-center gap-2">
+                    {hasPhone ? (
                       <a
                         href={`tel:${cls.phone_number}`}
                         className="w-9 h-9 flex items-center justify-center rounded-xl bg-primary-fixed text-primary hover:bg-primary-fixed-dim active:scale-95 transition-all shadow-sm"
@@ -723,6 +631,17 @@ export default function Home() {
                       >
                         <span className="material-symbols-outlined text-[18px]">call</span>
                       </a>
+                    ) : (
+                      <button
+                        disabled
+                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
+                        title="Phone number not available"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">call</span>
+                      </button>
+                    )}
+
+                    {hasPhone ? (
                       <a
                         href={getWhatsAppUrl(cls.phone_number)}
                         target="_blank"
@@ -732,9 +651,17 @@ export default function Home() {
                       >
                         <WhatsAppIcon className="w-4 h-4" />
                       </a>
-                    </div>
+                    ) : (
+                      <button
+                        disabled
+                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
+                        title="Phone number not available"
+                      >
+                        <WhatsAppIcon className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             )
           })}
