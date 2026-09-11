@@ -283,27 +283,7 @@ export default function Attendance() {
                 const canMark = canMarkClassDone(cls.start_time)
                 return (
                   <div className="flex items-center gap-2 mt-1">
-                    {dateContext === 'today' && (
-                      canMark ? (
-                        <button
-                          onClick={() => markDone(cls.id)}
-                          disabled={isSaving}
-                          className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-[14px] font-semibold transition-all active:scale-[0.99] disabled:opacity-60"
-                        >
-                          <span className={buttonIconClass}>{buttonIcon}</span>{buttonLabel}
-                        </button>
-                      ) : (
-                        <button
-                          disabled
-                          className="flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl bg-surface-container-low text-outline text-[13px] font-medium opacity-70 cursor-not-allowed"
-                          title={`Cannot mark done before scheduled time (${cls.start_time ? formatTime(cls.start_time) : ''})`}
-                        >
-                          <span className="material-symbols-outlined text-[18px]">lock_clock</span>
-                          <span>Starts at {cls.start_time ? formatTime(cls.start_time) : 'TBD'}</span>
-                        </button>
-                      )
-                    )}
-                    {dateContext !== 'today' ? (
+                    {cls.status === 'not_completed' ? (
                       <>
                         <button
                           onClick={() => {
@@ -312,7 +292,7 @@ export default function Attendance() {
                           }}
                           disabled={isSaving || deletingId === cls.id}
                           className="flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50"
-                          title="Edit scheduled class"
+                          title="Edit class"
                         >
                           <span className="material-symbols-outlined text-[18px]">edit</span>
                           <span>Edit Class</span>
@@ -321,8 +301,8 @@ export default function Attendance() {
                           onClick={() => setClassToDelete(cls)}
                           disabled={isSaving || deletingId === cls.id}
                           className="h-11 px-4 flex items-center justify-center gap-1.5 rounded-xl bg-error-container/50 hover:bg-error-container text-error text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
-                          title="Delete scheduled class"
-                          aria-label="Delete scheduled class"
+                          title="Delete class"
+                          aria-label="Delete class"
                         >
                           <span className="material-symbols-outlined text-[18px]">delete</span>
                           <span>Delete</span>
@@ -330,27 +310,76 @@ export default function Attendance() {
                       </>
                     ) : (
                       <>
-                        <button
-                          onClick={() => {
-                            setClassToEdit(cls)
-                            setShowAddClass(true)
-                          }}
-                          disabled={isSaving || deletingId === cls.id}
-                          className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
-                          title="Edit scheduled class"
-                          aria-label="Edit scheduled class"
-                        >
-                          <span className="material-symbols-outlined text-[20px]">edit</span>
-                        </button>
-                        <button
-                          onClick={() => setClassToDelete(cls)}
-                          disabled={isSaving || deletingId === cls.id}
-                          className="w-11 h-11 flex items-center justify-center rounded-xl bg-error-container/50 hover:bg-error-container text-error text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
-                          title="Delete scheduled class"
-                          aria-label="Delete scheduled class"
-                        >
-                          <span className="material-symbols-outlined text-[20px]">delete</span>
-                        </button>
+                        {dateContext === 'today' && (
+                          canMark ? (
+                            <button
+                              onClick={() => markDone(cls.id)}
+                              disabled={isSaving}
+                              className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-[14px] font-semibold transition-all active:scale-[0.99] disabled:opacity-60"
+                            >
+                              <span className={buttonIconClass}>{buttonIcon}</span>{buttonLabel}
+                            </button>
+                          ) : (
+                            <button
+                              disabled
+                              className="flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl bg-surface-container-low text-outline text-[13px] font-medium opacity-70 cursor-not-allowed"
+                              title={`Cannot mark done before scheduled time (${cls.start_time ? formatTime(cls.start_time) : ''})`}
+                            >
+                              <span className="material-symbols-outlined text-[18px]">lock_clock</span>
+                              <span>Starts at {cls.start_time ? formatTime(cls.start_time) : 'TBD'}</span>
+                            </button>
+                          )
+                        )}
+                        {dateContext !== 'today' ? (
+                          <>
+                            <button
+                              onClick={() => {
+                                setClassToEdit(cls)
+                                setShowAddClass(true)
+                              }}
+                              disabled={isSaving || deletingId === cls.id}
+                              className="flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50"
+                              title="Edit scheduled class"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">edit</span>
+                              <span>Edit Class</span>
+                            </button>
+                            <button
+                              onClick={() => setClassToDelete(cls)}
+                              disabled={isSaving || deletingId === cls.id}
+                              className="h-11 px-4 flex items-center justify-center gap-1.5 rounded-xl bg-error-container/50 hover:bg-error-container text-error text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                              title="Delete scheduled class"
+                              aria-label="Delete scheduled class"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">delete</span>
+                              <span>Delete</span>
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => {
+                                setClassToEdit(cls)
+                                setShowAddClass(true)
+                              }}
+                              disabled={isSaving || deletingId === cls.id}
+                              className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                              title="Edit scheduled class"
+                              aria-label="Edit scheduled class"
+                            >
+                              <span className="material-symbols-outlined text-[20px]">edit</span>
+                            </button>
+                            <button
+                              onClick={() => setClassToDelete(cls)}
+                              disabled={isSaving || deletingId === cls.id}
+                              className="w-11 h-11 flex items-center justify-center rounded-xl bg-error-container/50 hover:bg-error-container text-error text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                              title="Delete scheduled class"
+                              aria-label="Delete scheduled class"
+                            >
+                              <span className="material-symbols-outlined text-[20px]">delete</span>
+                            </button>
+                          </>
+                        )}
                       </>
                     )}
                   </div>
