@@ -37,7 +37,7 @@ function buildWhatsAppMessage(c: CustomerSummary): string {
     'Please clear the dues by ' + formatDueDate() + '.',
     '',
     'Thank you! \uD83D\uDE4F',
-    '\u2014 DriveManager',
+    '\u2014 Sagar Driving School',
   ]
   return lines.join('\n')
 }
