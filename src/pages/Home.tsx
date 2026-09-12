@@ -82,17 +82,14 @@ export default function Home() {
   const today = toLocalDateString(new Date())
   const todayDisplay = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })
 
-  async function fetchData() {
-    setLoading(true)
-    const [{ data: sumData }, { data: classData }] = await Promise.all([
-      supabase.from('customer_summary').select('customer_id, classes_completed, amount_pending'),
-      supabase
-        .from('classes')
-        .select('*, customers(full_name, phone_number, package_classes, location)')
-        .eq('class_date', today)
-        .in('status', ['scheduled', 'done', 'not_completed'])
-        .order('start_time', { ascending: true }),
-    ])
+  async function fetchData(silent = false) {
+    if (!silent) setLoading(true)
+    const { data: classData } = await supabase
+      .from('classes')
+      .select('*, customers(full_name, phone_number, package_classes, location)')
+      .eq('class_date', today)
+      .in('status', ['scheduled', 'done', 'not_completed'])
+      .order('start_time', { ascending: true })
 
     if (classData) {
       // Find any scheduled classes for today whose scheduled time has already passed
@@ -117,6 +114,17 @@ export default function Home() {
         .eq('status', 'scheduled')
         .then(() => {})
 
+      // Only pull summary rows for customers with a class today, instead of
+      // the entire customer_summary table — keeps this poll flat regardless
+      // of how many customers are enrolled overall.
+      const customerIds = Array.from(new Set(classData.map((c: any) => c.customer_id)))
+      const { data: sumData } = customerIds.length > 0
+        ? await supabase
+            .from('customer_summary')
+            .select('customer_id, classes_completed, amount_pending')
+            .in('customer_id', customerIds)
+        : { data: [] as { customer_id: string; classes_completed: number; amount_pending: number }[] }
+
       const enriched = classData.map((c: any) => {
         const sum = sumData?.find((s: any) => s.customer_id === c.customer_id)
         return {
@@ -136,10 +144,11 @@ export default function Home() {
 
   useEffect(() => { fetchData() }, [today])
 
-  // Periodic ticker to check for expired classes and refresh UP NEXT every 30 seconds
+  // Periodic ticker to check for expired classes and refresh UP NEXT every 30 seconds.
+  // Silent: skips the loading skeleton so this doesn't flash the whole list on each tick.
   useEffect(() => {
     const timer = setInterval(() => {
-      fetchData()
+      fetchData(true)
     }, 30000)
     return () => clearInterval(timer)
   }, [today])
