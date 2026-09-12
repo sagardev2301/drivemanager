@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { toLocalDateString } from '../lib/dateUtils'
 import { invalidateCustomerCache } from '../lib/customerCache'
+import { normalizePhoneNumber } from '../lib/phoneUtils'
 
 export interface CustomerEditData {
   id: string
@@ -61,6 +62,8 @@ export default function AddCustomerModal({ onClose, onSaved, customer }: Props) 
     if (!form.phone_number.trim()) { setError('Phone number is required'); return }
     if (!form.total_fee || isNaN(Number(form.total_fee))) { setError('Valid total fee is required'); return }
 
+    const normalizedPhone = normalizePhoneNumber(form.phone_number)
+
     const pkgClasses = parseInt(form.package_classes) || 10
     if (isEditing && customer && customer.classes_completed !== undefined && pkgClasses < customer.classes_completed) {
       setError(`Package classes cannot be less than completed classes (${customer.classes_completed})`)
@@ -74,7 +77,7 @@ export default function AddCustomerModal({ onClose, onSaved, customer }: Props) 
           .from('customers')
           .update({
             full_name: form.full_name.trim(),
-            phone_number: form.phone_number.trim(),
+            phone_number: normalizedPhone,
             package_classes: pkgClasses,
             total_fee: parseFloat(form.total_fee),
             enrollment_date: form.enrollment_date,
@@ -91,7 +94,7 @@ export default function AddCustomerModal({ onClose, onSaved, customer }: Props) 
       } else {
         const { error: err } = await supabase.from('customers').insert({
           full_name: form.full_name.trim(),
-          phone_number: form.phone_number.trim(),
+          phone_number: normalizedPhone,
           package_classes: pkgClasses,
           total_fee: parseFloat(form.total_fee),
           enrollment_date: form.enrollment_date,

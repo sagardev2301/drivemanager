@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
+import { normalizePhoneNumber } from '../lib/phoneUtils'
 
 interface Props {
   onClose: () => void
@@ -8,11 +9,9 @@ interface Props {
 }
 
 const PRESET_SOURCES = [
-  'Instagram Ad',
-  'Referral',
+  'Just Dial',
+  'Referred',
   'Walk-in',
-  'Google Maps',
-  'Website Form',
   'Phone Enquiry',
   'Other',
 ]
@@ -44,8 +43,9 @@ export default function AddLeadModal({ onClose, onSaved }: Props) {
     }
 
     // Format phone: if 10 digits without prefix, prepend +91
-    const digits = trimmedPhone.replace(/\D/g, '')
-    let formattedPhone = trimmedPhone
+    const normalizedPhone = normalizePhoneNumber(trimmedPhone)
+    const digits = normalizedPhone.replace(/\D/g, '')
+    let formattedPhone = normalizedPhone
     if (digits.length === 10) {
       formattedPhone = `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`
     } else if (digits.length === 12 && digits.startsWith('91')) {
