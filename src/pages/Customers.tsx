@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { CustomerSummary } from '../lib/supabase'
 import AddCustomerModal from '../components/AddCustomerModal'
+import { FilterChip, FilterChipRow } from '../components/FilterChips'
+import EntityListCard from '../components/EntityListCard'
 
 const PAGE_SIZE = 25
 
@@ -194,19 +196,13 @@ export default function Customers() {
           </div>
 
           {/* Filter Chips */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-0.5 -mx-4 px-4 scrollbar-none">
+          <FilterChipRow>
             {pills.map(p => (
-              <button
-                key={p.key}
-                onClick={() => setFilter(p.key)}
-                className={`shrink-0 px-4 py-2 rounded-full text-[12px] font-semibold transition-all active:scale-95 ${
-                  filter === p.key ? 'bg-primary text-on-primary shadow-sm' : 'bg-surface-container text-on-surface-variant'
-                }`}
-              >
+              <FilterChip key={p.key} active={filter === p.key} onClick={() => setFilter(p.key)}>
                 {p.label}
-              </button>
+              </FilterChip>
             ))}
-          </div>
+          </FilterChipRow>
 
           {/* Result summary */}
           {!loadingPage && (
@@ -234,38 +230,19 @@ export default function Customers() {
           {!loadingPage && customers.map(c => {
             const progress = c.package_classes > 0 ? (c.classes_completed / c.package_classes) * 100 : 0
             return (
-              <div
+              <EntityListCard
                 key={c.customer_id}
                 onClick={() => navigate(`/customers/${c.customer_id}`)}
-                className="bg-white rounded-xl p-4 shadow-sm active:bg-surface-container-low transition-all cursor-pointer"
+                avatarClassName={c.course_status === 'completed' ? 'bg-surface-container text-tertiary' : 'bg-surface-container text-primary'}
+                avatarContent={getInitials(c.full_name)}
+                name={c.full_name}
+                nameSuffix={c.course_status === 'completed' && (
+                  <span className="material-symbols-outlined text-tertiary text-[16px] shrink-0">check_circle</span>
+                )}
+                phone={c.phone_number}
+                location={c.location}
+                topRight={paymentBadge(c)}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className={c.course_status === 'completed' ? 'w-11 h-11 rounded-full flex items-center justify-center text-[14px] font-semibold shrink-0 bg-surface-container text-tertiary' : 'w-11 h-11 rounded-full flex items-center justify-center text-[14px] font-semibold shrink-0 bg-surface-container text-primary'}>
-                      {getInitials(c.full_name)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1 min-w-0">
-                        <h2 className="text-[16px] font-semibold text-on-surface truncate" title={c.full_name}>{c.full_name}</h2>
-                        {c.course_status === 'completed' && (
-                          <span className="material-symbols-outlined text-tertiary text-[16px] shrink-0">check_circle</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 text-on-surface-variant mt-0.5 min-w-0">
-                        <span className="material-symbols-outlined text-[14px] shrink-0">phone</span>
-                        <span className="text-[11px] tracking-wide truncate">{c.phone_number}</span>
-                      </div>
-                      {c.location && (
-                        <div className="flex items-center gap-1 text-on-surface-variant mt-0.5 min-w-0">
-                          <span className="material-symbols-outlined text-[14px] text-primary shrink-0">location_on</span>
-                          <span className="text-[11px] tracking-wide truncate">{c.location}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {paymentBadge(c)}
-                </div>
-
                 {/* Progress bar */}
                 <div className="mt-4 pt-1 flex items-center justify-between gap-4">
                   <div className="flex-1">
@@ -285,7 +262,7 @@ export default function Customers() {
                     <span className="material-symbols-outlined text-[20px]">chevron_right</span>
                   </div>
                 </div>
-              </div>
+              </EntityListCard>
             )
           })}
 

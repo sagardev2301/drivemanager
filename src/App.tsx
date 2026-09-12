@@ -8,6 +8,7 @@ import AnalyticsDashboard from './pages/AnalyticsDashboard'
 import Attendance from './pages/Attendance'
 import Customers from './pages/Customers'
 import CustomerDetail from './pages/CustomerDetail'
+import Leads from './pages/Leads'
 import { Layout } from './components/Layout'
 import OfflinePage from './components/OfflinePage'
 import NotFound from './pages/NotFound'
@@ -15,6 +16,7 @@ import NotFound from './pages/NotFound'
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Home',
   '/dashboard': 'Dashboard',
+  '/leads': 'Leads & Bookings',
   '/attendance': 'Attendance',
   '/customers': 'Customers',
 }
@@ -27,6 +29,7 @@ function AppRoutes() {
     <Routes>
       <Route element={<Layout title={title} />}>
         <Route path="/" element={<Home />} />
+        <Route path="/leads" element={<Leads />} />
         <Route path="/dashboard" element={<AnalyticsDashboard />} />
         <Route path="/attendance" element={<Attendance />} />
         <Route path="/customers" element={<Customers />} />

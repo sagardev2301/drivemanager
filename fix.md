@@ -1,37 +1,39 @@
-## 1. Delete dead code
+In the DriveManager repo (sagardev2301/drivemanager), the newly built Leads
+page's filter chips and lead cards visually diverge from the existing
+Customers page's chips and cards (different colors/spacing/radius, likely
+because each screen hardcodes its own values instead of sharing a component
+— this is a known issue in this codebase).
 
-`src/pages/Dashboard.tsx` is not imported or referenced anywhere in the app (confirmed — it's not in `App.tsx`'s routes, and no other file imports from it). Delete this file entirely.
+Fix this by making Leads reuse the Customers page's actual styling, not by
+re-approximating it:
 
-## 2. Enforce the existing design tokens instead of raw hex values
+1. Open the Customers page component (wherever its filter chips and
+   customer-card markup live — likely CustomerFilters/CustomerCard or inline
+   in the Customers.tsx/CustomersPage file) and identify the exact classes,
+   structure, and any shared sub-components used for:
+     a. The status filter chip row (active/completed/dropped or similar)
+     b. The customer list card (avatar circle, name, phone, status badge,
+        meta row, chevron)
 
-`tailwind.config.js` already defines a full semantic color palette (`primary`, `on-primary`, `primary-container`, `surface`, `on-surface`, `surface-container`, `surface-container-high`, `on-surface-variant`, `outline`, `error`, `on-error`, `tertiary`, `on-tertiary`, etc. — read the actual file for the complete list). **None of the pages or components currently use these tokens** — every file hardcodes the equivalent raw hex value instead (e.g. `text-[#003fb1]` instead of `text-primary`, `bg-[#f9f9ff]` instead of `bg-background`, `text-[#141b2b]` instead of `text-on-surface`).
+2. Refactor the Leads page's filter chips and lead cards to use the same
+   underlying component(s) if one exists, OR — if the Customers page's
+   chips/cards are inline JSX with no shared component — extract them into
+   reusable components (e.g. FilterChip, FilterChipRow, EntityListCard) that
+   both Customers and Leads import, rather than duplicating the markup again.
 
-Go through every file in `src/pages/` and `src/components/` and replace every arbitrary hex Tailwind class with its matching token from `tailwind.config.js`. Concretely:
-- `#003fb1` → `primary`
-- `#f9f9ff` → `background` (or `surface`, check which is semantically correct per context)
-- `#141b2b` → `on-surface` (or `on-background`)
-- `#434654` → `on-surface-variant`
-- `#e1e8fd` → `surface-container-high`
-- `#f1f3ff` → `surface-container-low`
-- `#e9edff` → `surface-container`
-- `#ba1a1a` / `#93000a` → `error` / `on-error`
-- `#005623` / `#6bff8f` → `tertiary` / `tertiary-fixed` (success states)
-- Map every other hardcoded hex to its nearest existing token — do not introduce new arbitrary values.
+3. Apply that shared chip/card styling to Leads:
+   - Chip row: same pill shape, spacing, active/inactive fill and border
+     treatment, and count-badge style as Customers' chips
+   - Lead card: same card padding, border-radius, shadow, avatar size, and
+     name/phone typography as Customers' card — keep the Leads-specific
+     status-colored avatar ring and status badge fill colors (blue/amber/
+     purple/green/red) since that logic doesn't exist on Customers, but
+     everything else (spacing, radius, shadow, font sizes) should be
+     identical to the Customers card
 
-Do this as a careful find-and-replace across every file, verifying each replacement doesn't change the visual result (since the token hex values should match exactly what's already there).
+4. Do not introduce any new hex values or radius/shadow values in this
+   change — only reuse what's already defined for the Customers page.
 
-## 3. Normalize border radius and button height to a fixed scale
-
-Currently in use: `rounded`, `rounded-lg`, `rounded-xl`, `rounded-2xl`, `rounded-3xl`, `rounded-t`, `rounded-full` — and button heights `h-9`, `h-10`, `h-11`, `h-12`, `h-14`. Pick ONE scale and apply it consistently:
-- **Radius:** `rounded-xl` for cards, `rounded-full` for pills/badges/avatars/circular icon buttons, `rounded-2xl` for modals/sheets only. Eliminate `rounded`, `rounded-lg`, `rounded-3xl`, and bare `rounded-t` unless there's a specific documented reason (e.g. a bottom sheet's top-only rounding, which can stay as `rounded-t-3xl` for that one case).
-- **Button height:** `h-11` (44px) for all primary actions (Mark Done, Add Customer, Log Class, Record Payment, Save/Submit). `h-9` for secondary/compact buttons only (icon-only buttons, small inline actions). Eliminate `h-10`, `h-12`, and `h-14` unless there's a clear, single documented exception.
-
-Audit every button and card across `Home.tsx`, `AnalyticsDashboard.tsx`, `Attendance.tsx`, `Customers.tsx`, `CustomerDetail.tsx`, and every component in `src/components/`, and normalize to this scale.
-
-## 4. After fixing, verify
-
-- Run `npx tsc --noEmit` to confirm nothing broke.
-- Run the app and visually spot-check each screen to confirm no color/spacing regressions — the goal is identical visual output, just referencing tokens instead of raw hex.
-- Report back: how many hex values were replaced per file, and any cases where a hex value didn't cleanly map to an existing token (flag these rather than inventing a new token silently).
-
----
+The goal is that Leads and Customers look like they come from the same
+design system, and future screens can reuse the same chip/card components
+instead of hardcoding again.

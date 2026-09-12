@@ -5,6 +5,23 @@ export function toLocalDateString(d: Date): string {
   return `${year}-${month}-${day}`
 }
 
+export type PeriodKey = 'month' | '3m' | '6m' | 'year' | 'all'
+
+// Period start, built from local date components (not ISO-string slicing,
+// which shifts dates backward in IST) — null means no lower bound (All Time).
+export function getPeriodStartDate(period: PeriodKey, now: Date = new Date()): Date | null {
+  const year = now.getFullYear()
+  const month = now.getMonth()
+  const day = now.getDate()
+  switch (period) {
+    case 'month': return new Date(year, month, 1)
+    case '3m': return new Date(year, month - 3, day)
+    case '6m': return new Date(year, month - 6, day)
+    case 'year': return new Date(year, 0, 1)
+    case 'all': return null
+  }
+}
+
 export function canMarkClassDone(startTime: string | null): boolean {
   if (!startTime) return true
   const now = new Date()
@@ -61,4 +78,31 @@ export function isClassLive(cls: { start_time: string | null; end_time?: string 
   const now = new Date()
   const currentMinutes = now.getHours() * 60 + now.getMinutes()
   return currentMinutes >= range.startMinutes && currentMinutes < range.endMinutes
+}
+
+export function formatRelativeTime(dateStr: string): string {
+  if (!dateStr) return ''
+  const past = new Date(dateStr).getTime()
+  if (isNaN(past)) return ''
+  const now = Date.now()
+  const diffSec = Math.floor((now - past) / 1000)
+
+  if (diffSec < 60) return 'Just now'
+  const diffMin = Math.floor(diffSec / 60)
+  if (diffMin < 60) return `${diffMin} ${diffMin === 1 ? 'min' : 'mins'} ago`
+
+  const diffHours = Math.floor(diffMin / 60)
+  if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`
+
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+
+  const diffWeeks = Math.floor(diffDays / 7)
+  if (diffWeeks < 4) return `${diffWeeks} ${diffWeeks === 1 ? 'week' : 'weeks'} ago`
+
+  const diffMonths = Math.floor(diffDays / 30)
+  if (diffMonths < 12) return `${diffMonths} ${diffMonths === 1 ? 'month' : 'months'} ago`
+
+  return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 }
