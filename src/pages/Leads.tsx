@@ -4,6 +4,8 @@ import type { Lead, LeadStatus } from '../lib/supabase'
 import { formatRelativeTime } from '../lib/dateUtils'
 import AddLeadModal from '../components/AddLeadModal'
 import LeadDetailModal from '../components/LeadDetailModal'
+import { FilterChip, FilterChipRow } from '../components/FilterChips'
+import EntityListCard from '../components/EntityListCard'
 
 type FilterKey = 'all' | LeadStatus
 
@@ -209,35 +211,23 @@ export default function Leads() {
       </div>
 
       {/* Status Filter Chips (Horizontal Scrollable) */}
-      <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar -mx-4 px-4 py-1">
+      <FilterChipRow>
         {FILTER_OPTIONS.map(opt => {
           const isActive = activeFilter === opt.key
           const count = counts[opt.key]
           return (
-            <button
-              key={opt.key}
-              onClick={() => setActiveFilter(opt.key)}
-              className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-[12px] transition-all duration-150 flex items-center gap-1.5 ${
-                isActive
-                  ? 'bg-on-surface text-on-primary font-semibold shadow-sm ring-1 ring-on-surface/20'
-                  : 'bg-white text-slate-700 font-medium border border-slate-200 hover:border-slate-300 shadow-sm'
-              }`}
-            >
+            <FilterChip key={opt.key} active={isActive} onClick={() => setActiveFilter(opt.key)}>
               {opt.dot && !isActive && (
                 <span className={`w-2 h-2 rounded-full ${opt.dot}`} />
               )}
               <span>{opt.label}</span>
-              <span
-                className={`text-[11px] px-1.5 py-0.2 rounded-full ${
-                  isActive ? 'bg-slate-700 text-white font-bold' : 'text-slate-400 font-normal'
-                }`}
-              >
+              <span className={isActive ? 'text-on-primary/80' : 'text-on-surface-variant/70'}>
                 {count}
               </span>
-            </button>
+            </FilterChip>
           )
         })}
-      </div>
+      </FilterChipRow>
 
       {/* Stacked Lead Cards List */}
       <div className="space-y-3">
@@ -291,46 +281,23 @@ export default function Leads() {
             const relativeTime = formatRelativeTime(lead.created_at)
 
             return (
-              <div
+              <EntityListCard
                 key={lead.id}
                 onClick={() => setSelectedLead(lead)}
-                className="group bg-white rounded-xl p-4 border border-slate-200/90 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.99]"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3.5">
-                    {/* Avatar with Ring matching Status */}
-                    <div
-                      className={`w-12 h-12 rounded-full ${statusConfig.avatarBg} ring-2 ${statusConfig.ring} ring-offset-2 flex items-center justify-center flex-shrink-0`}
-                    >
-                      <span className={`text-[15px] font-bold ${statusConfig.avatarText}`}>
-                        {initials}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="text-[15px] font-bold text-slate-900 leading-snug group-hover:text-blue-700 transition-colors">
-                        {lead.full_name}
-                      </h3>
-                      <p className="text-[13px] font-medium text-slate-500 mt-0.5">
-                        {lead.phone_number}
-                      </p>
-                      {lead.location && (
-                        <p className="text-[12px] font-medium text-slate-500 mt-1 flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[15px] text-primary">location_on</span>
-                          <span className="truncate">{lead.location}</span>
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Status Badge Pill (Top-Right) */}
+                avatarClassName={`${statusConfig.avatarBg} ${statusConfig.avatarText} ring-2 ${statusConfig.ring} ring-offset-2`}
+                avatarContent={initials}
+                name={lead.full_name}
+                phone={lead.phone_number}
+                location={lead.location}
+                topRight={
                   <div
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${statusConfig.badgeBg} ${statusConfig.badgeText} border ${statusConfig.badgeBorder}`}
                   >
                     <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dotColor}`} />
                     <span>{statusConfig.label}</span>
                   </div>
-                </div>
-
+                }
+              >
                 {/* Divider & Meta Row */}
                 <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-[12px] text-slate-500">
                   <div className="flex items-center gap-3">
@@ -352,11 +319,11 @@ export default function Leads() {
                   </div>
 
                   {/* Chevron Arrow */}
-                  <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all">
+                  <span className="material-symbols-outlined text-[18px] text-slate-400 transition-all">
                     chevron_right
                   </span>
                 </div>
-              </div>
+              </EntityListCard>
             )
           })
         )}

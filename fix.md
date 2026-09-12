@@ -1,21 +1,39 @@
-In the DriveManager repo (sagardev2301/drivemanager), add a "Location" field
-to the Leads & Bookings feature to match the existing leads table, which now
-has a nullable `location` text column (same shape as customers.location —
-customer pickup/drop location).
+In the DriveManager repo (sagardev2301/drivemanager), the newly built Leads
+page's filter chips and lead cards visually diverge from the existing
+Customers page's chips and cards (different colors/spacing/radius, likely
+because each screen hardcodes its own values instead of sharing a component
+— this is a known issue in this codebase).
 
-Changes needed:
+Fix this by making Leads reuse the Customers page's actual styling, not by
+re-approximating it:
 
-1. Update the Lead TypeScript type/interface to include:
-     location: string | null;
+1. Open the Customers page component (wherever its filter chips and
+   customer-card markup live — likely CustomerFilters/CustomerCard or inline
+   in the Customers.tsx/CustomersPage file) and identify the exact classes,
+   structure, and any shared sub-components used for:
+     a. The status filter chip row (active/completed/dropped or similar)
+     b. The customer list card (avatar circle, name, phone, status badge,
+        meta row, chevron)
 
-2. Add-lead bottom sheet: add a "Location" text input, styled and positioned
-   the same as the Location field on the Customer add/edit form — place it
-   after Source and before Notes. Optional field, no validation required.
+2. Refactor the Leads page's filter chips and lead cards to use the same
+   underlying component(s) if one exists, OR — if the Customers page's
+   chips/cards are inline JSX with no shared component — extract them into
+   reusable components (e.g. FilterChip, FilterChipRow, EntityListCard) that
+   both Customers and Leads import, rather than duplicating the markup again.
 
-3. Lead detail/edit view: show and allow editing the Location field the same
-   way the Customer detail page shows/edits location — same input style,
-   placed near Source/Notes.
+3. Apply that shared chip/card styling to Leads:
+   - Chip row: same pill shape, spacing, active/inactive fill and border
+     treatment, and count-badge style as Customers' chips
+   - Lead card: same card padding, border-radius, shadow, avatar size, and
+     name/phone typography as Customers' card — keep the Leads-specific
+     status-colored avatar ring and status badge fill colors (blue/amber/
+     purple/green/red) since that logic doesn't exist on Customers, but
+     everything else (spacing, radius, shadow, font sizes) should be
+     identical to the Customers card
 
-4. Convert-to-Customer flow: when inserting the new row into `customers`,
-   set customers.location = leads.location (carry it over directly; if null,
-   leave customers.location
+4. Do not introduce any new hex values or radius/shadow values in this
+   change — only reuse what's already defined for the Customers page.
+
+The goal is that Leads and Customers look like they come from the same
+design system, and future screens can reuse the same chip/card components
+instead of hardcoding again.
