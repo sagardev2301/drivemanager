@@ -51,6 +51,7 @@ export default function Attendance() {
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
   const [classToDelete, setClassToDelete] = useState<EnrichedClass | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [classToEdit, setClassToEdit] = useState<EnrichedClass | null>(null)
   const [classToMarkDone, setClassToMarkDone] = useState<EnrichedClass | null>(null)
   const [classToCollectPayment, setClassToCollectPayment] = useState<EnrichedClass | null>(null)
@@ -161,6 +162,7 @@ export default function Attendance() {
 
   async function handleDeleteClass(classId: string) {
     setDeletingId(classId)
+    setDeleteError(null)
     try {
       const { data: linkedPayments, error: paymentCheckErr } = await supabase
         .from('payments')
@@ -169,7 +171,7 @@ export default function Attendance() {
         .limit(1)
       if (paymentCheckErr) throw paymentCheckErr
       if (linkedPayments && linkedPayments.length > 0) {
-        alert('This class has a payment recorded against it — remove the payment first before deleting the class.')
+        setDeleteError('This class has a payment recorded against it — remove the payment first before deleting the class.')
         return
       }
 
@@ -178,9 +180,10 @@ export default function Attendance() {
       invalidateCustomerCache()
       await fetchClasses(selectedDate)
       setClassToDelete(null)
+      showToast('Class deleted')
     } catch (err) {
       console.error('Failed to delete class:', err)
-      alert('Failed to delete class. Please try again.')
+      setDeleteError('Failed to delete class. Please try again.')
     } finally {
       setDeletingId(null)
     }
@@ -374,7 +377,10 @@ export default function Attendance() {
                     )}
                     {canDelete && (
                       <button
-                        onClick={() => setClassToDelete(cls)}
+                        onClick={() => {
+                          setDeleteError(null)
+                          setClassToDelete(cls)
+                        }}
                         disabled={isSaving || deletingId === cls.id}
                         className={deleteButtonClass}
                         title="Delete class"
@@ -479,7 +485,11 @@ export default function Attendance() {
           animate="visible"
           exit="exit"
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-          onClick={() => !deletingId && setClassToDelete(null)}
+          onClick={() => {
+            if (deletingId) return
+            setClassToDelete(null)
+            setDeleteError(null)
+          }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.92 }}
@@ -502,10 +512,20 @@ export default function Attendance() {
               <span className="font-semibold text-on-surface">{classToDelete.full_name}</span>? This action cannot be undone.
             </p>
 
+            {deleteError && (
+              <div className="flex items-center gap-2 bg-error-container text-on-error-container px-3 py-2 rounded-xl text-[13px] mb-4">
+                <span className="material-symbols-outlined text-[16px]">error</span>
+                <span>{deleteError}</span>
+              </div>
+            )}
+
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setClassToDelete(null)}
+                onClick={() => {
+                  setClassToDelete(null)
+                  setDeleteError(null)
+                }}
                 disabled={deletingId === classToDelete.id}
                 className="flex-1 h-11 rounded-xl bg-surface-container-low text-on-surface-variant font-semibold text-[14px] hover:bg-surface-container active:scale-95 transition-all disabled:opacity-50"
               >
