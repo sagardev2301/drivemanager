@@ -1,40 +1,51 @@
-In the DriveManager repo (sagardev2301/drivemanager), fix the edit/delete
-controls on the Attendance page (Attendance.tsx) so mistakes can be
-corrected properly, based on the viewed date and the class's status.
+In the DriveManager repo (sagardev2301/drivemanager), change the "Mark Done"
+flow on both the Home page and the Attendance page so it goes through a
+confirmation step instead of marking a class done in one tap.
 
-CURRENT BEHAVIOR: edit (pencil) and delete (trash) icons show up
-inconsistently — a class marked "Done" currently shows no edit/delete
-option at all, so a done-by-mistake entry can't be corrected.
+CURRENT BEHAVIOR: tapping "Mark Done" immediately sets classes.status =
+'done' with no confirmation and no way to log a payment at the same time.
 
-REQUIRED BEHAVIOR:
-- If the viewed date == today's actual calendar date (the real system date,
-  not just whatever date happens to be selected): show BOTH edit and
-  delete icons on every class row for that date, regardless of status
-  (scheduled, done, not_completed, cancelled). This covers both
-  "scheduled by mistake" and "marked done by mistake" on the current day.
-- If the viewed date is in the FUTURE (after today): show DELETE ONLY,
-  never edit — even if that row somehow has status = 'done' (shouldn't
-  normally happen, but this is a safety case).
-- Assumption for PAST dates (before today) — I'm treating these the same
-  as future (delete only, no edit), since editing a closed historical
-  record isn't something that should happen casually. Flag it back to me
-  if you'd rather past dates have no controls at all instead.
+NEW FLOW:
 
-IMPLEMENTATION NOTES:
-- Compare dates using local date components (year/month/day), not
-  `.toISOString().split('T')[0]` — this file has had an IST date-shift bug
-  from that exact pattern before, don't reintroduce it
-- Compute isToday/isFuture/isPast once per date group, and derive simple
-  `canEdit` / `canDelete` booleans per row rather than nested ternaries
-  inline in JSX (also a past source of bugs in this file)
-- Check the delete path against the schema: payments.class_id is a
-  nullable FK to classes with no explicit cascade rule, so deleting a
-  'done' class that already has a payment logged against it may fail or
-  orphan that payment depending on how the FK is set up. If a class row
-  has a linked payment, either block the delete with a clear message
-  ("this class has a payment recorded — remove the payment first") or
-  handle it explicitly — don't let it fail silently or leave a dangling
-  payment. Flag this to me if it needs a schema-level decision.
+1. Tapping "Mark Done" opens a confirmation modal/bottom-sheet (reuse the
+   app's existing modal/drawer styling) showing the class's details
+   (student name, "Class X of Y", time slot) with two actions:
+     - "Confirm" — marks the class done only, no payment (same effect as
+       the current one-tap behavior). Simple `update classes set status =
+       'done' where id = ...`.
+     - "Collect Payment" — opens the SAME payment-collection modal already
+       used on the Customer Detail page. Do not duplicate that modal;
+       extend the existing shared component with an optional `classId`
+       prop instead.
 
-Do this as a standalone fix before starting the app-wide design-consistency
-pass we discussed separately.
+2. Extend the shared payment modal component:
+   - When opened WITHOUT a classId (existing Customer Detail usage): behave
+     exactly as it does today — primary button reads "Collect", payment is
+     inserted with class_id = null, no class status is touched.
+   - When opened WITH a classId (new Mark-Done-flow usage): primary button
+     reads "Collect & Mark Done" instead of "Collect". On submit, instead
+     of a plain payments insert, call the new Supabase RPC:
+       supabase.rpc('collect_payment_and_mark_done', {
+         p_class_id: classId,
+         p_customer_id: customerId,
+         p_amount: amount,
+         p_payment_mode: paymentMode,
+         p_reference_note: referenceNote ?? null
+       })
+     This one call both records the payment (linked to that specific class)
+     and sets that class's status to 'done' atomically — do not call two
+     separate insert/update requests for this path, use the RPC so it's
+     one transaction.
+   - Surface the RPC's error message if it fails (e.g. the existing
+     overpay-rejection trigger fires) — same error-handling pattern already
+     used for the existing "Collect" path's insert errors.
+
+3. After either "Confirm" or a successful "Collect & Mark Done", close all
+   open modals, refresh the affected class row's status in the UI
+   (Scheduled -> Done pill, "Fee Pending" -> "Fully Paid"/updated amount if
+   relevant), and show the existing success-toast pattern.
+
+Apply this to both Home.tsx's "Today's Classes" card and the Attendance
+page's class list — they should call the same confirmation modal + payment
+modal components rather than each having their own copy of this logic.
+```
