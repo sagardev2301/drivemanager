@@ -1,39 +1,40 @@
-In the DriveManager repo (sagardev2301/drivemanager), the newly built Leads
-page's filter chips and lead cards visually diverge from the existing
-Customers page's chips and cards (different colors/spacing/radius, likely
-because each screen hardcodes its own values instead of sharing a component
-— this is a known issue in this codebase).
+In the DriveManager repo (sagardev2301/drivemanager), fix the edit/delete
+controls on the Attendance page (Attendance.tsx) so mistakes can be
+corrected properly, based on the viewed date and the class's status.
 
-Fix this by making Leads reuse the Customers page's actual styling, not by
-re-approximating it:
+CURRENT BEHAVIOR: edit (pencil) and delete (trash) icons show up
+inconsistently — a class marked "Done" currently shows no edit/delete
+option at all, so a done-by-mistake entry can't be corrected.
 
-1. Open the Customers page component (wherever its filter chips and
-   customer-card markup live — likely CustomerFilters/CustomerCard or inline
-   in the Customers.tsx/CustomersPage file) and identify the exact classes,
-   structure, and any shared sub-components used for:
-     a. The status filter chip row (active/completed/dropped or similar)
-     b. The customer list card (avatar circle, name, phone, status badge,
-        meta row, chevron)
+REQUIRED BEHAVIOR:
+- If the viewed date == today's actual calendar date (the real system date,
+  not just whatever date happens to be selected): show BOTH edit and
+  delete icons on every class row for that date, regardless of status
+  (scheduled, done, not_completed, cancelled). This covers both
+  "scheduled by mistake" and "marked done by mistake" on the current day.
+- If the viewed date is in the FUTURE (after today): show DELETE ONLY,
+  never edit — even if that row somehow has status = 'done' (shouldn't
+  normally happen, but this is a safety case).
+- Assumption for PAST dates (before today) — I'm treating these the same
+  as future (delete only, no edit), since editing a closed historical
+  record isn't something that should happen casually. Flag it back to me
+  if you'd rather past dates have no controls at all instead.
 
-2. Refactor the Leads page's filter chips and lead cards to use the same
-   underlying component(s) if one exists, OR — if the Customers page's
-   chips/cards are inline JSX with no shared component — extract them into
-   reusable components (e.g. FilterChip, FilterChipRow, EntityListCard) that
-   both Customers and Leads import, rather than duplicating the markup again.
+IMPLEMENTATION NOTES:
+- Compare dates using local date components (year/month/day), not
+  `.toISOString().split('T')[0]` — this file has had an IST date-shift bug
+  from that exact pattern before, don't reintroduce it
+- Compute isToday/isFuture/isPast once per date group, and derive simple
+  `canEdit` / `canDelete` booleans per row rather than nested ternaries
+  inline in JSX (also a past source of bugs in this file)
+- Check the delete path against the schema: payments.class_id is a
+  nullable FK to classes with no explicit cascade rule, so deleting a
+  'done' class that already has a payment logged against it may fail or
+  orphan that payment depending on how the FK is set up. If a class row
+  has a linked payment, either block the delete with a clear message
+  ("this class has a payment recorded — remove the payment first") or
+  handle it explicitly — don't let it fail silently or leave a dangling
+  payment. Flag this to me if it needs a schema-level decision.
 
-3. Apply that shared chip/card styling to Leads:
-   - Chip row: same pill shape, spacing, active/inactive fill and border
-     treatment, and count-badge style as Customers' chips
-   - Lead card: same card padding, border-radius, shadow, avatar size, and
-     name/phone typography as Customers' card — keep the Leads-specific
-     status-colored avatar ring and status badge fill colors (blue/amber/
-     purple/green/red) since that logic doesn't exist on Customers, but
-     everything else (spacing, radius, shadow, font sizes) should be
-     identical to the Customers card
-
-4. Do not introduce any new hex values or radius/shadow values in this
-   change — only reuse what's already defined for the Customers page.
-
-The goal is that Leads and Customers look like they come from the same
-design system, and future screens can reuse the same chip/card components
-instead of hardcoding again.
+Do this as a standalone fix before starting the app-wide design-consistency
+pass we discussed separately.
