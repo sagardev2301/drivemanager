@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Leads & Bookings - DriveManager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#EFF6FF',
+              100: '#DBEAFE',
+              500: '#1D4ED8',
+              600: '#1A56DB',
+              700: '#1E40AF',
+              800: '#1E3A8A',
+              900: '#0F172A',
+            },
+            canvas: '#F5F6F8',
+            surface: '#FFFFFF',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .card-shadow {
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .card-shadow-hover {
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+    }
+    .drawer-shadow {
+      box-shadow: 0 -8px 30px rgba(15, 23, 42, 0.15);
+    }
+  </style>
+</head>
+<body class="bg-canvas text-slate-800 antialiased min-h-screen flex justify-center selection:bg-blue-100 selection:text-blue-900">
+  <div class="w-full max-w-[420px] min-h-screen bg-[#F5F6F8] flex flex-col relative pb-24 shadow-2xl border-x border-slate-200/80">
+    <header class="sticky top-0 z-30 bg-white border-b border-slate-100 px-5 pt-3.5 pb-4 card-shadow">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-600/20">
+            <span class="material-symbols-outlined text-[24px]">sports_score</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h1 class="text-[17px] font-bold tracking-tight text-slate-900 leading-tight">DriveManager</h1>
+            </div>
+            <p class="text-[12px] font-medium text-slate-500">Leads &amp; Bookings</p>
+          </div>
+        </div>
+        <div class="flex items-center">
+          <button class="relative w-10 h-10 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors">
+            <span class="material-symbols-outlined text-[22px] text-brand-600">account_circle</span>
+            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white"></span>
+          </button>
+        </div>
+      </div>
+      <div class="mt-3.5 flex items-center justify-between">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/70">
+          <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+          <span class="text-[12px] font-semibold text-blue-700 tracking-tight">14 Active Inquiries</span>
+        </div>
+        <span class="text-[11px] font-medium text-slate-400">Track before they enroll</span>
+      </div>
+    </header>
+    <main class="flex-1 px-4 pt-3.5 space-y-4">
+      <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar -mx-4 px-4 py-1">
+        <button onclick="filterLeads('all', this)" class="status-chip active flex-shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all duration-150 bg-[#0F172A] text-white shadow-sm ring-1 ring-slate-900">
+          All <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-700 font-bold">14</span>
+        </button>
+        <button onclick="filterLeads('new', this)" class="status-chip flex-shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all duration-150 bg-white text-slate-700 border border-slate-200 hover:border-slate-300 shadow-sm flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+          <span>New</span>
+          <span class="text-[11px] text-slate-400 font-normal">3</span>
+        </button>
+        <button onclick="filterLeads('contacted', this)" class="status-chip flex-shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all duration-150 bg-white text-slate-700 border border-slate-200 hover:border-slate-300 shadow-sm flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+          <span>Contacted</span>
+          <span class="text-[11px] text-slate-400 font-normal">4</span>
+        </button>
+        <button onclick="filterLeads('booked', this)" class="status-chip flex-shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all duration-150 bg-white text-slate-700 border border-slate-200 hover:border-slate-300 shadow-sm flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-purple-600"></span>
+          <span>Booked</span>
+          <span class="text-[11px] text-slate-400 font-normal">3</span>
+        </button>
+        <button onclick="filterLeads('converted', this)" class="status-chip flex-shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all duration-150 bg-white text-slate-700 border border-slate-200 hover:border-slate-300 shadow-sm flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Converted</span>
+          <span class="text-[11px] text-slate-400 font-normal">3</span>
+        </button>
+        <button onclick="filterLeads('dropped', this)" class="status-chip flex-shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all duration-150 bg-white text-slate-700 border border-slate-200 hover:border-slate-300 shadow-sm flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+          <span>Dropped</span>
+          <span class="text-[11px] text-slate-400 font-normal">1</span>
+        </button>
+      </div>
+      <div id="leadsList" class="space-y-3">
+        <div data-status="new" onclick="openDetailModal('Rohan Verma', '+91 98452 33190', 'Instagram Ad', 'new', 'Looking for morning 7:30 AM slot near Indiranagar. Prefers manual Swift Dzire course.')" class="lead-card group bg-white rounded-2xl p-4 border border-slate-200/90 card-shadow hover:card-shadow-hover transition-all cursor-pointer active:scale-[0.99]">
+          <div class="flex items-start justify-between">
+            <div class="flex items-start space-x-3.5">
+              <div class="w-12 h-12 rounded-full bg-blue-50 ring-2 ring-blue-500 ring-offset-2 flex items-center justify-center flex-shrink-0">
+                <span class="text-[15px] font-bold text-blue-700">RV</span>
+              </div>
+              <div>
+                <h3 class="text-[15px] font-bold text-slate-900 leading-snug group-hover:text-brand-600 transition-colors">Rohan Verma</h3>
+                <p class="text-[13px] font-medium text-slate-500 mt-0.5">+91 98452 33190</p>
+              </div>
+            </div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+              <span>New</span>
+            </div>
+          </div>
+          <div class="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-[12px] text-slate-500">
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium">
+                <span class="material-symbols-outlined text-[14px] text-slate-500">campaign</span>
+                <span>Instagram Ad</span>
+              </span>
+              <span class="inline-flex items-center gap-1 text-slate-400">
+                <span class="material-symbols-outlined text-[14px]">schedule</span>
+                <span>2 hours ago</span>
+              </span>
+            </div>
+            <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all">chevron_right</span>
+          </div>
+        </div>
+      </div>
+    </main>
+    <div class="fixed bottom-20 z-20" style="left: calc(50% + 110px); transform: translateX(-50%);">
+      <button onclick="openAddLeadModal()" class="w-14 h-14 rounded-full bg-[#0F172A] text-white flex items-center justify-center shadow-xl hover:bg-slate-800 active:scale-95 transition-all focus:outline-none ring-4 ring-slate-900/10" title="Add New Lead">
+        <span class="material-symbols-outlined text-[28px]">add</span>
+      </button>
+    </div>
+    <nav class="fixed bottom-0 z-30 w-full max-w-[420px] bg-white border-t border-slate-200/90 py-2.5 px-3 flex items-center justify-around card-shadow">
+      <a href="#" class="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-slate-600 transition-colors">
+        <span class="material-symbols-outlined text-[22px]">grid_view</span>
+        <span class="text-[11px] font-medium mt-0.5">Dashboard</span>
+      </a>
+      <a href="#" class="flex flex-col items-center justify-center flex-1 py-1 text-brand-600 transition-colors relative">
+        <span class="material-symbols-outlined text-[22px] text-brand-600 font-semibold">person_search</span>
+        <span class="text-[11px] font-bold mt-0.5 text-brand-600">Leads</span>
+        <span class="w-1.5 h-1.5 bg-brand-600 rounded-full mt-0.5"></span>
+      </a>
+      <a href="#" class="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-slate-600 transition-colors">
+        <span class="material-symbols-outlined text-[22px]">calendar_today</span>
+        <span class="text-[11px] font-medium mt-0.5">Attendance</span>
+      </a>
+      <a href="#" class="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-slate-600 transition-colors">
+        <span class="material-symbols-outlined text-[22px]">groups</span>
+        <span class="text-[11px] font-medium mt-0.5">Customers</span>
+      </a>
+    </nav>
+  </div>
+</body>
+</html>

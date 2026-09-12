@@ -9,6 +9,7 @@ interface Props {
   customerId: string
   customerName: string
   amountPending: number
+  classId?: string
 }
 
 const MODES: { key: PaymentMode; label: string }[] = [
@@ -19,7 +20,7 @@ const MODES: { key: PaymentMode; label: string }[] = [
   { key: 'other', label: 'Other' },
 ]
 
-export default function AddPaymentModal({ onClose, onSaved, customerId, customerName, amountPending }: Props) {
+export default function AddPaymentModal({ onClose, onSaved, customerId, customerName, amountPending, classId }: Props) {
   const [amount, setAmount] = useState(amountPending > 0 ? String(amountPending) : '')
   const [mode, setMode] = useState<PaymentMode>('upi')
   const [saving, setSaving] = useState(false)
@@ -37,11 +38,19 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
 
     setSaving(true)
     try {
-      const { error: err } = await supabase.from('payments').insert({
-        customer_id: customerId,
-        amount: amt,
-        payment_mode: mode,
-      })
+      const { error: err } = classId
+        ? await supabase.rpc('collect_payment_and_mark_done', {
+            p_class_id: classId,
+            p_customer_id: customerId,
+            p_amount: amt,
+            p_payment_mode: mode,
+            p_reference_note: null,
+          })
+        : await supabase.from('payments').insert({
+            customer_id: customerId,
+            amount: amt,
+            payment_mode: mode,
+          })
       if (err) {
         if (err.message?.includes('payment_exceeds_fee')) {
           setError('This payment would exceed the remaining balance for this customer.')
@@ -131,6 +140,11 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
           >
             {saving ? (
               <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
+            ) : classId ? (
+              <>
+                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                Collect & Mark Done
+              </>
             ) : (
               <>
                 <span className="material-symbols-outlined text-[18px]">credit_card</span>

@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase'
 import type { Class } from '../lib/supabase'
 import AddCustomerModal from '../components/AddCustomerModal'
 import AddClassModal from '../components/AddClassModal'
+import MarkDoneConfirmModal from '../components/MarkDoneConfirmModal'
+import AddPaymentModal from '../components/AddPaymentModal'
 import { toLocalDateString, isClassExpired, isClassLive, parseTimeToMinutes } from '../lib/dateUtils'
 import { invalidateCustomerCache } from '../lib/customerCache'
 
@@ -64,6 +66,16 @@ export default function Home() {
   const [showAddCustomer, setShowAddCustomer] = useState(false)
   const [showAddClass, setShowAddClass] = useState(false)
   const [markingDone, setMarkingDone] = useState<string | null>(null)
+  const [classToMarkDone, setClassToMarkDone] = useState<typeof todayClasses[number] | null>(null)
+  const [classToCollectPayment, setClassToCollectPayment] = useState<typeof todayClasses[number] | null>(null)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  function showToast(msg: string) {
+    setToastMessage(msg)
+    setTimeout(() => {
+      setToastMessage(prev => (prev === msg ? null : prev))
+    }, 2500)
+  }
 
   const today = toLocalDateString(new Date())
   const todayDisplay = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })
@@ -154,12 +166,14 @@ export default function Home() {
       return aMin - bMin
     })
 
-  async function markDone(classId: string) {
+  async function confirmMarkDone(classId: string) {
     setMarkingDone(classId)
     await supabase.from('classes').update({ status: 'done' }).eq('id', classId)
     invalidateCustomerCache()
     await fetchData()
     setMarkingDone(null)
+    setClassToMarkDone(null)
+    showToast('Class marked done')
   }
 
   const statusBadge = (status: string) => {
@@ -188,6 +202,13 @@ export default function Home() {
 
   return (
     <div className="flex flex-col w-full pb-6 space-y-4 pt-4">
+      {toastMessage && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[110] bg-slate-900 text-white text-[13px] font-semibold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 transition-all duration-300 animate-fade-in">
+          <span className="material-symbols-outlined text-[18px] text-emerald-400">check_circle</span>
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Greeting Banner */}
       <div className="flex flex-col bg-white p-4 rounded-xl shadow-sm">
         <div className="flex items-center justify-between">
@@ -390,7 +411,7 @@ export default function Home() {
               {/* Mark Done row with Call & WhatsApp */}
               <div className="flex items-center gap-2 pt-0.5">
                 <button
-                  onClick={() => markDone(cls.id)}
+                  onClick={() => setClassToMarkDone(cls)}
                   disabled={markingDone === cls.id}
                   className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-primary text-on-primary rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
                 >
@@ -673,6 +694,36 @@ export default function Home() {
       )}
       {showAddClass && (
         <AddClassModal onClose={() => setShowAddClass(false)} onSaved={fetchData} defaultDate={today} />
+      )}
+
+      {classToMarkDone && (
+        <MarkDoneConfirmModal
+          onClose={() => setClassToMarkDone(null)}
+          onConfirm={() => confirmMarkDone(classToMarkDone.id)}
+          onCollectPayment={() => {
+            setClassToCollectPayment(classToMarkDone)
+            setClassToMarkDone(null)
+          }}
+          confirming={markingDone === classToMarkDone.id}
+          studentName={classToMarkDone.full_name}
+          classLabel={`Class ${classToMarkDone.classes_completed + 1} of ${classToMarkDone.package_classes}`}
+          timeLabel={classToMarkDone.start_time ? `${formatTime(classToMarkDone.start_time)}${classToMarkDone.end_time ? ` – ${formatTime(classToMarkDone.end_time)}` : ''}` : ''}
+        />
+      )}
+
+      {classToCollectPayment && (
+        <AddPaymentModal
+          onClose={() => setClassToCollectPayment(null)}
+          onSaved={async () => {
+            invalidateCustomerCache()
+            await fetchData()
+            showToast('Payment collected & class marked done')
+          }}
+          customerId={classToCollectPayment.customer_id}
+          customerName={classToCollectPayment.full_name}
+          amountPending={classToCollectPayment.amount_pending}
+          classId={classToCollectPayment.id}
+        />
       )}
     </div>
   )
