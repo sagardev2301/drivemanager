@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import type { CustomerSummary } from '../lib/supabase'
 import AddCustomerModal from '../components/AddCustomerModal'
 import { FilterChip, FilterChipRow } from '../components/FilterChips'
 import EntityListCard from '../components/EntityListCard'
+import { listItemVariants } from '../lib/motionPresets'
 
 const PAGE_SIZE = 25
 
@@ -227,11 +229,12 @@ export default function Customers() {
             </div>
           )}
 
+          <AnimatePresence initial={false}>
           {!loadingPage && customers.map(c => {
             const progress = c.package_classes > 0 ? (c.classes_completed / c.package_classes) * 100 : 0
             return (
+              <motion.div key={c.customer_id} layout variants={listItemVariants} initial="hidden" animate="visible" exit="exit">
               <EntityListCard
-                key={c.customer_id}
                 onClick={() => navigate(`/customers/${c.customer_id}`)}
                 avatarClassName={c.course_status === 'completed' ? 'bg-surface-container text-tertiary' : 'bg-surface-container text-primary'}
                 avatarContent={getInitials(c.full_name)}
@@ -263,8 +266,10 @@ export default function Customers() {
                   </div>
                 </div>
               </EntityListCard>
+              </motion.div>
             )
           })}
+          </AnimatePresence>
 
           {/* Inline Pagination Bar — sits at end of list, visible only when scrolled to bottom */}
           {!loadingPage && totalPages > 1 && (() => {
@@ -345,9 +350,11 @@ export default function Customers() {
         </div>
       </div>
 
-      {showAddCustomer && (
-        <AddCustomerModal onClose={() => setShowAddCustomer(false)} onSaved={handleSaved} />
-      )}
+      <AnimatePresence>
+        {showAddCustomer && (
+          <AddCustomerModal onClose={() => setShowAddCustomer(false)} onSaved={handleSaved} />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

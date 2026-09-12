@@ -6,6 +6,9 @@ import AddLeadModal from '../components/AddLeadModal'
 import LeadDetailModal from '../components/LeadDetailModal'
 import { FilterChip, FilterChipRow } from '../components/FilterChips'
 import EntityListCard from '../components/EntityListCard'
+import Toast from '../components/Toast'
+import { AnimatePresence, motion } from 'framer-motion'
+import { listItemVariants } from '../lib/motionPresets'
 
 type FilterKey = 'all' | LeadStatus
 
@@ -192,12 +195,7 @@ export default function Leads() {
   return (
     <div className="flex flex-col space-y-4 pb-12">
       {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-[13px] font-semibold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 transition-all duration-300 animate-fade-in">
-          <span className="material-symbols-outlined text-[18px] text-emerald-400">check_circle</span>
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      <Toast message={toastMessage} />
 
       {/* Active Inquiries Badge Bar */}
       <div className="flex items-center justify-between pt-1">
@@ -274,15 +272,16 @@ export default function Leads() {
             </button>
           </div>
         ) : (
-          filteredLeads.map(lead => {
+          <AnimatePresence initial={false}>
+          {filteredLeads.map(lead => {
             const statusConfig = STATUS_CONFIG[lead.status] ?? STATUS_CONFIG.new
             const initials = getInitials(lead.full_name)
             const sourceIcon = getSourceIcon(lead.source)
             const relativeTime = formatRelativeTime(lead.created_at)
 
             return (
+              <motion.div key={lead.id} layout variants={listItemVariants} initial="hidden" animate="visible" exit="exit">
               <EntityListCard
-                key={lead.id}
                 onClick={() => setSelectedLead(lead)}
                 avatarClassName={`${statusConfig.avatarBg} ${statusConfig.avatarText} ring-2 ${statusConfig.ring} ring-offset-2`}
                 avatarContent={initials}
@@ -324,8 +323,10 @@ export default function Leads() {
                   </span>
                 </div>
               </EntityListCard>
+              </motion.div>
             )
-          })
+          })}
+          </AnimatePresence>
         )}
       </div>
 
@@ -341,28 +342,32 @@ export default function Leads() {
       </button>
 
       {/* Add Lead Bottom Sheet */}
-      {showAddModal && (
-        <AddLeadModal
-          onClose={() => setShowAddModal(false)}
-          onSaved={name => {
-            showToast(`Lead "${name}" added successfully!`)
-            fetchLeads()
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {showAddModal && (
+          <AddLeadModal
+            onClose={() => setShowAddModal(false)}
+            onSaved={name => {
+              showToast(`Lead "${name}" added successfully!`)
+              fetchLeads()
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Lead Detail & Edit Modal */}
-      {selectedLead && (
-        <LeadDetailModal
-          key={selectedLead.id}
-          lead={selectedLead}
-          onClose={() => setSelectedLead(null)}
-          onUpdated={msg => {
-            showToast(msg)
-            fetchLeads()
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {selectedLead && (
+          <LeadDetailModal
+            key={selectedLead.id}
+            lead={selectedLead}
+            onClose={() => setSelectedLead(null)}
+            onUpdated={msg => {
+              showToast(msg)
+              fetchLeads()
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

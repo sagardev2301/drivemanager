@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import type { CustomerSummary } from '../lib/supabase'
 import CustomerActionSheet from '../components/CustomerActionSheet'
-import { FilterChip, FilterChipRow } from '../components/FilterChips'
+import SegmentedControl from '../components/SegmentedControl'
 import { getPeriodStartDate, toLocalDateString } from '../lib/dateUtils'
 import type { PeriodKey } from '../lib/dateUtils'
 
@@ -254,13 +255,7 @@ export default function AnalyticsDashboard() {
           <h2 className="text-[16px] font-semibold text-on-surface">Period Performance</h2>
         </div>
 
-        <FilterChipRow>
-          {PERIOD_OPTIONS.map(opt => (
-            <FilterChip key={opt.key} active={period === opt.key} onClick={() => setPeriod(opt.key)}>
-              {opt.label}
-            </FilterChip>
-          ))}
-        </FilterChipRow>
+        <SegmentedControl options={PERIOD_OPTIONS} value={period} onChange={setPeriod} />
 
         <div className="grid grid-cols-3 gap-2 mt-3">
           <div className="bg-white p-4 rounded-xl shadow-sm">
@@ -403,13 +398,15 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* Customer action sheet */}
-      {selected && (
-        <CustomerActionSheet
-          customer={selected}
-          onClose={() => setSelected(null)}
-          onPaymentSaved={fetchData}
-        />
-      )}
+      <AnimatePresence>
+        {selected && (
+          <CustomerActionSheet
+            customer={selected}
+            onClose={() => setSelected(null)}
+            onPaymentSaved={fetchData}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { normalizePhoneNumber } from '../lib/phoneUtils'
 import { useModalBackButton } from '../hooks/useModalBackButton'
+import { backdropVariants, sheetVariants } from '../lib/motionPresets'
 
 interface Props {
   onClose: () => void
@@ -82,11 +84,19 @@ export default function AddLeadModal({ onClose, onSaved }: Props) {
   }
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end justify-center transition-opacity duration-200"
+    <motion.div
+      variants={backdropVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end justify-center"
       onClick={requestClose}
     >
-      <div
+      <motion.div
+        variants={sheetVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         className="w-full max-w-lg bg-white rounded-t-3xl p-5 pt-3 pb-8 shadow-2xl max-h-[90vh] overflow-y-auto"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
         onClick={e => e.stopPropagation()}
@@ -234,8 +244,8 @@ export default function AddLeadModal({ onClose, onSaved }: Props) {
             </button>
           </div>
         </form>
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>,
     document.body
   )
 }

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import type { ClassStatus } from '../lib/supabase'
 import { toLocalDateString, addHoursToTime } from '../lib/dateUtils'
 import { getActiveCustomers, invalidateCustomerCache } from '../lib/customerCache'
 import type { ActiveCustomerOption } from '../lib/customerCache'
 import { useModalBackButton } from '../hooks/useModalBackButton'
+import { backdropVariants, sheetVariants } from '../lib/motionPresets'
 
 export interface ClassToEdit {
   id: string
@@ -171,8 +173,19 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={requestClose}>
-      <div
+    <motion.div
+      variants={backdropVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm"
+      onClick={requestClose}
+    >
+      <motion.div
+        variants={sheetVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl p-6 max-h-[90dvh] overflow-y-auto"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
         onClick={e => e.stopPropagation()}
@@ -291,8 +304,8 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
             )}
           </button>
         </form>
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>,
     document.body
   )
 }

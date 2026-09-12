@@ -30,7 +30,7 @@ export default function EntityListCard({
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-xl p-4 shadow-sm active:bg-surface-container-low transition-all cursor-pointer"
+      className="bg-white rounded-xl p-4 shadow-sm active:bg-surface-container-low active:scale-[0.98] transition-all cursor-pointer"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-3 min-w-0 flex-1">

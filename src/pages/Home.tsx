@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import type { Class } from '../lib/supabase'
 import AddCustomerModal from '../components/AddCustomerModal'
 import AddClassModal from '../components/AddClassModal'
 import MarkDoneConfirmModal from '../components/MarkDoneConfirmModal'
 import AddPaymentModal from '../components/AddPaymentModal'
+import Toast from '../components/Toast'
 import { toLocalDateString, isClassExpired, isClassLive, parseTimeToMinutes } from '../lib/dateUtils'
 import { invalidateCustomerCache } from '../lib/customerCache'
 
@@ -202,12 +204,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col w-full pb-6 space-y-4 pt-4">
-      {toastMessage && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[110] bg-slate-900 text-white text-[13px] font-semibold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 transition-all duration-300 animate-fade-in">
-          <span className="material-symbols-outlined text-[18px] text-emerald-400">check_circle</span>
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      <Toast message={toastMessage} />
 
       {/* Greeting Banner */}
       <div className="flex flex-col bg-white p-4 rounded-xl shadow-sm">
@@ -489,7 +486,17 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  {statusBadge(cls.status)}
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span
+                      key={cls.status}
+                      initial={{ opacity: 0, scale: 0.85 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.85 }}
+                      transition={{ duration: 0.18 }}
+                    >
+                      {statusBadge(cls.status)}
+                    </motion.span>
+                  </AnimatePresence>
                   {cls.location && (
                     <div className="flex items-center gap-0.5 text-on-surface-variant mt-0.5">
                       <span className="material-symbols-outlined text-[13px] text-primary">location_on</span>
@@ -608,7 +615,17 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    {statusBadge(cls.status)}
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.span
+                        key={cls.status}
+                        initial={{ opacity: 0, scale: 0.85 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.85 }}
+                        transition={{ duration: 0.18 }}
+                      >
+                        {statusBadge(cls.status)}
+                      </motion.span>
+                    </AnimatePresence>
                     {cls.location && (
                       <div className="flex items-center gap-0.5 text-on-surface-variant mt-0.5">
                         <span className="material-symbols-outlined text-[13px] text-primary">location_on</span>
@@ -689,42 +706,50 @@ export default function Home() {
         </div>
       )}
 
-      {showAddCustomer && (
-        <AddCustomerModal onClose={() => setShowAddCustomer(false)} onSaved={fetchData} />
-      )}
-      {showAddClass && (
-        <AddClassModal onClose={() => setShowAddClass(false)} onSaved={fetchData} defaultDate={today} />
-      )}
+      <AnimatePresence>
+        {showAddCustomer && (
+          <AddCustomerModal onClose={() => setShowAddCustomer(false)} onSaved={fetchData} />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showAddClass && (
+          <AddClassModal onClose={() => setShowAddClass(false)} onSaved={fetchData} defaultDate={today} />
+        )}
+      </AnimatePresence>
 
-      {classToMarkDone && (
-        <MarkDoneConfirmModal
-          onClose={() => setClassToMarkDone(null)}
-          onConfirm={() => confirmMarkDone(classToMarkDone.id)}
-          onCollectPayment={() => {
-            setClassToCollectPayment(classToMarkDone)
-            setClassToMarkDone(null)
-          }}
-          confirming={markingDone === classToMarkDone.id}
-          studentName={classToMarkDone.full_name}
-          classLabel={`Class ${classToMarkDone.classes_completed + 1} of ${classToMarkDone.package_classes}`}
-          timeLabel={classToMarkDone.start_time ? `${formatTime(classToMarkDone.start_time)}${classToMarkDone.end_time ? ` – ${formatTime(classToMarkDone.end_time)}` : ''}` : ''}
-        />
-      )}
+      <AnimatePresence>
+        {classToMarkDone && (
+          <MarkDoneConfirmModal
+            onClose={() => setClassToMarkDone(null)}
+            onConfirm={() => confirmMarkDone(classToMarkDone.id)}
+            onCollectPayment={() => {
+              setClassToCollectPayment(classToMarkDone)
+              setClassToMarkDone(null)
+            }}
+            confirming={markingDone === classToMarkDone.id}
+            studentName={classToMarkDone.full_name}
+            classLabel={`Class ${classToMarkDone.classes_completed + 1} of ${classToMarkDone.package_classes}`}
+            timeLabel={classToMarkDone.start_time ? `${formatTime(classToMarkDone.start_time)}${classToMarkDone.end_time ? ` – ${formatTime(classToMarkDone.end_time)}` : ''}` : ''}
+          />
+        )}
+      </AnimatePresence>
 
-      {classToCollectPayment && (
-        <AddPaymentModal
-          onClose={() => setClassToCollectPayment(null)}
-          onSaved={async () => {
-            invalidateCustomerCache()
-            await fetchData()
-            showToast('Payment collected & class marked done')
-          }}
-          customerId={classToCollectPayment.customer_id}
-          customerName={classToCollectPayment.full_name}
-          amountPending={classToCollectPayment.amount_pending}
-          classId={classToCollectPayment.id}
-        />
-      )}
+      <AnimatePresence>
+        {classToCollectPayment && (
+          <AddPaymentModal
+            onClose={() => setClassToCollectPayment(null)}
+            onSaved={async () => {
+              invalidateCustomerCache()
+              await fetchData()
+              showToast('Payment collected & class marked done')
+            }}
+            customerId={classToCollectPayment.customer_id}
+            customerName={classToCollectPayment.full_name}
+            amountPending={classToCollectPayment.amount_pending}
+            classId={classToCollectPayment.id}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

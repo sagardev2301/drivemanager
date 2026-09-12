@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import type { Class } from '../lib/supabase'
 import AddClassModal from '../components/AddClassModal'
 import DatePickerModal from '../components/DatePickerModal'
 import MarkDoneConfirmModal from '../components/MarkDoneConfirmModal'
 import AddPaymentModal from '../components/AddPaymentModal'
+import Toast from '../components/Toast'
 import { toLocalDateString, canMarkClassDone } from '../lib/dateUtils'
+import { backdropVariants, listItemVariants } from '../lib/motionPresets'
 import { invalidateCustomerCache } from '../lib/customerCache'
 
 function formatDate(dateStr: string) {
@@ -202,12 +205,7 @@ export default function Attendance() {
       }}
     >
       <div className="flex flex-col w-full max-w-lg mx-auto h-full px-4 pt-3 relative">
-        {toastMessage && (
-          <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[110] bg-slate-900 text-white text-[13px] font-semibold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 transition-all duration-300 animate-fade-in">
-            <span className="material-symbols-outlined text-[18px] text-emerald-400">check_circle</span>
-            <span>{toastMessage}</span>
-          </div>
-        )}
+        <Toast message={toastMessage} />
 
         {/* Pinned Date Navigator & Progress Pill */}
         <div className="shrink-0 space-y-3 pb-3 bg-background z-20">
@@ -269,6 +267,7 @@ export default function Attendance() {
           </div>
         )}
 
+        <AnimatePresence initial={false}>
         {!loading && classes.map(cls => {
           const isDone = cls.status === 'done'
           const isSaving = markingDone === cls.id
@@ -289,7 +288,7 @@ export default function Attendance() {
           const buttonLabel = isSaving ? 'Saving...' : 'Mark Done'
 
           return (
-            <div key={cls.id} className={cardClass}>
+            <motion.div key={cls.id} layout variants={listItemVariants} initial="hidden" animate="visible" exit="exit" className={cardClass}>
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <div className={avatarClass}>
@@ -302,7 +301,17 @@ export default function Attendance() {
                     <h3 className="text-[16px] font-semibold text-on-surface">{cls.full_name}</h3>
                   </div>
                 </div>
-                {statusBadge(cls.status)}
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={cls.status}
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.85 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    {statusBadge(cls.status)}
+                  </motion.span>
+                </AnimatePresence>
               </div>
 
               <div className="flex items-center justify-between mt-1 mb-2 text-[11px] text-on-surface-variant">
@@ -378,9 +387,10 @@ export default function Attendance() {
                   </div>
                 )
               })()}
-            </div>
+            </motion.div>
           )
         })}
+        </AnimatePresence>
       </div>
 
       {/* Action Buttons — only show for today and future */}
@@ -433,6 +443,7 @@ export default function Attendance() {
         </div>
       </div>
 
+      <AnimatePresence>
       {showDatePicker && (
         <DatePickerModal
           isOpen={showDatePicker}
@@ -441,7 +452,9 @@ export default function Attendance() {
           onClose={() => setShowDatePicker(false)}
         />
       )}
+      </AnimatePresence>
 
+      <AnimatePresence>
       {showAddClass && (
         <AddClassModal
           key={classToEdit ? classToEdit.id : 'new'}
@@ -455,14 +468,24 @@ export default function Attendance() {
           classToEdit={classToEdit}
         />
       )}
+      </AnimatePresence>
 
       {/* Delete Scheduled Class Confirmation Popup */}
+      <AnimatePresence>
       {classToDelete && createPortal(
-        <div
+        <motion.div
+          variants={backdropVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
           onClick={() => !deletingId && setClassToDelete(null)}
         >
-          <div
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{ duration: 0.18 }}
             className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
@@ -501,11 +524,13 @@ export default function Attendance() {
                 )}
               </button>
             </div>
-          </div>
-        </div>,
+          </motion.div>
+        </motion.div>,
         document.body
       )}
+      </AnimatePresence>
 
+      <AnimatePresence>
       {classToMarkDone && (
         <MarkDoneConfirmModal
           onClose={() => setClassToMarkDone(null)}
@@ -520,7 +545,9 @@ export default function Attendance() {
           timeLabel={classToMarkDone.start_time ? `${formatTime(classToMarkDone.start_time)} – ${formatTime(classToMarkDone.end_time)}` : ''}
         />
       )}
+      </AnimatePresence>
 
+      <AnimatePresence>
       {classToCollectPayment && (
         <AddPaymentModal
           onClose={() => setClassToCollectPayment(null)}
@@ -535,6 +562,7 @@ export default function Attendance() {
           classId={classToCollectPayment.id}
         />
       )}
+      </AnimatePresence>
     </div>
   )
 }

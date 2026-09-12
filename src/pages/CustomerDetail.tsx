@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import type { CustomerSummary, Class, Payment } from '../lib/supabase'
 import AddClassModal from '../components/AddClassModal'
@@ -368,40 +369,46 @@ export default function CustomerDetail() {
         </div>
       </main>
 
-      {showAddClass && (
-        <AddClassModal
-          onClose={() => setShowAddClass(false)}
-          onSaved={fetchAll}
-          defaultCustomerId={id}
-          defaultDate={toLocalDateString(new Date())}
-        />
-      )}
-      {showAddPayment && (
-        <AddPaymentModal
-          onClose={() => setShowAddPayment(false)}
-          onSaved={fetchAll}
-          customerId={id!}
-          customerName={customer.full_name}
-          amountPending={customer.amount_pending}
-        />
-      )}
-      {showEditCustomer && customer && (
-        <AddCustomerModal
-          customer={{
-            id: customer.customer_id,
-            full_name: customer.full_name,
-            phone_number: customer.phone_number,
-            package_classes: customer.package_classes,
-            total_fee: customer.total_fee,
-            enrollment_date: customer.enrollment_date,
-            course_status: customer.course_status,
-            location: customer.location,
-            classes_completed: customer.classes_completed,
-          }}
-          onClose={() => setShowEditCustomer(false)}
-          onSaved={fetchAll}
-        />
-      )}
+      <AnimatePresence>
+        {showAddClass && (
+          <AddClassModal
+            onClose={() => setShowAddClass(false)}
+            onSaved={fetchAll}
+            defaultCustomerId={id}
+            defaultDate={toLocalDateString(new Date())}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showAddPayment && (
+          <AddPaymentModal
+            onClose={() => setShowAddPayment(false)}
+            onSaved={fetchAll}
+            customerId={id!}
+            customerName={customer.full_name}
+            amountPending={customer.amount_pending}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showEditCustomer && customer && (
+          <AddCustomerModal
+            customer={{
+              id: customer.customer_id,
+              full_name: customer.full_name,
+              phone_number: customer.phone_number,
+              package_classes: customer.package_classes,
+              total_fee: customer.total_fee,
+              enrollment_date: customer.enrollment_date,
+              course_status: customer.course_status,
+              location: customer.location,
+              classes_completed: customer.classes_completed,
+            }}
+            onClose={() => setShowEditCustomer(false)}
+            onSaved={fetchAll}
+          />
+        )}
+      </AnimatePresence>
       <BottomNav />
     </div>
   )

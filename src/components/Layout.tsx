@@ -9,7 +9,7 @@ export function BottomNav() {
           to="/"
           end
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-colors duration-150 ${
+            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-all duration-150 active:scale-90 ${
               isActive ? 'text-primary' : 'text-on-surface-variant'
             }`
           }
@@ -20,7 +20,7 @@ export function BottomNav() {
         <NavLink
           to="/leads"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-colors duration-150 ${
+            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-all duration-150 active:scale-90 ${
               isActive ? 'text-primary' : 'text-on-surface-variant'
             }`
           }
@@ -31,7 +31,7 @@ export function BottomNav() {
         <NavLink
           to="/attendance"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-colors duration-150 ${
+            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-all duration-150 active:scale-90 ${
               isActive ? 'text-primary' : 'text-on-surface-variant'
             }`
           }
@@ -42,7 +42,7 @@ export function BottomNav() {
         <NavLink
           to="/customers"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-colors duration-150 ${
+            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-all duration-150 active:scale-90 ${
               isActive ? 'text-primary' : 'text-on-surface-variant'
             }`
           }
@@ -53,7 +53,7 @@ export function BottomNav() {
         <NavLink
           to="/dashboard"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-colors duration-150 ${
+            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-all duration-150 active:scale-90 ${
               isActive ? 'text-primary' : 'text-on-surface-variant'
             }`
           }
@@ -84,7 +84,7 @@ export function Header({ title, showBack, onBack }: LayoutProps) {
             <button
               aria-label="Go back"
               onClick={onBack}
-              className="w-11 h-11 flex items-center justify-center text-on-surface -ml-2 rounded-full hover:bg-surface-container-high transition-colors"
+              className="w-11 h-11 flex items-center justify-center text-on-surface -ml-2 rounded-full hover:bg-surface-container-high active:scale-90 transition-all"
             >
               <span className="material-symbols-outlined text-[22px]">arrow_back</span>
             </button>

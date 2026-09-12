@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { toLocalDateString } from '../lib/dateUtils'
 import { invalidateCustomerCache } from '../lib/customerCache'
 import { normalizePhoneNumber } from '../lib/phoneUtils'
 import { useModalBackButton } from '../hooks/useModalBackButton'
+import { backdropVariants, sheetVariants } from '../lib/motionPresets'
 
 export interface CustomerEditData {
   id: string
@@ -121,8 +123,19 @@ export default function AddCustomerModal({ onClose, onSaved, customer }: Props) 
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={requestClose}>
-      <div
+    <motion.div
+      variants={backdropVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm"
+      onClick={requestClose}
+    >
+      <motion.div
+        variants={sheetVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl p-6 pb-8 max-h-[90dvh] overflow-y-auto"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
         onClick={e => e.stopPropagation()}
@@ -273,8 +286,8 @@ export default function AddCustomerModal({ onClose, onSaved, customer }: Props) 
             )}
           </button>
         </form>
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>,
     document.body
   )
 }

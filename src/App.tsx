@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { MotionConfig } from 'framer-motion'
 import { Analytics } from '@vercel/analytics/react'
 import { useAuth } from './hooks/useAuth'
 import { useOnlineStatus } from './hooks/useOnlineStatus'
@@ -60,23 +61,27 @@ export default function App() {
 
   if (!session) {
     return (
-      <BrowserRouter>
-        {!isOnline && <OfflinePage />}
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Analytics />
-      </BrowserRouter>
+      <MotionConfig reducedMotion="user">
+        <BrowserRouter>
+          {!isOnline && <OfflinePage />}
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Analytics />
+        </BrowserRouter>
+      </MotionConfig>
     )
   }
 
   return (
-    <BrowserRouter>
-      {!isOnline && <OfflinePage />}
-      <AppRoutes />
-      <Analytics />
-    </BrowserRouter>
+    <MotionConfig reducedMotion="user">
+      <BrowserRouter>
+        {!isOnline && <OfflinePage />}
+        <AppRoutes />
+        <Analytics />
+      </BrowserRouter>
+    </MotionConfig>
   )
 }

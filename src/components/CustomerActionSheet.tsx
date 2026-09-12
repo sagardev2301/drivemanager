@@ -1,9 +1,11 @@
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { CustomerSummary } from '../lib/supabase'
 import AddPaymentModal from './AddPaymentModal'
 import { useModalBackButton } from '../hooks/useModalBackButton'
+import { backdropVariants, sheetVariants } from '../lib/motionPresets'
 
 interface Props {
   customer: CustomerSummary
@@ -64,11 +66,19 @@ export default function CustomerActionSheet({ customer, onClose, onPaymentSaved 
 
   return createPortal(
     <>
-      <div
+      <motion.div
+        variants={backdropVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40 backdrop-blur-sm"
         onClick={requestClose}
       >
-        <div
+        <motion.div
+          variants={sheetVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
           className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl"
           style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
           onClick={e => e.stopPropagation()}
@@ -143,22 +153,24 @@ export default function CustomerActionSheet({ customer, onClose, onPaymentSaved 
               <span className="material-symbols-outlined text-[18px] text-outline ml-auto">chevron_right</span>
             </button>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      {showPayment && (
-        <AddPaymentModal
-          onClose={() => setShowPayment(false)}
-          onSaved={() => {
-            setShowPayment(false)
-            onClose()
-            onPaymentSaved()
-          }}
-          customerId={customer.customer_id}
-          customerName={customer.full_name}
-          amountPending={customer.amount_pending}
-        />
-      )}
+      <AnimatePresence>
+        {showPayment && (
+          <AddPaymentModal
+            onClose={() => setShowPayment(false)}
+            onSaved={() => {
+              setShowPayment(false)
+              onClose()
+              onPaymentSaved()
+            }}
+            customerId={customer.customer_id}
+            customerName={customer.full_name}
+            amountPending={customer.amount_pending}
+          />
+        )}
+      </AnimatePresence>
     </>,
     document.body
   )

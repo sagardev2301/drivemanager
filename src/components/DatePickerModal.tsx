@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { motion } from 'framer-motion'
 import { toLocalDateString } from '../lib/dateUtils'
 import { useModalBackButton } from '../hooks/useModalBackButton'
+import { backdropVariants, sheetVariants } from '../lib/motionPresets'
 
 interface DatePickerModalProps {
   isOpen: boolean
@@ -134,12 +136,20 @@ export default function DatePickerModal({
   })
 
   return createPortal(
-    <div
+    <motion.div
+      variants={backdropVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
       className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
       onClick={requestClose}
     >
-      <div
-        className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl p-4 sm:p-5 flex flex-col gap-3 transition-transform animate-in fade-in duration-200"
+      <motion.div
+        variants={sheetVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl p-4 sm:p-5 flex flex-col gap-3"
         style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}
         onClick={e => e.stopPropagation()}
       >
@@ -253,8 +263,8 @@ export default function DatePickerModal({
             )
           })}
         </div>
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>,
     document.body
   )
 }
