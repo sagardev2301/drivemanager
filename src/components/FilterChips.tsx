@@ -27,7 +27,7 @@ export function FilterChip({ active, onClick, children }: FilterChipProps) {
     <button
       onClick={onClick}
       className={`shrink-0 px-4 py-2 rounded-full text-[12px] font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
-        active ? 'bg-primary text-on-primary shadow-sm' : 'bg-surface-container text-on-surface-variant'
+        active ? 'bg-brand-600 text-white shadow-sm' : 'bg-slate-50 text-slate-500'
       }`}
     >
       {children}

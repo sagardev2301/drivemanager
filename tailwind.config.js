@@ -7,61 +7,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Stitch Design System — full semantic color palette
-        'primary':                    '#003fb1',
-        'on-primary':                 '#ffffff',
-        'primary-container':          '#1a56db',
-        'on-primary-container':       '#d4dcff',
-        'primary-fixed':              '#dbe1ff',
-        'primary-fixed-dim':          '#b5c4ff',
-        'on-primary-fixed':           '#00174d',
-        'on-primary-fixed-variant':   '#003dab',
-
-        'secondary':                  '#3858b6',
-        'on-secondary':               '#ffffff',
-        'secondary-container':        '#7e9cfe',
-        'on-secondary-container':     '#002f8a',
-        'secondary-fixed':            '#dbe1ff',
-        'secondary-fixed-dim':        '#b5c4ff',
-        'on-secondary-fixed':         '#00164d',
-        'on-secondary-fixed-variant': '#1a3f9c',
-
-        'tertiary':                   '#005623',
-        'on-tertiary':                '#ffffff',
-        'tertiary-container':         '#007130',
-        'on-tertiary-container':      '#65f98b',
-        'tertiary-fixed':             '#6bff8f',
-        'tertiary-fixed-dim':         '#4ae176',
-        'on-tertiary-fixed':          '#002109',
-        'on-tertiary-fixed-variant':  '#005321',
-
-        'error':                      '#ba1a1a',
-        'on-error':                   '#ffffff',
-        'error-container':            '#ffdad6',
-        'on-error-container':         '#93000a',
-
-        'surface':                    '#f9f9ff',
-        'on-surface':                 '#141b2b',
-        'surface-variant':            '#dce2f7',
-        'on-surface-variant':         '#434654',
-        'surface-container-lowest':   '#ffffff',
-        'surface-container-low':      '#f1f3ff',
-        'surface-container':          '#e9edff',
-        'surface-container-high':     '#e1e8fd',
-        'surface-container-highest':  '#dce2f7',
-        'surface-dim':                '#d3daef',
-        'surface-bright':             '#f9f9ff',
-        'surface-tint':               '#1353d8',
-
-        'background':                 '#f9f9ff',
-        'on-background':              '#141b2b',
-
-        'outline':                    '#737686',
-        'outline-variant':            '#c3c5d7',
-
-        'inverse-surface':            '#293040',
-        'inverse-on-surface':         '#edf0ff',
-        'inverse-primary':            '#b5c4ff',
+        brand: {
+          50: '#EFF6FF',
+          100: '#DBEAFE',
+          500: '#1D4ED8',
+          600: '#1A56DB',
+          700: '#1E40AF',
+          800: '#1E3A8A',
+          900: '#0F172A',
+        },
+        canvas: '#F5F6F8',
+        surface: '#FFFFFF',
       },
       borderRadius: {
         DEFAULT: '0.125rem',
@@ -96,6 +52,11 @@ export default {
         'body-sm':          ['13px', { lineHeight: '18px', fontWeight: '400' }],
         'label-badge':      ['12px', { lineHeight: '16px', letterSpacing: '0.01em', fontWeight: '600' }],
         'caption-xs':       ['11px', { lineHeight: '14px', letterSpacing: '0.02em', fontWeight: '500' }],
+      },
+      boxShadow: {
+        card: '0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04)',
+        'card-hover': '0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04)',
+        drawer: '0 -8px 30px rgba(15, 23, 42, 0.15)',
       },
       keyframes: {
         spin: { to: { transform: 'rotate(360deg)' } },

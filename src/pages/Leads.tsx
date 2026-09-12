@@ -221,7 +221,7 @@ export default function Leads() {
                 <span className={`w-2 h-2 rounded-full ${opt.dot}`} />
               )}
               <span>{opt.label}</span>
-              <span className={isActive ? 'text-on-primary/80' : 'text-on-surface-variant/70'}>
+              <span className={isActive ? 'text-white/80' : 'text-slate-500/70'}>
                 {count}
               </span>
             </FilterChip>
@@ -267,7 +267,7 @@ export default function Leads() {
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              className="mt-2 px-4 py-2 rounded-xl bg-on-surface hover:bg-on-surface/90 text-on-primary text-[13px] font-semibold flex items-center gap-1.5 shadow-sm transition-colors"
+              className="mt-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-900/90 text-white text-[13px] font-semibold flex items-center gap-1.5 shadow-sm transition-colors"
             >
               <span className="material-symbols-outlined text-[18px]">add</span>
               <span>Add First Lead</span>
@@ -332,7 +332,7 @@ export default function Leads() {
       {/* Floating Action Button (+ in Navy Blue Circle, Bottom-Right) */}
       <button
         onClick={() => setShowAddModal(true)}
-        className="fixed right-5 z-30 w-14 h-14 rounded-full bg-on-surface text-on-primary flex items-center justify-center shadow-xl hover:bg-on-surface/90 active:scale-95 transition-all focus:outline-none ring-4 ring-on-surface/10"
+        className="fixed right-5 z-30 w-14 h-14 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-xl hover:bg-slate-900/90 active:scale-95 transition-all focus:outline-none ring-4 ring-slate-900/10"
         style={{ bottom: 'calc(4.75rem + env(safe-area-inset-bottom, 0px))' }}
         title="Add New Lead"
         aria-label="Add New Lead"

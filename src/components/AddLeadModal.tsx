@@ -85,7 +85,7 @@ export default function AddLeadModal({ onClose, onSaved }: Props) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white rounded-t-3xl p-5 pt-3 pb-8 shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-lg bg-white rounded-t-3xl p-5 pt-3 pb-8 shadow-drawer max-h-[90vh] overflow-y-auto"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
         onClick={e => e.stopPropagation()}
       >
@@ -223,7 +223,7 @@ export default function AddLeadModal({ onClose, onSaved }: Props) {
             <button
               type="submit"
               disabled={saving}
-              className="w-full py-3.5 px-4 rounded-xl bg-on-surface hover:bg-on-surface/90 disabled:opacity-50 text-on-primary font-bold text-[14px] flex items-center justify-center gap-2 shadow-md active:scale-[0.99] transition-all"
+              className="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-900/90 disabled:opacity-50 text-white font-bold text-[14px] flex items-center justify-center gap-2 shadow-md active:scale-[0.99] transition-all"
             >
               <span className="material-symbols-outlined text-[20px]">
                 {saving ? 'hourglass_top' : 'person_add'}

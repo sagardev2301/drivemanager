@@ -30,7 +30,7 @@ export default function EntityListCard({
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-xl p-4 shadow-sm active:bg-surface-container-low transition-all cursor-pointer"
+      className="bg-surface rounded-2xl p-4 border border-slate-200/90 shadow-card hover:shadow-card-hover active:scale-[0.99] transition-all cursor-pointer"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -39,16 +39,16 @@ export default function EntityListCard({
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1 min-w-0">
-              <h2 className="text-[16px] font-semibold text-on-surface truncate" title={name}>{name}</h2>
+              <h2 className="text-[15px] font-bold text-slate-900 truncate" title={name}>{name}</h2>
               {nameSuffix}
             </div>
-            <div className="flex items-center gap-1 text-on-surface-variant mt-0.5 min-w-0">
+            <div className="flex items-center gap-1 text-slate-500 mt-0.5 min-w-0">
               <span className="material-symbols-outlined text-[14px] shrink-0">phone</span>
               <span className="text-[11px] tracking-wide truncate">{phone}</span>
             </div>
             {location && (
-              <div className="flex items-center gap-1 text-on-surface-variant mt-0.5 min-w-0">
-                <span className="material-symbols-outlined text-[14px] text-primary shrink-0">location_on</span>
+              <div className="flex items-center gap-1 text-slate-500 mt-0.5 min-w-0">
+                <span className="material-symbols-outlined text-[14px] text-brand-600 shrink-0">location_on</span>
                 <span className="text-[11px] tracking-wide truncate">{location}</span>
               </div>
             )}

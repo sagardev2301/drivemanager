@@ -128,16 +128,16 @@ export default function Customers() {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   function paymentBadge(c: CustomerSummary) {
-    if (c.amount_pending <= 0) return <span className="shrink-0 whitespace-nowrap inline-flex items-center px-2.5 py-1 rounded-full bg-tertiary-fixed/30 text-on-tertiary-fixed-variant text-[12px] font-semibold">Fully Paid</span>
-    if (c.payment_status === 'partial') return <span className="shrink-0 whitespace-nowrap inline-flex items-center px-2.5 py-1 rounded-full bg-primary-fixed-dim/40 text-on-secondary-fixed-variant text-[12px] font-semibold">₹{c.amount_pending.toLocaleString('en-IN')} Pending</span>
-    return <span className="shrink-0 whitespace-nowrap inline-flex items-center px-2.5 py-1 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">₹{c.amount_pending.toLocaleString('en-IN')} Pending</span>
+    if (c.amount_pending <= 0) return <span className="shrink-0 whitespace-nowrap inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50/30 text-emerald-700 text-[12px] font-semibold">Fully Paid</span>
+    if (c.payment_status === 'partial') return <span className="shrink-0 whitespace-nowrap inline-flex items-center px-2.5 py-1 rounded-full bg-brand-50/40 text-brand-700 text-[12px] font-semibold">₹{c.amount_pending.toLocaleString('en-IN')} Pending</span>
+    return <span className="shrink-0 whitespace-nowrap inline-flex items-center px-2.5 py-1 rounded-full bg-rose-600 text-white text-[12px] font-semibold">₹{c.amount_pending.toLocaleString('en-IN')} Pending</span>
   }
 
   const progressBarColor: Record<string, string> = {
-    active: 'bg-primary', completed: 'bg-tertiary', dropped: 'bg-error',
+    active: 'bg-brand-600', completed: 'bg-emerald-600', dropped: 'bg-rose-600',
   }
   const progressLabelColor: Record<string, string> = {
-    active: 'text-on-surface', completed: 'text-tertiary', dropped: 'text-error',
+    active: 'text-slate-900', completed: 'text-emerald-600', dropped: 'text-rose-600',
   }
 
   const pills: { key: FilterKey; label: string }[] = [
@@ -149,7 +149,7 @@ export default function Customers() {
 
   return (
     <div
-      className="fixed inset-x-0 flex flex-col bg-background z-10 overflow-hidden"
+      className="fixed inset-x-0 flex flex-col bg-canvas z-10 overflow-hidden"
       style={{
         top: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
         bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))',
@@ -161,12 +161,12 @@ export default function Customers() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-[20px] font-semibold text-on-surface tracking-tight">Enrolled Customers</h1>
-              <p className="text-[11px] text-on-surface-variant mt-0.5">Manage training records &amp; fee dues</p>
+              <h1 className="text-[20px] font-semibold text-slate-900 tracking-tight">Enrolled Customers</h1>
+              <p className="text-[11px] text-slate-500 mt-0.5">Manage training records &amp; fee dues</p>
             </div>
             <button
               onClick={() => setShowAddCustomer(true)}
-              className="flex items-center gap-1 h-11 bg-primary text-on-primary px-4 rounded-xl shadow-sm active:scale-95 transition-all"
+              className="flex items-center gap-1 h-11 bg-brand-600 text-white px-4 rounded-xl shadow-sm active:scale-95 transition-all"
             >
               <span className="material-symbols-outlined text-[18px]">person_add</span>
               <span className="text-[14px] font-semibold">+ Add</span>
@@ -175,11 +175,11 @@ export default function Customers() {
 
           {/* Search Bar */}
           <div className="relative w-full">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-outline">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-300">
               <span className="material-symbols-outlined text-[20px]">search</span>
             </div>
             <input
-              className="w-full h-11 pl-10 pr-10 rounded-xl bg-white text-on-surface placeholder:text-outline text-[14px] shadow-sm focus:outline-none focus:bg-white transition-colors"
+              className="w-full h-11 pl-10 pr-10 rounded-xl bg-white text-slate-900 placeholder:text-slate-300 text-[14px] shadow-sm focus:outline-none focus:bg-white transition-colors"
               placeholder="Search by name or phone..."
               type="text"
               value={search}
@@ -187,7 +187,7 @@ export default function Customers() {
             />
             {search && (
               <button
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-outline"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-300"
                 onClick={() => { setSearch(''); setDebouncedSearch('') }}
               >
                 <span className="material-symbols-outlined text-[18px]">cancel</span>
@@ -206,7 +206,7 @@ export default function Customers() {
 
           {/* Result summary */}
           {!loadingPage && (
-            <p className="text-[11px] text-outline -mt-1">
+            <p className="text-[11px] text-slate-300 -mt-1">
               {debouncedSearch
                 ? `${totalCount} result${totalCount !== 1 ? 's' : ''} for "${debouncedSearch}"`
                 : `Showing ${customers.length} of ${totalCount} customers`}
@@ -222,8 +222,8 @@ export default function Customers() {
 
           {!loadingPage && customers.length === 0 && (
             <div className="bg-white p-6 rounded-xl shadow-sm text-center">
-              <span className="material-symbols-outlined text-outline text-[32px]">person_search</span>
-              <p className="text-[14px] text-on-surface-variant mt-2">No customers found</p>
+              <span className="material-symbols-outlined text-slate-300 text-[32px]">person_search</span>
+              <p className="text-[14px] text-slate-500 mt-2">No customers found</p>
             </div>
           )}
 
@@ -233,11 +233,11 @@ export default function Customers() {
               <EntityListCard
                 key={c.customer_id}
                 onClick={() => navigate(`/customers/${c.customer_id}`)}
-                avatarClassName={c.course_status === 'completed' ? 'bg-surface-container text-tertiary' : 'bg-surface-container text-primary'}
+                avatarClassName={c.course_status === 'completed' ? 'bg-slate-50 text-emerald-600' : 'bg-slate-50 text-brand-600'}
                 avatarContent={getInitials(c.full_name)}
                 name={c.full_name}
                 nameSuffix={c.course_status === 'completed' && (
-                  <span className="material-symbols-outlined text-tertiary text-[16px] shrink-0">check_circle</span>
+                  <span className="material-symbols-outlined text-emerald-600 text-[16px] shrink-0">check_circle</span>
                 )}
                 phone={c.phone_number}
                 location={c.location}
@@ -247,18 +247,18 @@ export default function Customers() {
                 <div className="mt-4 pt-1 flex items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[11px] text-on-surface-variant">
+                      <span className="text-[11px] text-slate-500">
                         {c.course_status === 'completed' ? 'Course Complete' : 'Training Progress'}
                       </span>
-                      <span className={progressLabelColor[c.course_status] ?? 'text-on-surface'} style={{ fontSize: '14px', fontWeight: 600 }}>
+                      <span className={progressLabelColor[c.course_status] ?? 'text-slate-900'} style={{ fontSize: '14px', fontWeight: 600 }}>
                         {c.classes_completed} / {c.package_classes} classes
                       </span>
                     </div>
-                    <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
-                      <div className={progressBarColor[c.course_status] ?? 'bg-primary'} style={{ width: `${progress}%`, height: '100%', borderRadius: '9999px' }} />
+                    <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden">
+                      <div className={progressBarColor[c.course_status] ?? 'bg-brand-600'} style={{ width: `${progress}%`, height: '100%', borderRadius: '9999px' }} />
                     </div>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 shrink-0">
                     <span className="material-symbols-outlined text-[20px]">chevron_right</span>
                   </div>
                 </div>
@@ -287,7 +287,7 @@ export default function Customers() {
                   <button
                     onClick={() => goToPage(page - 1)}
                     disabled={page === 0}
-                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-primary disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-brand-600 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
                     aria-label="Previous page"
                   >
                     <span className="material-symbols-outlined text-[20px]">chevron_left</span>
@@ -296,8 +296,8 @@ export default function Customers() {
                   {/* First page + ellipsis */}
                   {startPage > 0 && (
                     <>
-                      <button onClick={() => goToPage(0)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-surface-container-low text-on-surface-variant active:scale-95 transition-all">1</button>
-                      {startPage > 1 && <span className="text-outline text-[13px] px-0.5">…</span>}
+                      <button onClick={() => goToPage(0)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-slate-50 text-slate-500 active:scale-95 transition-all">1</button>
+                      {startPage > 1 && <span className="text-slate-300 text-[13px] px-0.5">…</span>}
                     </>
                   )}
 
@@ -308,8 +308,8 @@ export default function Customers() {
                       onClick={() => goToPage(p)}
                       className={`w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold transition-all active:scale-95 ${
                         p === page
-                          ? 'bg-primary text-on-primary shadow-sm'
-                          : 'bg-surface-container-low text-on-surface-variant'
+                          ? 'bg-brand-600 text-white shadow-sm'
+                          : 'bg-slate-50 text-slate-500'
                       }`}
                     >
                       {p + 1}
@@ -319,8 +319,8 @@ export default function Customers() {
                   {/* Ellipsis + last page */}
                   {endPage < totalPages - 1 && (
                     <>
-                      {endPage < totalPages - 2 && <span className="text-outline text-[13px] px-0.5">…</span>}
-                      <button onClick={() => goToPage(totalPages - 1)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-surface-container-low text-on-surface-variant active:scale-95 transition-all">{totalPages}</button>
+                      {endPage < totalPages - 2 && <span className="text-slate-300 text-[13px] px-0.5">…</span>}
+                      <button onClick={() => goToPage(totalPages - 1)} className="w-9 h-9 flex items-center justify-center rounded-xl text-[13px] font-semibold bg-slate-50 text-slate-500 active:scale-95 transition-all">{totalPages}</button>
                     </>
                   )}
 
@@ -328,14 +328,14 @@ export default function Customers() {
                   <button
                     onClick={() => goToPage(page + 1)}
                     disabled={page >= totalPages - 1}
-                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-primary disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-brand-600 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
                     aria-label="Next page"
                   >
                     <span className="material-symbols-outlined text-[20px]">chevron_right</span>
                   </button>
 
                   {/* Page label */}
-                  <span className="ml-auto text-[11px] text-outline whitespace-nowrap pl-1">
+                  <span className="ml-auto text-[11px] text-slate-300 whitespace-nowrap pl-1">
                     {page + 1} / {totalPages}
                   </span>
                 </div>

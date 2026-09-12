@@ -1,51 +1,63 @@
-In the DriveManager repo (sagardev2301/drivemanager), change the "Mark Done"
-flow on both the Home page and the Attendance page so it goes through a
-confirmation step instead of marking a class done in one tap.
+The file design/leads-reference.html in this repo is the approved visual
+design reference for the ENTIRE DriveManager app — not just the Leads page.
+Use it as the single source of truth to bring Dashboard, Attendance,
+Customers, Customer Detail, and all modals/drawers into visual consistency
+with it. This is a styling-only pass — no changes to data logic, Supabase
+queries, routing, or component behavior.
 
-CURRENT BEHAVIOR: tapping "Mark Done" immediately sets classes.status =
-'done' with no confirmation and no way to log a payment at the same time.
+STEP 1 — Extract the design system from design/leads-reference.html:
+  - Color scale: brand-{50,100,500,600,700,800,900} (#EFF6FF, #DBEAFE,
+    #1D4ED8, #1A56DB, #1E40AF, #1E3A8A, #0F172A), canvas #F5F6F8 (page bg),
+    surface #FFFFFF (card/header bg)
+  - Status colors: blue-600 (New/info), amber-500/amber-800 (Contacted/
+    warning), purple-600/700 (Booked), emerald-500/700 (Converted/success),
+    rose-500/700 (Dropped/danger) — each used as: light bg (e.g. blue-50)
+    + colored border + colored text for badges, and as ring-2 color for
+    avatar rings
+  - Text colors: slate-900 (headings), slate-700 (body), slate-500
+    (secondary/meta), slate-400 (muted icons/placeholders)
+  - Font: Inter (400/500/600/700/800) for text, Material Symbols Outlined
+    for all icons
+  - Type scale: page title 17px bold, section/modal header 18px bold, card
+    title 15px bold, body/phone 13px medium, meta/badge text 11-12px
+    semibold, form labels 11px bold uppercase tracking-wider
+  - Radius: cards = rounded-2xl, buttons/inputs/avatars(square) = rounded-xl,
+    chips/badges/circular avatars = rounded-full, bottom-sheet modals =
+    rounded-t-3xl
+  - Shadows: card-shadow (0 1px 3px rgba(15,23,42,.06), 0 1px 2px
+    rgba(15,23,42,.04)), card-shadow-hover (0 4px 12px rgba(15,23,42,.08),
+    0 2px 4px rgba(15,23,42,.04)), drawer-shadow for bottom sheets
+  - Spacing: card padding p-4, page horizontal padding px-4/px-5, avatar
+    w-12 h-12 in lists / w-10 h-10 in header, primary button py-3.5,
+    secondary button py-2.5
+  - Interaction: active:scale-[0.99] on cards, active:scale-95 on FAB,
+    bottom-sheet drawers with a drag handle + slide-up + backdrop blur for
+    add/edit flows, top-center toast for success messages
 
-NEW FLOW:
+STEP 2 — Codify this as the shared design system:
+  - Update tailwind.config.js so the brand/canvas/surface colors above
+    become the actual theme tokens (replace whatever's there now)
+  - Add the card-shadow / card-shadow-hover / drawer-shadow utilities
+  - Standardize on rounded-2xl for cards and rounded-xl for buttons/inputs
+    app-wide — remove the other border-radius variants currently in use
+  - Standardize on the type scale above, replacing the currently
+    inconsistent font-size/weight combinations
+  - IMPORTANT decision point: this reference uses Material Symbols
+    Outlined for every icon. Check what icon library the current app
+    uses (e.g. lucide-react, heroicons) — if it differs, tell me before
+    proceeding so we decide whether to switch the whole app to Material
+    Symbols or map each icon in the reference to its closest equivalent
+    in the existing library. Don't mix both in the same app.
 
-1. Tapping "Mark Done" opens a confirmation modal/bottom-sheet (reuse the
-   app's existing modal/drawer styling) showing the class's details
-   (student name, "Class X of Y", time slot) with two actions:
-     - "Confirm" — marks the class done only, no payment (same effect as
-       the current one-tap behavior). Simple `update classes set status =
-       'done' where id = ...`.
-     - "Collect Payment" — opens the SAME payment-collection modal already
-       used on the Customer Detail page. Do not duplicate that modal;
-       extend the existing shared component with an optional `classId`
-       prop instead.
+STEP 3 — Apply screen by screen (Dashboard/AnalyticsDashboard, Attendance,
+Customers, Customer Detail, and existing Leads if anything drifted from the
+reference), swapping in the tokenized colors/radius/shadows/type from Step 2
+in place of hardcoded values. Preserve each screen's existing layout and
+functionality — only bring the visual language in line with the reference.
 
-2. Extend the shared payment modal component:
-   - When opened WITHOUT a classId (existing Customer Detail usage): behave
-     exactly as it does today — primary button reads "Collect", payment is
-     inserted with class_id = null, no class status is touched.
-   - When opened WITH a classId (new Mark-Done-flow usage): primary button
-     reads "Collect & Mark Done" instead of "Collect". On submit, instead
-     of a plain payments insert, call the new Supabase RPC:
-       supabase.rpc('collect_payment_and_mark_done', {
-         p_class_id: classId,
-         p_customer_id: customerId,
-         p_amount: amount,
-         p_payment_mode: paymentMode,
-         p_reference_note: referenceNote ?? null
-       })
-     This one call both records the payment (linked to that specific class)
-     and sets that class's status to 'done' atomically — do not call two
-     separate insert/update requests for this path, use the RPC so it's
-     one transaction.
-   - Surface the RPC's error message if it fails (e.g. the existing
-     overpay-rejection trigger fires) — same error-handling pattern already
-     used for the existing "Collect" path's insert errors.
+STEP 4 — Verify: grep for stray hex values or off-scale radius/shadow
+classes to confirm nothing was missed, then run the app locally to confirm
+nothing broke functionally.
 
-3. After either "Confirm" or a successful "Collect & Mark Done", close all
-   open modals, refresh the affected class row's status in the UI
-   (Scheduled -> Done pill, "Fee Pending" -> "Fully Paid"/updated amount if
-   relevant), and show the existing success-toast pattern.
-
-Apply this to both Home.tsx's "Today's Classes" card and the Attendance
-page's class list — they should call the same confirmation modal + payment
-modal components rather than each having their own copy of this logic.
-```
+Show me the Step 1/2 findings (especially the icon-library decision) before
+applying changes across all screens.

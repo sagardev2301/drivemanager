@@ -187,15 +187,15 @@ export default function Attendance() {
   const totalCount = classes.length
 
   const statusBadge = (status: string) => {
-    if (status === 'done') return <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed/40 text-tertiary text-[12px] font-semibold">Done</span>
-    if (status === 'cancelled') return <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">Cancelled</span>
-    if (status === 'not_completed') return <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">Not Completed</span>
-    return <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[12px]">Scheduled</span>
+    if (status === 'done') return <span className="px-2 py-0.5 rounded-full bg-emerald-50/40 text-emerald-600 text-[12px] font-semibold">Done</span>
+    if (status === 'cancelled') return <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[12px] font-semibold">Cancelled</span>
+    if (status === 'not_completed') return <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[12px] font-semibold">Not Completed</span>
+    return <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[12px]">Scheduled</span>
   }
 
   return (
     <div
-      className="fixed inset-x-0 flex flex-col bg-background z-10 overflow-hidden"
+      className="fixed inset-x-0 flex flex-col bg-canvas z-10 overflow-hidden"
       style={{
         top: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
         bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))',
@@ -210,33 +210,33 @@ export default function Attendance() {
         )}
 
         {/* Pinned Date Navigator & Progress Pill */}
-        <div className="shrink-0 space-y-3 pb-3 bg-background z-20">
+        <div className="shrink-0 space-y-3 pb-3 bg-canvas z-20">
           {/* Date Navigator */}
           <div className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm">
             <button
               aria-label="Previous day"
               onClick={() => changeDate(-1)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all"
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-900 hover:bg-slate-50 active:scale-95 transition-all"
             >
               <span className="material-symbols-outlined text-[20px]">chevron_left</span>
             </button>
             <button
               type="button"
               onClick={() => setShowDatePicker(true)}
-              className="flex flex-col items-center px-3 py-1 -my-1 rounded-xl hover:bg-surface-container-low transition-colors active:scale-95 cursor-pointer"
+              className="flex flex-col items-center px-3 py-1 -my-1 rounded-xl hover:bg-slate-50 transition-colors active:scale-95 cursor-pointer"
               aria-label="Select date"
             >
               <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-primary text-[18px]">calendar_today</span>
-                <span className="text-[16px] font-semibold text-on-surface">{formatDate(selectedDate)}</span>
-                <span className="material-symbols-outlined text-outline text-[16px]">expand_more</span>
+                <span className="material-symbols-outlined text-brand-600 text-[18px]">calendar_today</span>
+                <span className="text-[16px] font-semibold text-slate-900">{formatDate(selectedDate)}</span>
+                <span className="material-symbols-outlined text-slate-300 text-[16px]">expand_more</span>
               </div>
-              <span className="text-[11px] text-on-surface-variant">Instructor Log</span>
+              <span className="text-[11px] text-slate-500">Instructor Log</span>
             </button>
             <button
               aria-label="Next day"
               onClick={() => changeDate(1)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all"
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-900 hover:bg-slate-50 active:scale-95 transition-all"
             >
               <span className="material-symbols-outlined text-[20px]">chevron_right</span>
             </button>
@@ -244,12 +244,12 @@ export default function Attendance() {
 
           {/* Progress Pill */}
           {!loading && totalCount > 0 && (
-            <div className="flex items-center justify-between bg-primary-fixed/60 px-4 py-2 rounded-full">
+            <div className="flex items-center justify-between bg-brand-50/60 px-4 py-2 rounded-full">
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-[12px] font-semibold text-on-primary-fixed">Daily Progress</span>
+                <div className="w-2.5 h-2.5 rounded-full bg-brand-600 animate-pulse" />
+                <span className="text-[12px] font-semibold text-brand-700">Daily Progress</span>
               </div>
-              <span className="text-[12px] font-bold text-primary">{doneCount} of {totalCount} Completed</span>
+              <span className="text-[12px] font-bold text-brand-600">{doneCount} of {totalCount} Completed</span>
             </div>
           )}
         </div>
@@ -264,8 +264,8 @@ export default function Attendance() {
 
         {!loading && classes.length === 0 && (
           <div className="bg-white p-6 rounded-xl shadow-sm text-center">
-            <span className="material-symbols-outlined text-outline text-[32px]">event_busy</span>
-            <p className="text-[14px] text-on-surface-variant mt-2">No classes for this date</p>
+            <span className="material-symbols-outlined text-slate-300 text-[32px]">event_busy</span>
+            <p className="text-[14px] text-slate-500 mt-2">No classes for this date</p>
           </div>
         )}
 
@@ -279,8 +279,8 @@ export default function Attendance() {
             ? "flex flex-col bg-white p-4 rounded-xl shadow-sm opacity-80"
             : "flex flex-col bg-white p-4 rounded-xl shadow-sm"
           const avatarClass = isDone
-            ? "w-8 h-8 rounded-full flex items-center justify-center bg-tertiary-fixed/30 text-tertiary"
-            : "w-8 h-8 rounded-full flex items-center justify-center bg-surface-container text-on-surface-variant"
+            ? "w-8 h-8 rounded-full flex items-center justify-center bg-emerald-50/30 text-emerald-600"
+            : "w-8 h-8 rounded-full flex items-center justify-center bg-slate-50 text-slate-500"
           const avatarIcon = isDone ? 'check' : 'schedule'
           const buttonIconClass = isSaving
             ? "material-symbols-outlined text-[18px] animate-spin"
@@ -296,34 +296,34 @@ export default function Attendance() {
                     <span className="material-symbols-outlined text-[18px]">{avatarIcon}</span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-on-surface-variant">
+                    <span className="text-[11px] text-slate-500">
                       {cls.start_time ? `${formatTime(cls.start_time)} – ${formatTime(cls.end_time)}` : 'Time TBD'}
                     </span>
-                    <h3 className="text-[16px] font-semibold text-on-surface">{cls.full_name}</h3>
+                    <h3 className="text-[16px] font-semibold text-slate-900">{cls.full_name}</h3>
                   </div>
                 </div>
                 {statusBadge(cls.status)}
               </div>
 
-              <div className="flex items-center justify-between mt-1 mb-2 text-[11px] text-on-surface-variant">
+              <div className="flex items-center justify-between mt-1 mb-2 text-[11px] text-slate-500">
                 <span>Class {cls.classes_completed + (cls.status !== 'done' ? 1 : 0)} of {cls.package_classes}</span>
                 {cls.amount_pending > 0 ? (
-                  <span className="text-error font-semibold">₹{cls.amount_pending.toLocaleString('en-IN')} Pending</span>
+                  <span className="text-rose-600 font-semibold">₹{cls.amount_pending.toLocaleString('en-IN')} Pending</span>
                 ) : (
-                  <span className="text-tertiary font-semibold">Fully Paid</span>
+                  <span className="text-emerald-600 font-semibold">Fully Paid</span>
                 )}
               </div>
 
               {(() => {
                 const canMark = canMarkClassDone(cls.start_time)
                 const editButtonClass = showMarkDone
-                  ? "w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
-                  : "flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50"
+                  ? "w-11 h-11 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                  : "flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50"
                 const deleteButtonClass = showMarkDone
-                  ? "w-11 h-11 flex items-center justify-center rounded-xl bg-error-container/50 hover:bg-error-container text-error text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                  ? "w-11 h-11 flex items-center justify-center rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
                   : canEdit
-                    ? "h-11 px-4 flex items-center justify-center gap-1.5 rounded-xl bg-error-container/50 hover:bg-error-container text-error text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
-                    : "flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl bg-error-container/50 hover:bg-error-container text-error text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50"
+                    ? "h-11 px-4 flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                    : "flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white text-[14px] font-semibold transition-all active:scale-95 disabled:opacity-50"
                 const iconSizeClass = showMarkDone ? "material-symbols-outlined text-[20px]" : "material-symbols-outlined text-[18px]"
 
                 return (
@@ -333,14 +333,14 @@ export default function Attendance() {
                         <button
                           onClick={() => setClassToMarkDone(cls)}
                           disabled={isSaving}
-                          className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-[14px] font-semibold transition-all active:scale-[0.99] disabled:opacity-60"
+                          className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl bg-slate-50 hover:bg-slate-50 text-slate-900 text-[14px] font-semibold transition-all active:scale-[0.99] disabled:opacity-60"
                         >
                           <span className={buttonIconClass}>{buttonIcon}</span>{buttonLabel}
                         </button>
                       ) : (
                         <button
                           disabled
-                          className="flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl bg-surface-container-low text-outline text-[13px] font-medium opacity-70 cursor-not-allowed"
+                          className="flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl bg-slate-50 text-slate-300 text-[13px] font-medium opacity-70 cursor-not-allowed"
                           title={`Cannot mark done before scheduled time (${cls.start_time ? formatTime(cls.start_time) : ''})`}
                         >
                           <span className="material-symbols-outlined text-[18px]">lock_clock</span>
@@ -393,9 +393,9 @@ export default function Attendance() {
                 setClassToEdit(null)
                 setShowAddClass(true)
               }}
-              className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container-high text-on-surface text-[14px] font-semibold shadow-sm active:scale-95 transition-all"
+              className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-slate-100 text-slate-900 text-[14px] font-semibold shadow-sm active:scale-95 transition-all"
             >
-              <span className="material-symbols-outlined text-primary text-[20px]">add_circle</span>
+              <span className="material-symbols-outlined text-brand-600 text-[20px]">add_circle</span>
               <span>Add Unscheduled Class</span>
             </button>
           )}
@@ -404,7 +404,7 @@ export default function Attendance() {
             <button
               onClick={copyPreviousDaySchedule}
               disabled={copying}
-              className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container hover:bg-primary-fixed text-primary text-[14px] font-semibold shadow-sm active:scale-95 transition-all disabled:opacity-60"
+              className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-slate-50 hover:bg-brand-50 text-brand-600 text-[14px] font-semibold shadow-sm active:scale-95 transition-all disabled:opacity-60"
             >
               <span className="material-symbols-outlined text-[20px]">{copying ? 'refresh' : 'content_copy'}</span>
               <span>{copying ? 'Copying Schedule...' : (isTomorrow ? "Copy Today's Schedule" : "Copy Previous Day Schedule")}</span>
@@ -416,9 +416,9 @@ export default function Attendance() {
                 setClassToEdit(null)
                 setShowAddClass(true)
               }}
-              className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-surface-container-high text-on-surface text-[14px] font-semibold shadow-sm active:scale-95 transition-all"
+              className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-slate-100 text-slate-900 text-[14px] font-semibold shadow-sm active:scale-95 transition-all"
             >
-              <span className="material-symbols-outlined text-primary text-[20px]">calendar_add_on</span>
+              <span className="material-symbols-outlined text-brand-600 text-[20px]">calendar_add_on</span>
               <span>Schedule Class</span>
             </button>
           )}
@@ -426,7 +426,7 @@ export default function Attendance() {
       )}
 
       {copyMessage && (
-        <div className="mt-3 p-3 rounded-xl bg-error-container text-on-error-container text-[13px] text-center">
+        <div className="mt-3 p-3 rounded-xl bg-rose-600 text-white text-[13px] text-center">
           {copyMessage}
         </div>
       )}
@@ -466,17 +466,17 @@ export default function Attendance() {
             className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
-            <div className="w-12 h-12 rounded-xl bg-error-container text-error flex items-center justify-center mb-4 mx-auto">
+            <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4 mx-auto">
               <span className="material-symbols-outlined text-[26px]">delete_forever</span>
             </div>
 
-            <h3 className="text-[18px] font-bold text-on-surface text-center mb-2">
+            <h3 className="text-[18px] font-bold text-slate-900 text-center mb-2">
               Delete Class?
             </h3>
 
-            <p className="text-[13px] text-on-surface-variant text-center mb-6 leading-relaxed">
+            <p className="text-[13px] text-slate-500 text-center mb-6 leading-relaxed">
               Are you sure you want to delete this class for{' '}
-              <span className="font-semibold text-on-surface">{classToDelete.full_name}</span>? This action cannot be undone.
+              <span className="font-semibold text-slate-900">{classToDelete.full_name}</span>? This action cannot be undone.
             </p>
 
             <div className="flex items-center gap-3">
@@ -484,7 +484,7 @@ export default function Attendance() {
                 type="button"
                 onClick={() => setClassToDelete(null)}
                 disabled={deletingId === classToDelete.id}
-                className="flex-1 h-11 rounded-xl bg-surface-container-low text-on-surface-variant font-semibold text-[14px] hover:bg-surface-container active:scale-95 transition-all disabled:opacity-50"
+                className="flex-1 h-11 rounded-xl bg-slate-50 text-slate-500 font-semibold text-[14px] hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -492,7 +492,7 @@ export default function Attendance() {
                 type="button"
                 onClick={() => handleDeleteClass(classToDelete.id)}
                 disabled={deletingId === classToDelete.id}
-                className="flex-1 h-11 rounded-xl bg-error text-on-error font-semibold text-[14px] flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all disabled:opacity-60"
+                className="flex-1 h-11 rounded-xl bg-rose-600 text-white font-semibold text-[14px] flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all disabled:opacity-60"
               >
                 {deletingId === classToDelete.id ? (
                   <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Deleting...</>

@@ -87,7 +87,7 @@ export default function CustomerDetail() {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-background">
+      <div className="flex flex-col min-h-screen bg-canvas">
         <Header title="Customer Profile" showBack onBack={() => navigate(-1)} />
         <div className="flex flex-col w-full px-4 pt-14 pb-24 space-y-3 pt-6">
           {[1, 2, 3].map(i => (
@@ -101,11 +101,11 @@ export default function CustomerDetail() {
 
   if (!customer) {
     return (
-      <div className="flex flex-col min-h-screen bg-background">
+      <div className="flex flex-col min-h-screen bg-canvas">
         <Header title="Customer Profile" showBack onBack={() => navigate(-1)} />
         <div className="flex flex-col items-center justify-center flex-1 px-4 pt-20">
-          <span className="material-symbols-outlined text-outline text-[48px]">person_off</span>
-          <p className="text-[14px] text-on-surface-variant mt-2">Customer not found</p>
+          <span className="material-symbols-outlined text-slate-300 text-[48px]">person_off</span>
+          <p className="text-[14px] text-slate-500 mt-2">Customer not found</p>
         </div>
         <BottomNav />
       </div>
@@ -120,16 +120,16 @@ export default function CustomerDetail() {
     : 0
 
   const courseStatusBadgeClass: Record<string, string> = {
-    active:    'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-fixed/50 text-[12px] font-semibold text-tertiary',
-    completed: 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-fixed/50 text-[12px] font-semibold text-tertiary',
-    dropped:   'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-fixed/50 text-[12px] font-semibold text-error',
+    active:    'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-50/50 text-[12px] font-semibold text-emerald-600',
+    completed: 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-50/50 text-[12px] font-semibold text-emerald-600',
+    dropped:   'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-50/50 text-[12px] font-semibold text-rose-600',
   }
 
   const classStatusBadge = (status: string) => {
-    if (status === 'done') return <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed/30 text-tertiary text-[12px] font-semibold">Done</span>
-    if (status === 'cancelled') return <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">Cancelled</span>
-    if (status === 'not_completed') return <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">Not Completed</span>
-    return <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[12px]">Scheduled</span>
+    if (status === 'done') return <span className="px-2 py-0.5 rounded-full bg-emerald-50/30 text-emerald-600 text-[12px] font-semibold">Done</span>
+    if (status === 'cancelled') return <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[12px] font-semibold">Cancelled</span>
+    if (status === 'not_completed') return <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[12px] font-semibold">Not Completed</span>
+    return <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[12px]">Scheduled</span>
   }
 
   const payModeLabel: Record<string, string> = {
@@ -137,35 +137,35 @@ export default function CustomerDetail() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-canvas">
       <Header title="Customer Profile" showBack onBack={() => navigate(-1)} />
-      <main className="flex flex-col w-full px-4 pt-14 pb-24 bg-background min-h-screen">
+      <main className="flex flex-col w-full px-4 pt-14 pb-24 bg-canvas min-h-screen">
         <div className="flex flex-col w-full pb-8">
           {/* Back + Status */}
           <div className="flex items-center justify-between py-3 mb-1">
             <button
               onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-1 text-primary text-[14px] font-semibold py-1 -ml-1 transition-opacity active:opacity-70"
+              className="inline-flex items-center gap-1 text-brand-600 text-[14px] font-semibold py-1 -ml-1 transition-opacity active:opacity-70"
             >
               <span className="material-symbols-outlined text-[20px]">chevron_left</span>
               <span>Customers</span>
             </button>
-            <span className={courseStatusBadgeClass[customer.course_status] ?? 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-fixed/50 text-[12px] font-semibold text-on-surface-variant'}>
+            <span className={courseStatusBadgeClass[customer.course_status] ?? 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-50/50 text-[12px] font-semibold text-slate-500'}>
               <span className="w-1.5 h-1.5 rounded-full bg-current" />
               {customer.course_status.charAt(0).toUpperCase() + customer.course_status.slice(1)} • Class {customer.classes_completed}/{customer.package_classes}
             </span>
           </div>
 
           {/* Profile Card */}
-          <div className="w-full bg-white rounded-xl shadow-sm p-4 mb-3">
+          <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-card p-4 mb-3">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center text-[16px] font-semibold shrink-0">
+                <div className="w-12 h-12 rounded-full bg-brand-600 text-white flex items-center justify-center text-[16px] font-semibold shrink-0">
                   {getInitials(customer.full_name)}
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-[20px] font-semibold text-on-surface truncate">{customer.full_name}</h2>
-                  <p className="text-[13px] text-on-surface-variant">Enrolled {formatDate(customer.enrollment_date)}</p>
+                  <h2 className="text-[20px] font-semibold text-slate-900 truncate">{customer.full_name}</h2>
+                  <p className="text-[13px] text-slate-500">Enrolled {formatDate(customer.enrollment_date)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -174,31 +174,31 @@ export default function CustomerDetail() {
                   onClick={() => setShowEditCustomer(true)}
                   aria-label={`Edit ${customer.full_name}`}
                   title="Edit customer details"
-                  className="w-9 h-9 rounded-full bg-surface-container text-primary hover:bg-surface-container-high flex items-center justify-center active:scale-95 transition-transform"
+                  className="w-9 h-9 rounded-full bg-slate-50 text-brand-600 hover:bg-slate-100 flex items-center justify-center active:scale-95 transition-transform"
                 >
                   <span className="material-symbols-outlined text-[20px]">edit</span>
                 </button>
                 <a
                   aria-label={`Call ${customer.full_name}`}
                   href={`tel:${customer.phone_number}`}
-                  className="w-9 h-9 rounded-full bg-surface-container-high text-primary flex items-center justify-center active:scale-95 transition-transform"
+                  className="w-9 h-9 rounded-full bg-slate-100 text-brand-600 flex items-center justify-center active:scale-95 transition-transform"
                   title={`Call ${customer.full_name}`}
                 >
                   <span className="material-symbols-outlined text-[20px]">call</span>
                 </a>
               </div>
             </div>
-            <div className="flex items-center justify-between text-[13px] text-on-surface-variant">
+            <div className="flex items-center justify-between text-[13px] text-slate-500">
               <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[18px] text-outline">phone_iphone</span>
-                <span className="font-semibold text-on-surface">{customer.phone_number}</span>
+                <span className="material-symbols-outlined text-[18px] text-slate-300">phone_iphone</span>
+                <span className="font-semibold text-slate-900">{customer.phone_number}</span>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-primary-fixed text-[11px] text-on-surface-variant">{customer.package_classes}-Class Package</span>
+              <span className="px-2 py-0.5 rounded-full bg-brand-50 text-[11px] text-slate-500">{customer.package_classes}-Class Package</span>
             </div>
             {customer.location && (
-              <div className="flex items-center gap-1.5 mt-2 text-[13px] text-on-surface-variant">
-                <span className="material-symbols-outlined text-[18px] text-primary">location_on</span>
-                <span className="text-on-surface-variant">{customer.location}</span>
+              <div className="flex items-center gap-1.5 mt-2 text-[13px] text-slate-500">
+                <span className="material-symbols-outlined text-[18px] text-brand-600">location_on</span>
+                <span className="text-slate-500">{customer.location}</span>
               </div>
             )}
           </div>
@@ -206,41 +206,41 @@ export default function CustomerDetail() {
           {/* Metric Cards */}
           <div className="grid grid-cols-2 gap-3 mb-3">
             {/* Attendance */}
-            <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col justify-between">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-card p-4 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">Attendance</span>
-                  <span className="material-symbols-outlined text-[18px] text-primary">schedule</span>
+                  <span className="text-[11px] text-slate-500 uppercase tracking-wider">Attendance</span>
+                  <span className="material-symbols-outlined text-[18px] text-brand-600">schedule</span>
                 </div>
                 <div className="flex items-baseline gap-1 mb-2">
-                  <span className="text-[26px] font-bold text-on-surface leading-[32px]">{customer.classes_completed}</span>
-                  <span className="text-[13px] text-on-surface-variant">/ {customer.package_classes} Done</span>
+                  <span className="text-[26px] font-bold text-slate-900 leading-[32px]">{customer.classes_completed}</span>
+                  <span className="text-[13px] text-slate-500">/ {customer.package_classes} Done</span>
                 </div>
               </div>
               <div>
-                <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden mb-1.5">
-                  <div className="bg-primary h-full rounded-full transition-all duration-500" style={{ width: `${attendancePct}%` }} />
+                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-1.5">
+                  <div className="bg-brand-600 h-full rounded-full transition-all duration-500" style={{ width: `${attendancePct}%` }} />
                 </div>
-                <p className="text-[11px] text-on-surface-variant font-medium">{customer.classes_remaining} Remaining</p>
+                <p className="text-[11px] text-slate-500 font-medium">{customer.classes_remaining} Remaining</p>
               </div>
             </div>
 
             {/* Balance */}
-            <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col justify-between">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-card p-4 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">Balance</span>
-                  <span className="material-symbols-outlined text-[18px] text-primary">payments</span>
+                  <span className="text-[11px] text-slate-500 uppercase tracking-wider">Balance</span>
+                  <span className="material-symbols-outlined text-[18px] text-brand-600">payments</span>
                 </div>
                 <div className="flex items-baseline gap-1 mb-2">
-                  <span className="text-[26px] font-bold text-on-surface leading-[32px]">₹{customer.amount_pending.toLocaleString('en-IN')}</span>
+                  <span className="text-[26px] font-bold text-slate-900 leading-[32px]">₹{customer.amount_pending.toLocaleString('en-IN')}</span>
                 </div>
               </div>
               <div>
-                <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden mb-1.5">
-                  <div className="bg-tertiary h-full rounded-full" style={{ width: `${feePct}%` }} />
+                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-1.5">
+                  <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${feePct}%` }} />
                 </div>
-                <p className={customer.amount_pending > 0 ? 'text-[11px] font-semibold text-primary' : 'text-[11px] font-semibold text-tertiary'}>
+                <p className={customer.amount_pending > 0 ? 'text-[11px] font-semibold text-brand-600' : 'text-[11px] font-semibold text-emerald-600'}>
                   {customer.amount_pending > 0 ? `₹${customer.amount_paid.toLocaleString('en-IN')} of ₹${customer.total_fee.toLocaleString('en-IN')} Paid` : 'Fully Paid'}
                 </p>
               </div>
@@ -251,7 +251,7 @@ export default function CustomerDetail() {
           <div className="grid grid-cols-2 gap-2 mb-3">
             <button
               onClick={() => setShowAddClass(true)}
-              className="h-11 bg-primary text-on-primary rounded-xl text-[14px] font-semibold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-transform px-2"
+              className="h-11 bg-brand-600 text-white rounded-xl text-[14px] font-semibold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-transform px-2"
             >
               <span className="material-symbols-outlined text-[20px]">add_circle</span>
               <span className="truncate">Log Class for {customer.full_name.split(' ')[0]}</span>
@@ -264,8 +264,8 @@ export default function CustomerDetail() {
               title={customer.course_status === 'completed' ? 'Course marked as completed (click to reactivate)' : 'Mark course as completed'}
               className={`h-11 rounded-xl text-[13px] font-semibold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-transform px-2 disabled:opacity-60 ${
                 customer.course_status === 'completed'
-                  ? 'bg-tertiary-fixed/30 text-tertiary border border-tertiary-fixed-dim'
-                  : 'bg-tertiary text-on-tertiary hover:bg-tertiary-container'
+                  ? 'bg-emerald-50/30 text-emerald-600 border border-emerald-100'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-600'
               }`}
             >
               {updatingStatus ? (
@@ -285,30 +285,30 @@ export default function CustomerDetail() {
           </div>
 
           {/* Payment History (Above Class History) */}
-          <div className="bg-white rounded-xl shadow-sm p-4 mb-3">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-card p-4 mb-3">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[16px] font-semibold text-on-surface">Payment History</h3>
-              <span className="text-[11px] text-on-surface-variant">Total: ₹{customer.total_fee.toLocaleString('en-IN')}</span>
+              <h3 className="text-[16px] font-semibold text-slate-900">Payment History</h3>
+              <span className="text-[11px] text-slate-500">Total: ₹{customer.total_fee.toLocaleString('en-IN')}</span>
             </div>
             {payments.length === 0 && customer.amount_pending <= 0 ? (
-              <p className="text-[13px] text-on-surface-variant text-center py-2">No payments recorded</p>
+              <p className="text-[13px] text-slate-500 text-center py-2">No payments recorded</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {/* Remaining pending balance stays at TOP */}
                 {customer.amount_pending > 0 && (
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-surface-container-low border border-surface-container-highest">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-primary-fixed text-primary flex items-center justify-center shrink-0">
+                      <div className="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
                         <span className="material-symbols-outlined text-[20px]">hourglass_top</span>
                       </div>
                       <div>
-                        <p className="text-[14px] font-bold text-primary">₹{customer.amount_pending.toLocaleString('en-IN')} Remaining</p>
-                        <p className="text-[11px] text-on-surface-variant">Pending balance</p>
+                        <p className="text-[14px] font-bold text-brand-600">₹{customer.amount_pending.toLocaleString('en-IN')} Remaining</p>
+                        <p className="text-[11px] text-slate-500">Pending balance</p>
                       </div>
                     </div>
                     <button
                       onClick={() => setShowAddPayment(true)}
-                      className="h-9 px-3.5 rounded-xl bg-primary text-on-primary text-[12px] font-semibold active:scale-95 shadow-sm flex items-center gap-1 hover:bg-primary-container transition-all"
+                      className="h-9 px-3.5 rounded-xl bg-brand-600 text-white text-[12px] font-semibold active:scale-95 shadow-sm flex items-center gap-1 hover:bg-brand-600 transition-all"
                     >
                       <span className="material-symbols-outlined text-[16px]">payments</span>
                       <span>Collect</span>
@@ -318,14 +318,14 @@ export default function CustomerDetail() {
 
                 {/* Collected payment transactions */}
                 {payments.map(pay => (
-                  <div key={pay.id} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container">
+                  <div key={pay.id} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary-fixed text-primary flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
                         <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
                       </div>
                       <div>
-                        <p className="text-[14px] font-semibold text-on-surface">₹{pay.amount.toLocaleString('en-IN')} Paid</p>
-                        <p className="text-[11px] text-on-surface-variant">
+                        <p className="text-[14px] font-semibold text-slate-900">₹{pay.amount.toLocaleString('en-IN')} Paid</p>
+                        <p className="text-[11px] text-slate-500">
                           {formatDate(pay.created_at)} • {payModeLabel[pay.payment_mode] ?? pay.payment_mode}
                         </p>
                       </div>
@@ -337,24 +337,24 @@ export default function CustomerDetail() {
           </div>
 
           {/* Class History */}
-          <div className="bg-white rounded-xl shadow-sm p-4 mb-3">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-card p-4 mb-3">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[16px] font-semibold text-on-surface">Class History</h3>
-              <span className="text-[11px] text-on-surface-variant">{customer.classes_completed} of {customer.package_classes} Completed</span>
+              <h3 className="text-[16px] font-semibold text-slate-900">Class History</h3>
+              <span className="text-[11px] text-slate-500">{customer.classes_completed} of {customer.package_classes} Completed</span>
             </div>
             {classes.length === 0 ? (
-              <p className="text-[13px] text-on-surface-variant text-center py-2">No classes logged yet</p>
+              <p className="text-[13px] text-slate-500 text-center py-2">No classes logged yet</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {classes.map((cls, i) => (
-                  <div key={cls.id} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container">
+                  <div key={cls.id} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50">
                     <div className="flex items-center gap-3">
-                      <div className={cls.status === 'done' ? 'w-8 h-8 rounded-full flex items-center justify-center bg-tertiary-fixed/30 text-tertiary' : 'w-8 h-8 rounded-full flex items-center justify-center bg-primary-fixed text-on-surface-variant'}>
+                      <div className={cls.status === 'done' ? 'w-8 h-8 rounded-full flex items-center justify-center bg-emerald-50/30 text-emerald-600' : 'w-8 h-8 rounded-full flex items-center justify-center bg-brand-50 text-slate-500'}>
                         <span className="material-symbols-outlined text-[18px]">{cls.status === 'done' ? 'check' : 'schedule'}</span>
                       </div>
                       <div>
-                        <p className="text-[14px] font-semibold text-on-surface">Class {classes.length - i}</p>
-                        <p className="text-[11px] text-on-surface-variant">
+                        <p className="text-[14px] font-semibold text-slate-900">Class {classes.length - i}</p>
+                        <p className="text-[11px] text-slate-500">
                           {formatDate(cls.class_date)}{cls.start_time ? ` • ${formatTime(cls.start_time)}` : ''}
                         </p>
                       </div>

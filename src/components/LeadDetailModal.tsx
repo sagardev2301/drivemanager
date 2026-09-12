@@ -196,7 +196,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white rounded-t-2xl p-5 pt-3 pb-8 shadow-2xl max-h-[88vh] overflow-y-auto"
+        className="w-full max-w-lg bg-white rounded-t-2xl p-5 pt-3 pb-8 shadow-drawer max-h-[88vh] overflow-y-auto"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
         onClick={e => e.stopPropagation()}
       >
@@ -269,7 +269,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
               {cleanPhoneForCall && (
                 <a
                   href={`tel:${cleanPhoneForCall}`}
-                  className="w-11 h-11 rounded-xl bg-primary-fixed/50 border border-primary-fixed text-primary flex items-center justify-center flex-shrink-0 hover:bg-primary-fixed transition-colors"
+                  className="w-11 h-11 rounded-xl bg-brand-50/50 border border-brand-100 text-brand-600 flex items-center justify-center flex-shrink-0 hover:bg-brand-50 transition-colors"
                   title="Call directly"
                 >
                   <span className="material-symbols-outlined text-[20px]">call</span>
@@ -412,7 +412,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
                   type="button"
                   disabled={converting}
                   onClick={handleConvertToCustomer}
-                  className="w-full py-3.5 px-4 rounded-xl bg-on-surface hover:bg-on-surface/90 disabled:opacity-50 text-on-primary font-bold text-[14px] flex items-center justify-center gap-2 shadow-md active:scale-[0.99] transition-all"
+                  className="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-900/90 disabled:opacity-50 text-white font-bold text-[14px] flex items-center justify-center gap-2 shadow-md active:scale-[0.99] transition-all"
                 >
                   <span className="material-symbols-outlined text-[20px]">
                     {converting ? 'hourglass_top' : 'how_to_reg'}
@@ -436,7 +436,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
                       onClose()
                       navigate(`/customers/${lead.converted_customer_id}`)
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tertiary hover:bg-tertiary/90 text-on-tertiary text-[12px] font-semibold shadow-sm transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-600/90 text-white text-[12px] font-semibold shadow-sm transition-colors"
                   >
                     <span>View Customer Profile</span>
                     <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
@@ -451,7 +451,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
                 type="button"
                 disabled={saving}
                 onClick={handleSaveChanges}
-                className="py-2.5 px-4 rounded-xl bg-primary hover:bg-primary-container disabled:opacity-50 text-on-primary font-semibold text-[13px] transition-colors flex items-center justify-center gap-1"
+                className="py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold text-[13px] transition-colors flex items-center justify-center gap-1"
               >
                 {saving ? (
                   <>

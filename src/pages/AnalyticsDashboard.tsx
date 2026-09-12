@@ -30,7 +30,7 @@ function formatDate(d: string) {
 }
 
 function Skeleton({ className }: { className: string }) {
-  return <div className={`bg-surface-container-high rounded-xl animate-pulse ${className}`} />
+  return <div className={`bg-slate-100 rounded-xl animate-pulse ${className}`} />
 }
 
 export default function AnalyticsDashboard() {
@@ -130,69 +130,69 @@ export default function AnalyticsDashboard() {
 
       {/* Page title */}
       <div className="flex items-center gap-2 px-0.5">
-        <h1 className="text-[20px] font-bold text-on-surface">School Overview</h1>
-        <span className="material-symbols-outlined text-primary text-[20px]">bar_chart</span>
+        <h1 className="text-[20px] font-bold text-slate-900">School Overview</h1>
+        <span className="material-symbols-outlined text-brand-600 text-[20px]">bar_chart</span>
       </div>
-      <p className="text-[13px] text-on-surface-variant -mt-3 px-0.5">Lifetime performance at a glance.</p>
+      <p className="text-[13px] text-slate-500 -mt-3 px-0.5">Lifetime performance at a glance.</p>
 
       {/* Total Enrolled card */}
-      <div className="bg-white rounded-xl shadow-sm p-4">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-card p-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">Total Enrolled</span>
-          <span className="material-symbols-outlined text-primary text-[20px]">groups</span>
+          <span className="text-[11px] text-slate-500 uppercase tracking-wider">Total Enrolled</span>
+          <span className="material-symbols-outlined text-brand-600 text-[20px]">groups</span>
         </div>
         {loading
           ? <Skeleton className="h-9 w-20 mt-2 mb-3" />
-          : <p className="text-[34px] font-bold text-on-surface leading-tight mt-1">{totalEnrolled}</p>
+          : <p className="text-[34px] font-bold text-slate-900 leading-tight mt-1">{totalEnrolled}</p>
         }
-        <p className="text-[12px] text-on-surface-variant mb-3">Cumulative learners</p>
+        <p className="text-[12px] text-slate-500 mb-3">Cumulative learners</p>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-tertiary-fixed/20 text-tertiary text-[11px] font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50/20 text-emerald-600 text-[11px] font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
             {loading ? '—' : activeCount} Active
           </span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-[11px] font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-outline" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-50 text-slate-500 text-[11px] font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
             {loading ? '—' : completedCount} Completed
           </span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-error-container text-error text-[11px] font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-error" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[11px] font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
             {loading ? '—' : droppedCount} Dropped
           </span>
         </div>
       </div>
 
       {/* Fee Collection card */}
-      <div className="bg-white rounded-xl shadow-sm p-4">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-card p-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">Fee Collection</span>
-          <span className="material-symbols-outlined text-tertiary text-[20px]">account_balance_wallet</span>
+          <span className="text-[11px] text-slate-500 uppercase tracking-wider">Fee Collection</span>
+          <span className="material-symbols-outlined text-emerald-600 text-[20px]">account_balance_wallet</span>
         </div>
         {loading
           ? <Skeleton className="h-9 w-36 mt-2 mb-1" />
-          : <p className="text-[28px] font-bold text-tertiary leading-tight mt-1">
+          : <p className="text-[28px] font-bold text-emerald-600 leading-tight mt-1">
               ₹{totalCollected.toLocaleString('en-IN')}
             </p>
         }
-        <p className="text-[12px] text-on-surface-variant mb-3">Total collected so far</p>
+        <p className="text-[12px] text-slate-500 mb-3">Total collected so far</p>
 
         {/* Progress bar */}
-        <div className="flex items-center justify-between text-[11px] text-on-surface-variant mb-1">
+        <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
           <span>Collection Ratio</span>
-          <span className="font-semibold text-tertiary">{loading ? '—' : `${collectionPct}% settled`}</span>
+          <span className="font-semibold text-emerald-600">{loading ? '—' : `${collectionPct}% settled`}</span>
         </div>
-        <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden mb-3">
+        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-3">
           <div
-            className="bg-tertiary h-full rounded-full transition-all duration-700"
+            className="bg-emerald-600 h-full rounded-full transition-all duration-700"
             style={{ width: `${collectionPct}%` }}
           />
         </div>
 
         {/* Pending alert */}
         {!loading && totalPending > 0 && (
-          <div className="flex items-center gap-2 bg-error-container/50 px-3 py-2 rounded-xl">
-            <span className="material-symbols-outlined text-error text-[16px]">error</span>
-            <p className="text-[12px] text-error font-semibold">
+          <div className="flex items-center gap-2 bg-rose-50 px-3 py-2 rounded-xl">
+            <span className="material-symbols-outlined text-rose-600 text-[16px]">error</span>
+            <p className="text-[12px] text-rose-600 font-semibold">
               ₹{totalPending.toLocaleString('en-IN')} still pending from {studentsWithPending} students
             </p>
           </div>
@@ -203,55 +203,55 @@ export default function AnalyticsDashboard() {
       <div className="grid grid-cols-2 gap-2">
         <div className="bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">Completed</span>
-            <span className="material-symbols-outlined text-tertiary text-[18px]">school</span>
+            <span className="text-[11px] text-slate-500 uppercase tracking-wider">Completed</span>
+            <span className="material-symbols-outlined text-emerald-600 text-[18px]">school</span>
           </div>
           {loading ? <Skeleton className="h-8 w-12 mt-2" /> : (
-            <p className="text-[26px] font-bold text-tertiary mt-1">{completedCount}</p>
+            <p className="text-[26px] font-bold text-emerald-600 mt-1">{completedCount}</p>
           )}
-          <p className="text-[11px] text-on-surface-variant mt-1">Course finished</p>
+          <p className="text-[11px] text-slate-500 mt-1">Course finished</p>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">Active</span>
-            <span className="material-symbols-outlined text-primary text-[18px]">person_play</span>
+            <span className="text-[11px] text-slate-500 uppercase tracking-wider">Active</span>
+            <span className="material-symbols-outlined text-brand-600 text-[18px]">person_play</span>
           </div>
           {loading ? <Skeleton className="h-8 w-10 mt-2" /> : (
-            <p className="text-[26px] font-bold text-primary mt-1">{activeCount}</p>
+            <p className="text-[26px] font-bold text-brand-600 mt-1">{activeCount}</p>
           )}
-          <p className="text-[11px] text-on-surface-variant mt-1">Currently learning</p>
+          <p className="text-[11px] text-slate-500 mt-1">Currently learning</p>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">Classes Done</span>
-            <span className="material-symbols-outlined text-tertiary text-[18px]">task_alt</span>
+            <span className="text-[11px] text-slate-500 uppercase tracking-wider">Classes Done</span>
+            <span className="material-symbols-outlined text-emerald-600 text-[18px]">task_alt</span>
           </div>
           {loading ? <Skeleton className="h-8 w-16 mt-2" /> : (
-            <p className="text-[26px] font-bold text-on-surface mt-1">{totalClassesDone.toLocaleString('en-IN')}</p>
+            <p className="text-[26px] font-bold text-slate-900 mt-1">{totalClassesDone.toLocaleString('en-IN')}</p>
           )}
-          <p className="text-[11px] text-on-surface-variant mt-1">Total completed</p>
+          <p className="text-[11px] text-slate-500 mt-1">Total completed</p>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">Fee Pending</span>
-            <span className="material-symbols-outlined text-error text-[18px]">pending_actions</span>
+            <span className="text-[11px] text-slate-500 uppercase tracking-wider">Fee Pending</span>
+            <span className="material-symbols-outlined text-rose-600 text-[18px]">pending_actions</span>
           </div>
           {loading ? <Skeleton className="h-8 w-20 mt-2" /> : (
-            <p className="text-[22px] font-bold text-error mt-1">
+            <p className="text-[22px] font-bold text-rose-600 mt-1">
               ₹{(totalPending / 100000).toFixed(1)}L
             </p>
           )}
-          <p className="text-[11px] text-on-surface-variant mt-1">From {studentsWithPending} students</p>
+          <p className="text-[11px] text-slate-500 mt-1">From {studentsWithPending} students</p>
         </div>
       </div>
 
       {/* Period Performance */}
       <div>
         <div className="flex items-center justify-between px-0.5 mb-3">
-          <h2 className="text-[16px] font-semibold text-on-surface">Period Performance</h2>
+          <h2 className="text-[16px] font-semibold text-slate-900">Period Performance</h2>
         </div>
 
         <FilterChipRow>
@@ -265,37 +265,37 @@ export default function AnalyticsDashboard() {
         <div className="grid grid-cols-3 gap-2 mt-3">
           <div className="bg-white p-4 rounded-xl shadow-sm">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">New Enrollments</span>
-              <span className="material-symbols-outlined text-primary text-[18px]">person_add</span>
+              <span className="text-[11px] text-slate-500 uppercase tracking-wider">New Enrollments</span>
+              <span className="material-symbols-outlined text-brand-600 text-[18px]">person_add</span>
             </div>
             {periodLoading ? <Skeleton className="h-8 w-10 mt-2" /> : (
-              <p className="text-[26px] font-bold text-primary mt-1">{periodStats.newEnrollments}</p>
+              <p className="text-[26px] font-bold text-brand-600 mt-1">{periodStats.newEnrollments}</p>
             )}
-            <p className="text-[11px] text-on-surface-variant mt-1">In selected period</p>
+            <p className="text-[11px] text-slate-500 mt-1">In selected period</p>
           </div>
 
           <div className="bg-white p-4 rounded-xl shadow-sm">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">Classes Conducted</span>
-              <span className="material-symbols-outlined text-tertiary text-[18px]">task_alt</span>
+              <span className="text-[11px] text-slate-500 uppercase tracking-wider">Classes Conducted</span>
+              <span className="material-symbols-outlined text-emerald-600 text-[18px]">task_alt</span>
             </div>
             {periodLoading ? <Skeleton className="h-8 w-10 mt-2" /> : (
-              <p className="text-[26px] font-bold text-tertiary mt-1">{periodStats.classesConducted}</p>
+              <p className="text-[26px] font-bold text-emerald-600 mt-1">{periodStats.classesConducted}</p>
             )}
-            <p className="text-[11px] text-on-surface-variant mt-1">In selected period</p>
+            <p className="text-[11px] text-slate-500 mt-1">In selected period</p>
           </div>
 
           <div className="bg-white p-4 rounded-xl shadow-sm">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">Revenue Collected</span>
-              <span className="material-symbols-outlined text-tertiary text-[18px]">account_balance_wallet</span>
+              <span className="text-[11px] text-slate-500 uppercase tracking-wider">Revenue Collected</span>
+              <span className="material-symbols-outlined text-emerald-600 text-[18px]">account_balance_wallet</span>
             </div>
             {periodLoading ? <Skeleton className="h-8 w-14 mt-2" /> : (
-              <p className="text-[22px] font-bold text-tertiary mt-1">
+              <p className="text-[22px] font-bold text-emerald-600 mt-1">
                 ₹{(periodStats.revenueCollected / 100000).toFixed(1)}L
               </p>
             )}
-            <p className="text-[11px] text-on-surface-variant mt-1">In selected period</p>
+            <p className="text-[11px] text-slate-500 mt-1">In selected period</p>
           </div>
         </div>
       </div>
@@ -303,20 +303,20 @@ export default function AnalyticsDashboard() {
       {/* Recent Enrollments */}
       <div>
         <div className="flex items-center justify-between px-0.5 mb-3">
-          <h2 className="text-[16px] font-semibold text-on-surface">Recent Enrollments</h2>
+          <h2 className="text-[16px] font-semibold text-slate-900">Recent Enrollments</h2>
           <button
             onClick={() => navigate('/customers')}
-            className="flex items-center gap-0.5 text-[13px] text-primary font-semibold hover:underline"
+            className="flex items-center gap-0.5 text-[13px] text-brand-600 font-semibold hover:underline"
           >
             View All
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
           </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-card overflow-hidden">
           {loading
             ? [1, 2, 3].map(i => (
-                <div key={i} className="flex items-center gap-3 px-4 py-3 border-b border-surface-container-low">
+                <div key={i} className="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
                   <Skeleton className="w-10 h-10 rounded-full" />
                   <div className="flex-1 space-y-1.5">
                     <Skeleton className="h-3.5 w-28" />
@@ -329,39 +329,39 @@ export default function AnalyticsDashboard() {
                 <button
                   key={customer.customer_id}
                   onClick={() => setSelected(customer)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left active:bg-surface-container-low transition-colors ${
-                    idx < recentEnrollments.length - 1 ? 'border-b border-surface-container-low' : ''
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left active:bg-slate-50 transition-colors ${
+                    idx < recentEnrollments.length - 1 ? 'border-b border-slate-50' : ''
                   }`}
                 >
                   {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center text-[13px] font-bold shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-brand-600 text-white flex items-center justify-center text-[13px] font-bold shrink-0">
                     {getInitials(customer.full_name)}
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-semibold text-on-surface truncate">{customer.full_name}</p>
-                    <p className="text-[11px] text-on-surface-variant">{customer.phone_number}</p>
-                    <p className="text-[11px] text-outline">Enrolled {formatDate(customer.enrollment_date)}</p>
+                    <p className="text-[14px] font-semibold text-slate-900 truncate">{customer.full_name}</p>
+                    <p className="text-[11px] text-slate-500">{customer.phone_number}</p>
+                    <p className="text-[11px] text-slate-300">Enrolled {formatDate(customer.enrollment_date)}</p>
                   </div>
 
                   {/* Right side */}
                   <div className="flex flex-col items-end gap-1 shrink-0">
                     {customer.amount_pending > 0 ? (
-                      <span className="px-2 py-0.5 rounded-full bg-error-container text-error text-[11px] font-semibold">
+                      <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[11px] font-semibold">
                         ₹{customer.amount_pending.toLocaleString('en-IN')} Pending
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed/30 text-tertiary text-[11px] font-semibold">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-50/30 text-emerald-600 text-[11px] font-semibold">
                         Paid
                       </span>
                     )}
-                    <p className="text-[11px] text-on-surface-variant">
+                    <p className="text-[11px] text-slate-500">
                       {customer.classes_completed} / {customer.package_classes} classes
                     </p>
                   </div>
 
-                  <span className="material-symbols-outlined text-[18px] text-outline">chevron_right</span>
+                  <span className="material-symbols-outlined text-[18px] text-slate-300">chevron_right</span>
                 </button>
               ))
           }
@@ -371,30 +371,30 @@ export default function AnalyticsDashboard() {
       {/* Pending Payments banner */}
       <div>
         <div className="flex items-center justify-between px-0.5 mb-3">
-          <h2 className="text-[16px] font-semibold text-on-surface">Pending Payments</h2>
+          <h2 className="text-[16px] font-semibold text-slate-900">Pending Payments</h2>
           {!loading && (
-            <span className="px-2.5 py-0.5 rounded-full bg-primary text-on-primary text-[12px] font-bold">
+            <span className="px-2.5 py-0.5 rounded-full bg-brand-600 text-white text-[12px] font-bold">
               {studentsWithPending}
             </span>
           )}
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-error-container/50 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-error text-[20px]">warning</span>
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-card p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-rose-600 text-[20px]">warning</span>
           </div>
           <div className="flex-1 min-w-0">
             {loading
               ? <Skeleton className="h-4 w-40 mb-1" />
-              : <p className="text-[14px] font-bold text-on-surface">
+              : <p className="text-[14px] font-bold text-slate-900">
                   ₹{totalPending.toLocaleString('en-IN')} total outstanding
                 </p>
             }
-            <p className="text-[11px] text-on-surface-variant">Pending from {loading ? '—' : studentsWithPending} students</p>
+            <p className="text-[11px] text-slate-500">Pending from {loading ? '—' : studentsWithPending} students</p>
           </div>
           <button
             onClick={() => navigate('/customers')}
-            className="flex items-center gap-1 h-9 px-3.5 rounded-xl bg-primary text-on-primary text-[13px] font-semibold active:scale-95 transition-all shrink-0 shadow-sm"
+            className="flex items-center gap-1 h-9 px-3.5 rounded-xl bg-brand-600 text-white text-[13px] font-semibold active:scale-95 transition-all shrink-0 shadow-sm"
           >
             Collect
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>

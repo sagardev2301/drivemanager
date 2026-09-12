@@ -179,7 +179,7 @@ export default function Home() {
   const statusBadge = (status: string) => {
     if (status === 'done') {
       return (
-        <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed/40 text-tertiary text-[12px] font-semibold flex items-center gap-1">
+        <span className="px-2 py-0.5 rounded-full bg-emerald-50/40 text-emerald-600 text-[12px] font-semibold flex items-center gap-1">
           <span className="material-symbols-outlined text-[14px]">check_circle</span>
           Done
         </span>
@@ -187,14 +187,14 @@ export default function Home() {
     }
     if (status === 'not_completed') {
       return (
-        <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold flex items-center gap-1">
+        <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[12px] font-semibold flex items-center gap-1">
           <span className="material-symbols-outlined text-[14px]">cancel</span>
           Not Completed
         </span>
       )
     }
     return (
-      <span className="px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed text-[12px] font-semibold">
+      <span className="px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 text-[12px] font-semibold">
         Scheduled
       </span>
     )
@@ -213,16 +213,16 @@ export default function Home() {
       <div className="flex flex-col bg-white p-4 rounded-xl shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">{todayDisplay}</span>
-            <h1 className="text-[20px] font-semibold text-on-surface mt-0.5">{getGreeting()}</h1>
+            <span className="text-[11px] text-slate-500 uppercase tracking-wider">{todayDisplay}</span>
+            <h1 className="text-[20px] font-semibold text-slate-900 mt-0.5">{getGreeting()}</h1>
           </div>
-          <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-brand-600">
             <span className="material-symbols-outlined text-[24px]">wb_sunny</span>
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-2 bg-surface-container px-3 py-2 rounded-xl">
-          <span className="material-symbols-outlined text-primary text-[18px]">verified</span>
-          <span className="text-[13px] text-on-surface-variant">{todayClasses.length} driving sessions scheduled for today</span>
+        <div className="mt-3 flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl">
+          <span className="material-symbols-outlined text-brand-600 text-[18px]">verified</span>
+          <span className="text-[13px] text-slate-500">{todayClasses.length} driving sessions scheduled for today</span>
         </div>
       </div>
 
@@ -230,14 +230,14 @@ export default function Home() {
       <div className="grid grid-cols-2 gap-2">
         <button
           onClick={() => setShowAddCustomer(true)}
-          className="h-11 flex items-center justify-center gap-2 bg-primary text-on-primary px-4 rounded-xl shadow-sm active:scale-95 transition-transform duration-150"
+          className="h-11 flex items-center justify-center gap-2 bg-brand-600 text-white px-4 rounded-xl shadow-sm active:scale-95 transition-transform duration-150"
         >
           <span className="material-symbols-outlined text-[20px]">person_add</span>
           <span className="text-[14px] font-semibold">Enroll Learner</span>
         </button>
         <button
           onClick={() => setShowAddClass(true)}
-          className="h-11 flex items-center justify-center gap-2 bg-surface-container-high text-primary px-4 rounded-xl active:scale-95 transition-transform duration-150"
+          className="h-11 flex items-center justify-center gap-2 bg-slate-100 text-brand-600 px-4 rounded-xl active:scale-95 transition-transform duration-150"
         >
           <span className="material-symbols-outlined text-[20px]">add_circle</span>
           <span className="text-[14px] font-semibold">Log a Class</span>
@@ -249,14 +249,14 @@ export default function Home() {
       <div className="flex flex-col space-y-3">
         <div className="flex items-center justify-between pt-1 px-0.5">
           <div className="flex items-center gap-2">
-            <h2 className="text-[16px] font-semibold text-on-surface">Today's Classes</h2>
-            <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-primary text-[12px] font-semibold">
+            <h2 className="text-[16px] font-semibold text-slate-900">Today's Classes</h2>
+            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-brand-600 text-[12px] font-semibold">
               {activeScheduledClasses.length}
             </span>
           </div>
           <button
             onClick={() => navigate('/attendance')}
-            className="text-[13px] text-primary flex items-center gap-0.5 hover:underline"
+            className="text-[13px] text-brand-600 flex items-center gap-0.5 hover:underline"
           >
             <span>Attendance</span>
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -277,21 +277,21 @@ export default function Home() {
               <div className="bg-white p-6 rounded-xl shadow-sm text-center">
                 {pastClasses.every(c => c.status === 'done') ? (
                   <>
-                    <span className="material-symbols-outlined text-tertiary text-[32px]">task_alt</span>
-                    <p className="text-[15px] font-semibold text-on-surface mt-2">All classes completed for today!</p>
-                    <p className="text-[12px] text-on-surface-variant mt-0.5">See completed classes below</p>
+                    <span className="material-symbols-outlined text-emerald-600 text-[32px]">task_alt</span>
+                    <p className="text-[15px] font-semibold text-slate-900 mt-2">All classes completed for today!</p>
+                    <p className="text-[12px] text-slate-500 mt-0.5">See completed classes below</p>
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined text-primary text-[32px]">schedule</span>
-                    <p className="text-[15px] font-semibold text-on-surface mt-2">No more upcoming classes</p>
-                    <p className="text-[12px] text-on-surface-variant mt-0.5">All scheduled sessions for today have concluded. See past classes below.</p>
+                    <span className="material-symbols-outlined text-brand-600 text-[32px]">schedule</span>
+                    <p className="text-[15px] font-semibold text-slate-900 mt-2">No more upcoming classes</p>
+                    <p className="text-[12px] text-slate-500 mt-0.5">All scheduled sessions for today have concluded. See past classes below.</p>
                   </>
                 )}
               </div>
             ) : (
-              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div className="bg-gradient-to-br from-surface-container to-surface-container-low px-6 pt-8 pb-6 flex flex-col items-center">
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-card overflow-hidden">
+                <div className="bg-gradient-to-br from-slate-50 to-slate-50 px-6 pt-8 pb-6 flex flex-col items-center">
                   <svg viewBox="0 0 200 160" className="w-48 h-36" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <ellipse cx="100" cy="140" rx="90" ry="18" fill="#dbe1ff" opacity="0.5" />
                     <circle cx="160" cy="38" r="20" fill="#fbbf24" opacity="0.9" />
@@ -308,7 +308,7 @@ export default function Home() {
                     <ellipse cx="62" cy="48" rx="24" ry="14" fill="white" opacity="0.9" />
                     <ellipse cx="80" cy="44" rx="18" ry="12" fill="white" opacity="0.9" />
                     <ellipse cx="46" cy="52" rx="16" ry="10" fill="white" opacity="0.9" />
-                    <rect x="34" y="96" width="132" height="38" rx="10" fill="#003fb1" />
+                    <rect x="34" y="96" width="132" height="38" rx="10" fill="#1E40AF" />
                     <path d="M62 96 Q70 72 90 68 L124 68 Q144 72 148 96Z" fill="#1a56db" />
                     <path d="M74 96 Q80 78 92 74 L118 74 Q130 78 136 96Z" fill="#93c5fd" opacity="0.7" />
                     <rect x="74" y="74" width="22" height="18" rx="3" fill="#bfdbfe" opacity="0.8" />
@@ -329,13 +329,13 @@ export default function Home() {
                   </svg>
                 </div>
                 <div className="px-6 py-5 text-center">
-                  <h3 className="text-[17px] font-bold text-on-surface">A free day ahead! ☀️</h3>
-                  <p className="text-[13px] text-on-surface-variant mt-1.5 leading-relaxed">
+                  <h3 className="text-[17px] font-bold text-slate-900">A free day ahead! ☀️</h3>
+                  <p className="text-[13px] text-slate-500 mt-1.5 leading-relaxed">
                     No classes scheduled for today. A great time to plan tomorrow's sessions or catch up on enrollments.
                   </p>
                   <button
                     onClick={() => setShowAddClass(true)}
-                    className="mt-4 inline-flex items-center justify-center gap-2 px-4 h-11 rounded-xl bg-primary text-on-primary text-[13px] font-semibold active:scale-95 transition-all shadow-sm"
+                    className="mt-4 inline-flex items-center justify-center gap-2 px-4 h-11 rounded-xl bg-brand-600 text-white text-[13px] font-semibold active:scale-95 transition-all shadow-sm"
                   >
                     <span className="material-symbols-outlined text-[18px]">add_circle</span>
                     Log a Class
@@ -355,7 +355,7 @@ export default function Home() {
             <div
               key={cls.id}
               className={`bg-white p-4 rounded-xl shadow-sm flex flex-col space-y-3 ${
-                isLive ? 'border-2 border-emerald-400' : 'border border-primary-fixed'
+                isLive ? 'border-2 border-emerald-400' : 'border border-brand-100'
               }`}
             >
               {/* Header Pill */}
@@ -366,13 +366,13 @@ export default function Home() {
                     <span>LIVE NOW • {cls.start_time ? formatTime(cls.start_time) : ''}{cls.end_time ? ` - ${formatTime(cls.end_time)}` : ''}</span>
                   </div>
                 ) : (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-primary text-[11px] font-bold tracking-wide uppercase">
-                    <span className="w-2 h-2 rounded-full bg-primary"></span>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-brand-600 text-[11px] font-bold tracking-wide uppercase">
+                    <span className="w-2 h-2 rounded-full bg-brand-600"></span>
                     <span>UP NEXT • {cls.start_time ? formatTime(cls.start_time) : ''}{cls.end_time ? ` - ${formatTime(cls.end_time)}` : ''}</span>
                   </div>
                 )}
                 {cls.amount_pending > 0 && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container text-[12px] font-semibold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[12px] font-semibold">
                     Due ₹{cls.amount_pending.toLocaleString('en-IN')}
                   </span>
                 )}
@@ -382,27 +382,27 @@ export default function Home() {
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-11 h-11 rounded-full flex items-center justify-center text-[16px] font-bold shadow-sm ${
-                      isLive ? 'bg-emerald-600 text-white' : 'bg-primary text-on-primary'
+                      isLive ? 'bg-emerald-600 text-white' : 'bg-brand-600 text-white'
                     }`}
                   >
                     {getInitials(cls.full_name)}
                   </div>
                   <div className="flex flex-col">
                     <span
-                      className="text-[15px] font-bold text-on-surface cursor-pointer hover:text-primary"
+                      className="text-[15px] font-bold text-slate-900 cursor-pointer hover:text-brand-600"
                       onClick={() => navigate(`/customers/${cls.customer_id}`)}
                     >
                       {cls.full_name}
                     </span>
-                    <span className="text-[12px] text-on-surface-variant mt-0.5">
+                    <span className="text-[12px] text-slate-500 mt-0.5">
                       Class {cls.classes_completed + 1} of {cls.package_classes}
                       {cls.notes ? ` • ${cls.notes}` : ' • Practical Drive'}
                     </span>
                   </div>
                 </div>
                 {cls.location && (
-                  <div className="flex items-center gap-0.5 text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">
-                    <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
+                  <div className="flex items-center gap-0.5 text-slate-500 bg-slate-50 px-2 py-1 rounded-full">
+                    <span className="material-symbols-outlined text-[14px] text-brand-600">location_on</span>
                     <span className="text-[11px] font-medium max-w-[120px] truncate">{cls.location}</span>
                   </div>
                 )}
@@ -413,7 +413,7 @@ export default function Home() {
                 <button
                   onClick={() => setClassToMarkDone(cls)}
                   disabled={markingDone === cls.id}
-                  className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-primary text-on-primary rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
+                  className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-brand-600 text-white rounded-xl text-[14px] font-semibold active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
                 >
                   {markingDone === cls.id ? (
                     <><span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>Saving...</>
@@ -426,7 +426,7 @@ export default function Home() {
                 {hasPhone ? (
                   <a
                     href={`tel:${cls.phone_number}`}
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-primary-fixed text-primary hover:bg-primary-fixed-dim active:scale-95 transition-all shrink-0 shadow-sm"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-brand-50 text-brand-600 hover:bg-brand-50 active:scale-95 transition-all shrink-0 shadow-sm"
                     title={`Call ${cls.full_name}`}
                   >
                     <span className="material-symbols-outlined text-[20px]">call</span>
@@ -434,7 +434,7 @@ export default function Home() {
                 ) : (
                   <button
                     disabled
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-slate-50 text-slate-300 opacity-40 cursor-not-allowed shrink-0"
                     title="Phone number not available"
                   >
                     <span className="material-symbols-outlined text-[20px]">call</span>
@@ -447,7 +447,7 @@ export default function Home() {
                     href={getWhatsAppUrl(cls.phone_number)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-tertiary-fixed/30 text-tertiary hover:bg-tertiary-fixed/50 active:scale-95 transition-all shrink-0 shadow-sm"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-emerald-50/30 text-emerald-600 hover:bg-emerald-50/50 active:scale-95 transition-all shrink-0 shadow-sm"
                     title={`WhatsApp ${cls.full_name}`}
                   >
                     <WhatsAppIcon className="w-5 h-5" />
@@ -455,7 +455,7 @@ export default function Home() {
                 ) : (
                   <button
                     disabled
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-slate-50 text-slate-300 opacity-40 cursor-not-allowed shrink-0"
                     title="Phone number not available"
                   >
                     <WhatsAppIcon className="w-5 h-5" />
@@ -473,17 +473,17 @@ export default function Home() {
             <div key={cls.id} className="bg-white p-4 rounded-xl shadow-sm flex flex-col space-y-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-[16px] font-semibold text-primary">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-[16px] font-semibold text-brand-600">
                     {getInitials(cls.full_name)}
                   </div>
                   <div className="flex flex-col">
                     <span
-                      className="text-[14px] font-semibold text-on-surface cursor-pointer hover:text-primary"
+                      className="text-[14px] font-semibold text-slate-900 cursor-pointer hover:text-brand-600"
                       onClick={() => navigate(`/customers/${cls.customer_id}`)}
                     >
                       {cls.full_name}
                     </span>
-                    <span className="text-[11px] text-on-surface-variant mt-0.5">
+                    <span className="text-[11px] text-slate-500 mt-0.5">
                       Class {cls.classes_completed + 1} of {cls.package_classes}
                     </span>
                   </div>
@@ -491,8 +491,8 @@ export default function Home() {
                 <div className="flex flex-col items-end gap-1">
                   {statusBadge(cls.status)}
                   {cls.location && (
-                    <div className="flex items-center gap-0.5 text-on-surface-variant mt-0.5">
-                      <span className="material-symbols-outlined text-[13px] text-primary">location_on</span>
+                    <div className="flex items-center gap-0.5 text-slate-500 mt-0.5">
+                      <span className="material-symbols-outlined text-[13px] text-brand-600">location_on</span>
                       <span className="text-[11px] font-medium max-w-[140px] truncate text-right">{cls.location}</span>
                     </div>
                   )}
@@ -500,15 +500,15 @@ export default function Home() {
               </div>
 
               {/* Time row */}
-              <div className="flex items-center justify-between bg-surface-container px-3 py-2 rounded-xl">
-                <div className="flex items-center gap-2 text-on-surface-variant">
+              <div className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl">
+                <div className="flex items-center gap-2 text-slate-500">
                   <span className="material-symbols-outlined text-[16px]">schedule</span>
-                  <span className="text-[13px] font-medium text-on-surface">
+                  <span className="text-[13px] font-medium text-slate-900">
                     {cls.start_time ? formatTime(cls.start_time) : 'Time TBD'}{cls.end_time ? ` - ${formatTime(cls.end_time)}` : ''}
                   </span>
                 </div>
                 {cls.amount_pending > 0 && (
-                  <span className="text-[11px] text-error font-semibold">
+                  <span className="text-[11px] text-rose-600 font-semibold">
                     Fee Pending: ₹{cls.amount_pending.toLocaleString('en-IN')}
                   </span>
                 )}
@@ -518,7 +518,7 @@ export default function Home() {
               <div className="flex items-center gap-2 pt-0.5">
                 <button
                   disabled
-                  className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-surface-container text-outline rounded-xl text-[13px] font-medium opacity-60 cursor-not-allowed"
+                  className="flex-1 h-11 flex items-center justify-center gap-1.5 bg-slate-50 text-slate-300 rounded-xl text-[13px] font-medium opacity-60 cursor-not-allowed"
                   title="Mark Done will be enabled when this class is Up Next"
                 >
                   <span className="material-symbols-outlined text-[18px]">lock</span>
@@ -529,7 +529,7 @@ export default function Home() {
                 {hasPhone ? (
                   <a
                     href={`tel:${cls.phone_number}`}
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-primary-fixed text-primary hover:bg-primary-fixed-dim active:scale-95 transition-all shrink-0 shadow-sm"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-brand-50 text-brand-600 hover:bg-brand-50 active:scale-95 transition-all shrink-0 shadow-sm"
                     title={`Call ${cls.full_name}`}
                   >
                     <span className="material-symbols-outlined text-[20px]">call</span>
@@ -537,7 +537,7 @@ export default function Home() {
                 ) : (
                   <button
                     disabled
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-slate-50 text-slate-300 opacity-40 cursor-not-allowed shrink-0"
                     title="Phone number not available"
                   >
                     <span className="material-symbols-outlined text-[20px]">call</span>
@@ -550,7 +550,7 @@ export default function Home() {
                     href={getWhatsAppUrl(cls.phone_number)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-tertiary-fixed/30 text-tertiary hover:bg-tertiary-fixed/50 active:scale-95 transition-all shrink-0 shadow-sm"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-emerald-50/30 text-emerald-600 hover:bg-emerald-50/50 active:scale-95 transition-all shrink-0 shadow-sm"
                     title={`WhatsApp ${cls.full_name}`}
                   >
                     <WhatsAppIcon className="w-5 h-5" />
@@ -558,7 +558,7 @@ export default function Home() {
                 ) : (
                   <button
                     disabled
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-slate-50 text-slate-300 opacity-40 cursor-not-allowed shrink-0"
                     title="Phone number not available"
                   >
                     <WhatsAppIcon className="w-5 h-5" />
@@ -574,8 +574,8 @@ export default function Home() {
       {!loading && pastClasses.length > 0 && (
         <div className="flex flex-col space-y-3 pt-2">
           <div className="flex items-center gap-2 pt-1 px-0.5">
-            <h2 className="text-[16px] font-semibold text-on-surface">Past Classes</h2>
-            <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[12px] font-semibold">
+            <h2 className="text-[16px] font-semibold text-slate-900">Past Classes</h2>
+            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[12px] font-semibold">
               {pastClasses.length}
             </span>
           </div>
@@ -589,19 +589,19 @@ export default function Home() {
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center text-[16px] font-semibold ${
-                        isDone ? 'bg-tertiary-fixed/30 text-tertiary' : 'bg-error-container/50 text-error'
+                        isDone ? 'bg-emerald-50/30 text-emerald-600' : 'bg-rose-50 text-rose-600'
                       }`}
                     >
                       {getInitials(cls.full_name)}
                     </div>
                     <div className="flex flex-col">
                       <span
-                        className="text-[14px] font-semibold text-on-surface cursor-pointer hover:text-primary"
+                        className="text-[14px] font-semibold text-slate-900 cursor-pointer hover:text-brand-600"
                         onClick={() => navigate(`/customers/${cls.customer_id}`)}
                       >
                         {cls.full_name}
                       </span>
-                      <span className="text-[11px] text-on-surface-variant mt-0.5">
+                      <span className="text-[11px] text-slate-500 mt-0.5">
                         Class {cls.classes_completed + (isDone ? 0 : 1)} of {cls.package_classes}
                         {cls.notes ? ` • ${cls.notes}` : ' • Practical Drive'}
                       </span>
@@ -610,8 +610,8 @@ export default function Home() {
                   <div className="flex flex-col items-end gap-1">
                     {statusBadge(cls.status)}
                     {cls.location && (
-                      <div className="flex items-center gap-0.5 text-on-surface-variant mt-0.5">
-                        <span className="material-symbols-outlined text-[13px] text-primary">location_on</span>
+                      <div className="flex items-center gap-0.5 text-slate-500 mt-0.5">
+                        <span className="material-symbols-outlined text-[13px] text-brand-600">location_on</span>
                         <span className="text-[11px] font-medium max-w-[140px] truncate text-right">{cls.location}</span>
                       </div>
                     )}
@@ -619,15 +619,15 @@ export default function Home() {
                 </div>
 
                 {/* Time row */}
-                <div className="flex items-center justify-between bg-surface-container px-3 py-2 rounded-xl">
-                  <div className="flex items-center gap-2 text-on-surface-variant">
+                <div className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl">
+                  <div className="flex items-center gap-2 text-slate-500">
                     <span className="material-symbols-outlined text-[16px]">schedule</span>
-                    <span className="text-[13px] font-medium text-on-surface">
+                    <span className="text-[13px] font-medium text-slate-900">
                       {cls.start_time ? formatTime(cls.start_time) : 'Time TBD'}{cls.end_time ? ` - ${formatTime(cls.end_time)}` : ''}
                     </span>
                   </div>
                   {cls.amount_pending > 0 && (
-                    <span className="text-[11px] text-error font-semibold">
+                    <span className="text-[11px] text-rose-600 font-semibold">
                       Fee Pending: ₹{cls.amount_pending.toLocaleString('en-IN')}
                     </span>
                   )}
@@ -636,7 +636,7 @@ export default function Home() {
                 {/* Status indicator row with Call & WhatsApp */}
                 <div className={`flex items-center pt-0.5 ${isDone ? 'justify-between' : 'justify-end'}`}>
                   {isDone && (
-                    <div className="flex items-center gap-1.5 text-tertiary text-[13px] font-medium">
+                    <div className="flex items-center gap-1.5 text-emerald-600 text-[13px] font-medium">
                       <span className="material-symbols-outlined text-[18px]">check_circle</span>
                       <span>Class Completed</span>
                     </div>
@@ -647,7 +647,7 @@ export default function Home() {
                     {hasPhone ? (
                       <a
                         href={`tel:${cls.phone_number}`}
-                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-primary-fixed text-primary hover:bg-primary-fixed-dim active:scale-95 transition-all shadow-sm"
+                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-brand-50 text-brand-600 hover:bg-brand-50 active:scale-95 transition-all shadow-sm"
                         title={`Call ${cls.full_name}`}
                       >
                         <span className="material-symbols-outlined text-[18px]">call</span>
@@ -655,7 +655,7 @@ export default function Home() {
                     ) : (
                       <button
                         disabled
-                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
+                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-300 opacity-40 cursor-not-allowed shrink-0"
                         title="Phone number not available"
                       >
                         <span className="material-symbols-outlined text-[18px]">call</span>
@@ -667,7 +667,7 @@ export default function Home() {
                         href={getWhatsAppUrl(cls.phone_number)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-tertiary-fixed/30 text-tertiary hover:bg-tertiary-fixed/50 active:scale-95 transition-all shadow-sm"
+                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-emerald-50/30 text-emerald-600 hover:bg-emerald-50/50 active:scale-95 transition-all shadow-sm"
                         title={`WhatsApp ${cls.full_name}`}
                       >
                         <WhatsAppIcon className="w-4 h-4" />
@@ -675,7 +675,7 @@ export default function Home() {
                     ) : (
                       <button
                         disabled
-                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container text-outline opacity-40 cursor-not-allowed shrink-0"
+                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-300 opacity-40 cursor-not-allowed shrink-0"
                         title="Phone number not available"
                       >
                         <WhatsAppIcon className="w-4 h-4" />

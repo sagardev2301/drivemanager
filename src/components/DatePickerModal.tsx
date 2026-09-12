@@ -137,25 +137,25 @@ export default function DatePickerModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl p-4 sm:p-5 flex flex-col gap-3 transition-transform animate-in fade-in duration-200"
+        className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-2xl shadow-drawer p-4 sm:p-5 flex flex-col gap-3 transition-transform animate-in fade-in duration-200"
         style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Mobile Pull Handle */}
         <div className="flex justify-center pt-1 pb-1 sm:hidden">
-          <div className="w-10 h-1 rounded-full bg-surface-container-high" />
+          <div className="w-10 h-1 rounded-full bg-slate-100" />
         </div>
 
         {/* Modal Header */}
         <div className="flex items-center justify-between px-1">
           <div>
-            <h3 className="text-[17px] font-bold text-on-surface">Select Date</h3>
-            <p className="text-[12px] text-on-surface-variant">View classes &amp; attendance</p>
+            <h3 className="text-[17px] font-bold text-slate-900">Select Date</h3>
+            <p className="text-[12px] text-slate-500">View classes &amp; attendance</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors"
             aria-label="Close date picker"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
@@ -167,21 +167,21 @@ export default function DatePickerModal({
           <button
             type="button"
             onClick={() => handleQuickDate(-1)}
-            className="flex-1 py-1.5 px-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-[12px] font-semibold text-center transition-all active:scale-95"
+            className="flex-1 py-1.5 px-2 rounded-xl bg-slate-50 hover:bg-slate-50 text-slate-900 text-[12px] font-semibold text-center transition-all active:scale-95"
           >
             Yesterday
           </button>
           <button
             type="button"
             onClick={() => handleQuickDate(0)}
-            className="flex-1 py-1.5 px-2 rounded-xl bg-primary-fixed hover:bg-primary-fixed-dim text-on-primary-fixed font-semibold text-[12px] text-center transition-all active:scale-95"
+            className="flex-1 py-1.5 px-2 rounded-xl bg-brand-50 hover:bg-brand-50 text-brand-700 font-semibold text-[12px] text-center transition-all active:scale-95"
           >
             Today
           </button>
           <button
             type="button"
             onClick={() => handleQuickDate(1)}
-            className="flex-1 py-1.5 px-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-[12px] font-semibold text-center transition-all active:scale-95"
+            className="flex-1 py-1.5 px-2 rounded-xl bg-slate-50 hover:bg-slate-50 text-slate-900 text-[12px] font-semibold text-center transition-all active:scale-95"
           >
             Tomorrow
           </button>
@@ -192,20 +192,20 @@ export default function DatePickerModal({
           <button
             type="button"
             onClick={prevMonth}
-            className="w-8 h-8 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 text-slate-900 hover:bg-slate-50 active:scale-95 transition-all"
             aria-label="Previous month"
           >
             <span className="material-symbols-outlined text-[18px]">chevron_left</span>
           </button>
 
-          <span className="text-[14px] font-bold text-on-surface">
+          <span className="text-[14px] font-bold text-slate-900">
             {monthLabel}
           </span>
 
           <button
             type="button"
             onClick={nextMonth}
-            className="w-8 h-8 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container active:scale-95 transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 text-slate-900 hover:bg-slate-50 active:scale-95 transition-all"
             aria-label="Next month"
           >
             <span className="material-symbols-outlined text-[18px]">chevron_right</span>
@@ -215,7 +215,7 @@ export default function DatePickerModal({
         {/* Weekday labels */}
         <div className="grid grid-cols-7 gap-1 text-center">
           {WEEKDAYS.map(w => (
-            <div key={w} className="text-[11px] font-semibold text-on-surface-variant py-1">
+            <div key={w} className="text-[11px] font-semibold text-slate-500 py-1">
               {w}
             </div>
           ))}
@@ -230,13 +230,13 @@ export default function DatePickerModal({
 
             let cellClass = 'h-9 w-9 mx-auto flex items-center justify-center rounded-xl text-[13px] font-medium transition-all '
             if (isSelected) {
-              cellClass += 'bg-primary text-on-primary font-bold shadow-sm scale-105'
+              cellClass += 'bg-brand-600 text-white font-bold shadow-sm scale-105'
             } else if (isToday) {
-              cellClass += 'border-2 border-primary text-primary font-semibold hover:bg-primary-fixed/30 active:scale-95'
+              cellClass += 'border-2 border-brand-600 text-brand-600 font-semibold hover:bg-brand-50/30 active:scale-95'
             } else if (cell.isCurrentMonth) {
-              cellClass += 'text-on-surface hover:bg-surface-container-low active:scale-95'
+              cellClass += 'text-slate-900 hover:bg-slate-50 active:scale-95'
             } else {
-              cellClass += 'text-outline/40 hover:bg-surface-container-lowest'
+              cellClass += 'text-slate-300/40 hover:bg-surface'
             }
 
             return (
