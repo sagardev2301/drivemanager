@@ -41,10 +41,12 @@ export default function CustomerDetail() {
   const [showEditCustomer, setShowEditCustomer] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [showCourseStatusConfirm, setShowCourseStatusConfirm] = useState(false)
-  const { requestClose: requestCloseCourseStatusConfirm } = useModalBackButton(
-    showCourseStatusConfirm,
-    () => setShowCourseStatusConfirm(false)
-  )
+  // Direct state setter, not requestClose(): this dialog is inline in this
+  // component (not a separate component the parent unmounts), so closing it
+  // doesn't need to round-trip through history.back() -> popstate. The hook
+  // still pushes/releases the history entry correctly off the isOpen change
+  // either way, and hardware back still closes it via its own popstate path.
+  useModalBackButton(showCourseStatusConfirm, () => setShowCourseStatusConfirm(false))
 
   async function fetchAll(showLoading = true) {
     if (!id) return
@@ -66,7 +68,6 @@ export default function CustomerDetail() {
     const isCompleted = customer.course_status === 'completed'
     const targetStatus = isCompleted ? 'active' : 'completed'
 
-    requestCloseCourseStatusConfirm()
     setUpdatingStatus(true)
     try {
       const { error } = await supabase
@@ -79,6 +80,7 @@ export default function CustomerDetail() {
       } else {
         invalidateCustomerCache()
         await fetchAll(false)
+        setShowCourseStatusConfirm(false)
       }
     } catch {
       alert('Error updating course status')
@@ -401,7 +403,7 @@ export default function CustomerDetail() {
             animate="visible"
             exit="exit"
             className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-            onClick={requestCloseCourseStatusConfirm}
+            onClick={() => !updatingStatus && setShowCourseStatusConfirm(false)}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
@@ -432,7 +434,7 @@ export default function CustomerDetail() {
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={requestCloseCourseStatusConfirm}
+                  onClick={() => setShowCourseStatusConfirm(false)}
                   disabled={updatingStatus}
                   className="flex-1 h-11 rounded-xl bg-surface-container-low text-on-surface-variant font-semibold text-[14px] hover:bg-surface-container active:scale-95 transition-all disabled:opacity-50"
                 >
