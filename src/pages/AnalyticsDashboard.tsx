@@ -3,6 +3,23 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { CustomerSummary } from '../lib/supabase'
 import CustomerActionSheet from '../components/CustomerActionSheet'
+import { FilterChip, FilterChipRow } from '../components/FilterChips'
+import { getPeriodStartDate, toLocalDateString } from '../lib/dateUtils'
+import type { PeriodKey } from '../lib/dateUtils'
+
+const PERIOD_OPTIONS: { key: PeriodKey; label: string }[] = [
+  { key: 'month', label: 'This Month' },
+  { key: '3m', label: '3M' },
+  { key: '6m', label: '6M' },
+  { key: 'year', label: 'Year' },
+  { key: 'all', label: 'All Time' },
+]
+
+interface PeriodStats {
+  newEnrollments: number
+  classesConducted: number
+  revenueCollected: number
+}
 
 function getInitials(name: string) {
   return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
@@ -22,6 +39,14 @@ export default function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<CustomerSummary | null>(null)
 
+  const [period, setPeriod] = useState<PeriodKey>('month')
+  const [periodLoading, setPeriodLoading] = useState(true)
+  const [periodStats, setPeriodStats] = useState<PeriodStats>({
+    newEnrollments: 0,
+    classesConducted: 0,
+    revenueCollected: 0,
+  })
+
   async function fetchData() {
     setLoading(true)
     const { data } = await supabase
@@ -31,7 +56,57 @@ export default function AnalyticsDashboard() {
     setLoading(false)
   }
 
+  async function fetchPeriodStats(p: PeriodKey) {
+    setPeriodLoading(true)
+
+    const now = new Date()
+    const startDate = getPeriodStartDate(p, now)
+    const todayStr = toLocalDateString(now)
+    const startDateStr = startDate ? toLocalDateString(startDate) : null
+    const nowIso = now.toISOString()
+    const startIso = startDate ? startDate.toISOString() : null
+
+    let enrollmentsQuery = supabase
+      .from('customers')
+      .select('*', { count: 'exact', head: true })
+      .lte('enrollment_date', todayStr)
+    if (startDateStr) enrollmentsQuery = enrollmentsQuery.gte('enrollment_date', startDateStr)
+
+    let classesQuery = supabase
+      .from('classes')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'done')
+      .lte('class_date', todayStr)
+    if (startDateStr) classesQuery = classesQuery.gte('class_date', startDateStr)
+
+    // payment_date holds the real transaction date (backfilled from the
+    // original Excel records); created_at is when the row was migrated
+    // into the DB, which is uniformly "this month" for imported data and
+    // not usable for period filtering.
+    let paymentsQuery = supabase
+      .from('payments')
+      .select('amount')
+      .lte('payment_date', nowIso)
+    if (startIso) paymentsQuery = paymentsQuery.gte('payment_date', startIso)
+
+    const [enrollmentsRes, classesRes, paymentsRes] = await Promise.all([
+      enrollmentsQuery, classesQuery, paymentsQuery,
+    ])
+
+    const revenueCollected = (paymentsRes.data ?? []).reduce(
+      (acc: number, row: { amount: number }) => acc + row.amount, 0,
+    )
+
+    setPeriodStats({
+      newEnrollments: enrollmentsRes.count ?? 0,
+      classesConducted: classesRes.count ?? 0,
+      revenueCollected,
+    })
+    setPeriodLoading(false)
+  }
+
   useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchPeriodStats(period) }, [period])
 
   // Aggregates
   const totalEnrolled = summary.length
@@ -170,6 +245,58 @@ export default function AnalyticsDashboard() {
             </p>
           )}
           <p className="text-[11px] text-on-surface-variant mt-1">From {studentsWithPending} students</p>
+        </div>
+      </div>
+
+      {/* Period Performance */}
+      <div>
+        <div className="flex items-center justify-between px-0.5 mb-3">
+          <h2 className="text-[16px] font-semibold text-on-surface">Period Performance</h2>
+        </div>
+
+        <FilterChipRow>
+          {PERIOD_OPTIONS.map(opt => (
+            <FilterChip key={opt.key} active={period === opt.key} onClick={() => setPeriod(opt.key)}>
+              {opt.label}
+            </FilterChip>
+          ))}
+        </FilterChipRow>
+
+        <div className="grid grid-cols-3 gap-2 mt-3">
+          <div className="bg-white p-4 rounded-xl shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">New Enrollments</span>
+              <span className="material-symbols-outlined text-primary text-[18px]">person_add</span>
+            </div>
+            {periodLoading ? <Skeleton className="h-8 w-10 mt-2" /> : (
+              <p className="text-[26px] font-bold text-primary mt-1">{periodStats.newEnrollments}</p>
+            )}
+            <p className="text-[11px] text-on-surface-variant mt-1">In selected period</p>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">Classes Conducted</span>
+              <span className="material-symbols-outlined text-tertiary text-[18px]">task_alt</span>
+            </div>
+            {periodLoading ? <Skeleton className="h-8 w-10 mt-2" /> : (
+              <p className="text-[26px] font-bold text-tertiary mt-1">{periodStats.classesConducted}</p>
+            )}
+            <p className="text-[11px] text-on-surface-variant mt-1">In selected period</p>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] text-on-surface-variant uppercase tracking-wider">Revenue Collected</span>
+              <span className="material-symbols-outlined text-tertiary text-[18px]">account_balance_wallet</span>
+            </div>
+            {periodLoading ? <Skeleton className="h-8 w-14 mt-2" /> : (
+              <p className="text-[22px] font-bold text-tertiary mt-1">
+                ₹{(periodStats.revenueCollected / 100000).toFixed(1)}L
+              </p>
+            )}
+            <p className="text-[11px] text-on-surface-variant mt-1">In selected period</p>
+          </div>
         </div>
       </div>
 

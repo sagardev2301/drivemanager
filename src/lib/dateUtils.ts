@@ -5,6 +5,23 @@ export function toLocalDateString(d: Date): string {
   return `${year}-${month}-${day}`
 }
 
+export type PeriodKey = 'month' | '3m' | '6m' | 'year' | 'all'
+
+// Period start, built from local date components (not ISO-string slicing,
+// which shifts dates backward in IST) — null means no lower bound (All Time).
+export function getPeriodStartDate(period: PeriodKey, now: Date = new Date()): Date | null {
+  const year = now.getFullYear()
+  const month = now.getMonth()
+  const day = now.getDate()
+  switch (period) {
+    case 'month': return new Date(year, month, 1)
+    case '3m': return new Date(year, month - 3, day)
+    case '6m': return new Date(year, month - 6, day)
+    case 'year': return new Date(year, 0, 1)
+    case 'all': return null
+  }
+}
+
 export function canMarkClassDone(startTime: string | null): boolean {
   if (!startTime) return true
   const now = new Date()

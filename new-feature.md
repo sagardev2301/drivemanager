@@ -1,69 +1,61 @@
-Implement the "Leads & Bookings" feature in the DriveManager repo
-(sagardev2301/drivemanager). Follow the existing codebase's file structure,
-component patterns, Supabase client usage, and Tailwind conventions used in
-the Customers and Attendance pages — reuse existing hooks/utilities rather
-than duplicating logic.
+In the DriveManager repo (sagardev2301/drivemanager), add time-period
+filtering to the Dashboard's "School Overview" section. Reuse existing
+Dashboard component structure, Supabase client, and card styling — don't
+introduce new hardcoded colors/radii, reuse what's already used on this page.
 
-DATABASE (already migrated, do not recreate — just wire up to it):
+DATA MODEL (for reference, no schema changes needed):
+- customers.enrollment_date (date)
+- classes.class_date (date), classes.status (enum: scheduled/done/
+  not_completed/cancelled)
+- payments.amount (numeric), payments.payment_date (timestamptz)
 
-Table: public.leads
-  id                     uuid        PK, default gen_random_uuid()
-  full_name              text        not null
-  phone_number           text        not null
-  source                 text        nullable   -- free text, e.g. "Instagram Ad",
-                                                  "Referral", "Walk-in",
-                                                  "Google Maps", "Website Form"
-  status                 lead_status_enum   not null, default 'new'
-                                     -- enum values: 'new' | 'contacted' |
-                                     -- 'booked' | 'converted' | 'dropped'
-  notes                  text        nullable
-  converted_customer_id  uuid        nullable, FK -> public.customers(id)
-  created_at             timestamptz not null, default now()
-  updated_at             timestamptz not null, default now() (auto-updated
-                                     via trg_leads_updated_at trigger)
+IMPORTANT — timezone: this app already had one IST date bug from using
+`.toISOString().split('T')[0]` for date math (it shifts dates backward in
+IST). Do NOT repeat that pattern here. Compute period boundaries using local
+date components (getFullYear/getMonth/getDate) or a timezone-safe date
+library already in the project, not raw ISO string slicing.
 
-RLS is already enabled with the same "authenticated users can manage" policy
-used on customers/classes/payments — no auth changes needed.
+SPLIT THE DASHBOARD INTO TWO ZONES:
 
-UI TO BUILD (reference the attached approved Stitch mockup exactly — light
-theme, white header/cards on light gray background, matching the existing
-Dashboard/Customers visual style):
+1. Lifetime cards (unchanged, no filter applies): Total Enrolled, Completed,
+   Active, Dropped, and the Pending Payments card (₹X still pending from Y
+   students) — these are current-state snapshots, not period activity, so
+   leave them exactly as they are today.
 
-1. New bottom-nav tab "Leads" with a person+magnifying-glass icon, positioned
-   between Dashboard and Attendance: Dashboard, Leads, Attendance, Customers.
+2. Period-filtered section (new): add a segmented control / pill row above
+   this section with options — "This Month" | "3M" | "6M" | "Year" | "All
+   Time" — default to "This Month" on page load. Below it, three cards that
+   recompute on filter change:
+   a. New Enrollments — count of customers where enrollment_date falls
+      within the selected period
+   b. Classes Conducted — count of classes where class_date falls within
+      the period AND status = 'done'
+   c. Revenue Collected — sum of payments.amount where payment_date falls
+      within the period
 
-2. Leads list screen:
-   - Header: "DriveManager / Leads & Bookings" (same header component style
-     as other pages), "X Active Inquiries" pill showing count of leads NOT
-     in 'converted' or 'dropped' status
-   - Horizontal-scroll status filter chips: All, New, Contacted, Booked,
-     Converted, Dropped — each showing a live count from the leads table,
-     filtering the list client-side or via query param
-   - Lead card per row: avatar with initials + colored ring by status
-     (New=blue #3B82F6, Contacted=amber #F59E0B, Booked=purple #A855F7,
-     Converted=green #10B981, Dropped=red #EF4444), name, phone, a status
-     badge pill in the same color, a source tag with an icon (map known
-     source strings to icons: "Instagram Ad"→megaphone, "Referral"→people,
-     "Walk-in"→storefront, "Google Maps"→pin, "Website Form"→globe; fall
-     back to a generic tag icon for any other source string), relative
-     timestamp from created_at, and a chevron
-   - Floating "+" action button bottom-right, opens an add-lead bottom sheet
-     (Name, Phone, Source as free-text or a small preset dropdown, Notes,
-     Save) that inserts into leads
+PERIOD BOUNDARIES:
+- This Month: from the 1st of the current calendar month to today
+- 3M / 6M: rolling window — today minus 3 or 6 calendar months, to today
+- Year: from Jan 1 of the current year to today
+- All Time: no lower bound (equivalent to today's lifetime totals for these
+  three metrics — should match what Total Enrolled/Classes Done showed
+  before this change)
 
-3. Lead detail view (on card tap): editable name/phone/source/notes, a
-   status dropdown (updates leads.status on change), and a "Convert to
-   Customer" button — hidden/disabled when status is already 'converted'.
-   On convert:
-     a. Check customers.phone_number for an existing match; if found, warn
-        instead of creating a duplicate (phone_number is unique on customers)
-     b. Insert into customers: full_name = leads.full_name,
-        phone_number = leads.phone_number, enrollment_date = today,
-        package_classes and total_fee left at their table defaults (10 /
-        3500) unless the instructor overrides them in this step
-     c. Update the leads row: converted_customer_id = new customer's id,
-        status = 'converted'
-     d. Navigate to the new customer's detail page in Customers
+IMPLEMENTATION:
+- Data volumes are small (~535 customers, ~5,000 classes, ~530 payments) —
+  plain filtered Supabase queries are fine, no materialized view needed
+- Fetch on period change (or fetch all three metrics' underlying data once
+  and filter client-side if that's more consistent with how this page
+  already loads data — follow whatever pattern the existing Dashboard uses
+  for its current lifetime queries)
+- Show a loading state on the three period cards while refetching, without
+  blocking or re-rendering the lifetime cards above them
 
-Keep everything mobile-first and consistent with the app's existing spacing,
-shadows, and typography scale.
+UI:
+- Segmented control: same pill/chip visual treatment as elsewhere in the
+  app (match the Leads page's filter chip style: rounded pill, active
+  option filled dark navy with white text, inactive outlined)
+- The three period cards should visually match the existing lifetime card
+  style (white background, rounded corners, icon top-right, big number,
+  label underneath) so they read as part of the same dashboard, not a
+  bolted-on section
