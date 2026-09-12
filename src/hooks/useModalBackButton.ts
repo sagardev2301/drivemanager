@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useIsPresent } from 'framer-motion'
 
 interface ModalBackButtonState {
   pushed: boolean
@@ -30,18 +31,44 @@ let releasedEntry: { claimed: boolean } | null = null
  * (returned below) so it consumes that same entry via history.back() rather
  * than flipping state directly — otherwise the next real back-press pops a
  * stale entry and does nothing visible ("dead" back press).
+ *
+ * Release is triggered off Framer Motion's `useIsPresent()`, not real
+ * unmount: when this modal sits inside an <AnimatePresence>, the parent can
+ * stop rendering it (e.g. swapping it for another modal) while it's still
+ * mounted and playing its exit animation for a couple hundred ms. Waiting
+ * for the real unmount to release the entry would miss the same-commit
+ * adoption window entirely — a sibling mounting in that same commit would
+ * already have pushed (or worse, raced) its own entry well before this
+ * modal's exit animation finishes. `isPresent` flips to false synchronously
+ * in the same commit the parent swaps state, which is what the adoption
+ * handshake actually needs.
  */
 export function useModalBackButton(isOpen: boolean, onRequestClose: () => void) {
   const closeRef = useRef(onRequestClose)
   closeRef.current = onRequestClose
+  const isPresent = useIsPresent()
 
   const stateRef = useRef<ModalBackButtonState>({ pushed: false, handled: false })
+
+  function releaseEntry() {
+    if (stateRef.current.pushed && !stateRef.current.handled) {
+      stateRef.current.handled = true
+      const token = { claimed: false }
+      releasedEntry = token
+      queueMicrotask(() => {
+        if (releasedEntry === token && !token.claimed) {
+          releasedEntry = null
+          window.history.back()
+        }
+      })
+    }
+  }
 
   useEffect(() => {
     if (!isOpen) return
 
     if (releasedEntry && !releasedEntry.claimed) {
-      // Take over the entry a just-unmounted modal left behind this same
+      // Take over the entry a just-released modal left behind this same
       // commit, instead of pushing a new one.
       releasedEntry.claimed = true
     } else {
@@ -58,19 +85,13 @@ export function useModalBackButton(isOpen: boolean, onRequestClose: () => void) 
 
     return () => {
       window.removeEventListener('popstate', handlePopState)
-      if (stateRef.current.pushed && !stateRef.current.handled) {
-        stateRef.current.handled = true
-        const token = { claimed: false }
-        releasedEntry = token
-        queueMicrotask(() => {
-          if (releasedEntry === token && !token.claimed) {
-            releasedEntry = null
-            window.history.back()
-          }
-        })
-      }
+      releaseEntry()
     }
   }, [isOpen])
+
+  useEffect(() => {
+    if (!isPresent) releaseEntry()
+  }, [isPresent])
 
   function requestClose() {
     window.history.back()
@@ -78,8 +99,8 @@ export function useModalBackButton(isOpen: boolean, onRequestClose: () => void) 
 
   // For close actions that also navigate to a new route (e.g. via
   // navigate(path, { replace: true })): call this synchronously first so
-  // the cleanup above doesn't also call history.back() after the entry has
-  // already been replaced out from under it.
+  // the release logic above doesn't also call history.back() after the
+  // entry has already been replaced out from under it.
   function markHandled() {
     stateRef.current.handled = true
   }
