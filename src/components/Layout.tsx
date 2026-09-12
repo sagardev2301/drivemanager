@@ -18,6 +18,17 @@ export function BottomNav() {
           <span className="text-[10px] leading-[13px] mt-0.5 font-medium">Home</span>
         </NavLink>
         <NavLink
+          to="/leads"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-colors duration-150 ${
+              isActive ? 'text-primary' : 'text-on-surface-variant'
+            }`
+          }
+        >
+          <span className="material-symbols-outlined text-[24px]">person_search</span>
+          <span className="text-[10px] leading-[13px] mt-0.5 font-medium">Leads</span>
+        </NavLink>
+        <NavLink
           to="/attendance"
           className={({ isActive }) =>
             `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-colors duration-150 ${

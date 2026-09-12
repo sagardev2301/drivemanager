@@ -62,3 +62,30 @@ export function isClassLive(cls: { start_time: string | null; end_time?: string 
   const currentMinutes = now.getHours() * 60 + now.getMinutes()
   return currentMinutes >= range.startMinutes && currentMinutes < range.endMinutes
 }
+
+export function formatRelativeTime(dateStr: string): string {
+  if (!dateStr) return ''
+  const past = new Date(dateStr).getTime()
+  if (isNaN(past)) return ''
+  const now = Date.now()
+  const diffSec = Math.floor((now - past) / 1000)
+
+  if (diffSec < 60) return 'Just now'
+  const diffMin = Math.floor(diffSec / 60)
+  if (diffMin < 60) return `${diffMin} ${diffMin === 1 ? 'min' : 'mins'} ago`
+
+  const diffHours = Math.floor(diffMin / 60)
+  if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`
+
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+
+  const diffWeeks = Math.floor(diffDays / 7)
+  if (diffWeeks < 4) return `${diffWeeks} ${diffWeeks === 1 ? 'week' : 'weeks'} ago`
+
+  const diffMonths = Math.floor(diffDays / 30)
+  if (diffMonths < 12) return `${diffMonths} ${diffMonths === 1 ? 'month' : 'months'} ago`
+
+  return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+}

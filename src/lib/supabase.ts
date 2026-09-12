@@ -10,6 +10,20 @@ export type CourseStatus = 'active' | 'completed' | 'dropped'
 export type ClassStatus = 'scheduled' | 'done' | 'not_completed' | 'cancelled'
 export type PaymentMode = 'cash' | 'upi' | 'card' | 'netbank' | 'other'
 export type PaymentStatus = 'paid' | 'partial' | 'unpaid'
+export type LeadStatus = 'new' | 'contacted' | 'booked' | 'converted' | 'dropped'
+
+export interface Lead {
+  id: string
+  full_name: string
+  phone_number: string
+  source: string | null
+  location: string | null
+  status: LeadStatus
+  notes: string | null
+  converted_customer_id: string | null
+  created_at: string
+  updated_at: string
+}
 
 export interface Customer {
   id: string

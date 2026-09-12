@@ -10,7 +10,7 @@ export default function NotFound() {
         {/* Driving School Car & L-Plate Visual */}
         <div className="relative mb-6">
           {/* Main Round Badge with Driving Car */}
-          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-surface-container flex items-center justify-center shadow-inner border border-outline-variant/30">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-surface-container flex items-center justify-center shadow-inner border border-outline-variant/30">
             <span className="material-symbols-outlined text-primary text-[52px] sm:text-[60px]">
               directions_car
             </span>
@@ -63,7 +63,7 @@ export default function NotFound() {
 
           <div className="flex flex-col gap-2.5 text-[13px] text-on-surface-variant">
             <div className="flex items-start gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-red-100 text-red-700 flex items-center justify-center shrink-0 mt-0.5">
+              <span className="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center shrink-0 mt-0.5">
                 <span className="material-symbols-outlined text-[15px]">traffic</span>
               </span>
               <span>
@@ -72,7 +72,7 @@ export default function NotFound() {
             </div>
 
             <div className="flex items-start gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5">
+              <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5">
                 <span className="material-symbols-outlined text-[15px]">settings_suggest</span>
               </span>
               <span>
@@ -81,7 +81,7 @@ export default function NotFound() {
             </div>
 
             <div className="flex items-start gap-2.5">
-              <span className="w-6 h-6 rounded-lg bg-blue-100 text-primary flex items-center justify-center shrink-0 mt-0.5">
+              <span className="w-6 h-6 rounded-full bg-blue-100 text-primary flex items-center justify-center shrink-0 mt-0.5">
                 <span className="material-symbols-outlined text-[15px]">u_turn_left</span>
               </span>
               <span>
@@ -95,7 +95,7 @@ export default function NotFound() {
         <div className="w-full flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => navigate("/")}
-            className="flex-1 h-12 rounded-xl bg-primary text-white text-[14px] font-semibold flex items-center justify-center gap-2 shadow-sm hover:bg-primary/90 active:scale-95 transition-all cursor-pointer"
+            className="flex-1 h-11 rounded-xl bg-primary text-white text-[14px] font-semibold flex items-center justify-center gap-2 shadow-sm hover:bg-primary/90 active:scale-95 transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[20px]">navigation</span>
             <span>Back to Safe Route</span>
@@ -109,7 +109,7 @@ export default function NotFound() {
                 navigate("/")
               }
             }}
-            className="h-12 px-5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-[14px] font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
+            className="h-11 px-5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-[14px] font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[20px]">undo</span>
             <span>Reverse</span>
