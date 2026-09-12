@@ -5,6 +5,7 @@ import type { ClassStatus } from '../lib/supabase'
 import { toLocalDateString, addHoursToTime } from '../lib/dateUtils'
 import { getActiveCustomers, invalidateCustomerCache } from '../lib/customerCache'
 import type { ActiveCustomerOption } from '../lib/customerCache'
+import { useModalBackButton } from '../hooks/useModalBackButton'
 
 export interface ClassToEdit {
   id: string
@@ -49,6 +50,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const { requestClose } = useModalBackButton(true, onClose)
 
   useEffect(() => {
     if (defaultCustomerId) return
@@ -160,7 +162,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
 
       invalidateCustomerCache()
       onSaved()
-      onClose()
+      requestClose()
     } catch {
       setError('Something went wrong saving this. Please try again.')
       setSaving(false)
@@ -169,7 +171,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={requestClose}>
       <div
         className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl p-6 max-h-[90dvh] overflow-y-auto"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
@@ -177,7 +179,7 @@ export default function AddClassModal({ onClose, onSaved, defaultDate, defaultCu
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-[20px] font-semibold text-on-surface">{classToEdit ? 'Update Class' : mode === 'schedule' ? 'Schedule a Class' : 'Log a Class'}</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container">
+          <button onClick={requestClose} className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container">
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>

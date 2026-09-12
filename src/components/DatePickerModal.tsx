@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { toLocalDateString } from '../lib/dateUtils'
+import { useModalBackButton } from '../hooks/useModalBackButton'
 
 interface DatePickerModalProps {
   isOpen: boolean
@@ -26,6 +27,7 @@ export default function DatePickerModal({
   const [viewYear, setViewYear] = useState(initial.year || new Date().getFullYear())
   const [viewMonth, setViewMonth] = useState(initial.month ?? new Date().getMonth())
   const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate)
+  const { requestClose } = useModalBackButton(isOpen, onClose)
 
   if (selectedDate !== prevSelectedDate) {
     setPrevSelectedDate(selectedDate)
@@ -39,11 +41,11 @@ export default function DatePickerModal({
   useEffect(() => {
     if (!isOpen) return
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') requestClose()
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onClose])
+  }, [isOpen, requestClose])
 
   if (!isOpen) return null
 
@@ -70,14 +72,14 @@ export default function DatePickerModal({
   function handleSelect(year: number, month: number, day: number) {
     const formatted = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     onSelectDate(formatted)
-    onClose()
+    requestClose()
   }
 
   function handleQuickDate(offset: number) {
     const d = new Date()
     d.setDate(d.getDate() + offset)
     onSelectDate(toLocalDateString(d))
-    onClose()
+    requestClose()
   }
 
   // Calendar grid calculations
@@ -134,7 +136,7 @@ export default function DatePickerModal({
   return createPortal(
     <div
       className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={requestClose}
     >
       <div
         className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl p-4 sm:p-5 flex flex-col gap-3 transition-transform animate-in fade-in duration-200"
@@ -154,7 +156,7 @@ export default function DatePickerModal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors"
             aria-label="Close date picker"
           >

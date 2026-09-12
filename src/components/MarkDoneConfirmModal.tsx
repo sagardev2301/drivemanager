@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom'
+import { useModalBackButton } from '../hooks/useModalBackButton'
 
 interface Props {
   onClose: () => void
@@ -19,8 +20,10 @@ export default function MarkDoneConfirmModal({
   classLabel,
   timeLabel,
 }: Props) {
+  const { requestClose } = useModalBackButton(true, onClose)
+
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={requestClose}>
       <div
         className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl p-6 max-h-[90dvh] overflow-y-auto"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
@@ -31,7 +34,7 @@ export default function MarkDoneConfirmModal({
             <h2 className="text-[20px] font-semibold text-on-surface">Mark Class Done</h2>
             <p className="text-[13px] text-on-surface-variant mt-0.5">Confirm details before completing</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container">
+          <button onClick={requestClose} className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container">
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>

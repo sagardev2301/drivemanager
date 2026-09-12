@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { normalizePhoneNumber } from '../lib/phoneUtils'
+import { useModalBackButton } from '../hooks/useModalBackButton'
 
 interface Props {
   onClose: () => void
@@ -25,6 +26,7 @@ export default function AddLeadModal({ onClose, onSaved }: Props) {
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const { requestClose } = useModalBackButton(true, onClose)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -72,7 +74,7 @@ export default function AddLeadModal({ onClose, onSaved }: Props) {
       }
 
       onSaved(trimmedName)
-      onClose()
+      requestClose()
     } catch {
       setError('Network error occurred. Please try again.')
       setSaving(false)
@@ -82,7 +84,7 @@ export default function AddLeadModal({ onClose, onSaved }: Props) {
   return createPortal(
     <div
       className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end justify-center transition-opacity duration-200"
-      onClick={onClose}
+      onClick={requestClose}
     >
       <div
         className="w-full max-w-lg bg-white rounded-t-3xl p-5 pt-3 pb-8 shadow-2xl max-h-[90vh] overflow-y-auto"
@@ -92,7 +94,7 @@ export default function AddLeadModal({ onClose, onSaved }: Props) {
         {/* Drag Handle */}
         <div
           className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-3 cursor-pointer"
-          onClick={onClose}
+          onClick={requestClose}
         />
 
         {/* Modal Header */}
@@ -102,7 +104,7 @@ export default function AddLeadModal({ onClose, onSaved }: Props) {
             <p className="text-[12px] text-slate-500">Log fresh inquiry before scheduling trial</p>
           </div>
           <button
-            onClick={onClose}
+            onClick={requestClose}
             className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>

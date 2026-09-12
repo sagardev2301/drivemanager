@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import type { PaymentMode } from '../lib/supabase'
+import { useModalBackButton } from '../hooks/useModalBackButton'
 
 interface Props {
   onClose: () => void
@@ -25,6 +26,7 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
   const [mode, setMode] = useState<PaymentMode>('upi')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const { requestClose } = useModalBackButton(true, onClose)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -61,7 +63,7 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
         return
       }
       onSaved()
-      onClose()
+      requestClose()
     } catch {
       setError('Something went wrong saving this. Please try again.')
       setSaving(false)
@@ -70,7 +72,7 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={requestClose}>
       <div
         className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl p-6 max-h-[90dvh] overflow-y-auto"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
@@ -81,7 +83,7 @@ export default function AddPaymentModal({ onClose, onSaved, customerId, customer
             <h2 className="text-[20px] font-semibold text-on-surface">Record Payment</h2>
             <p className="text-[13px] text-on-surface-variant mt-0.5">For {customerName}</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container">
+          <button onClick={requestClose} className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container">
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>

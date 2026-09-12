@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import type { CustomerSummary } from '../lib/supabase'
 import AddPaymentModal from './AddPaymentModal'
+import { useModalBackButton } from '../hooks/useModalBackButton'
 
 interface Props {
   customer: CustomerSummary
@@ -45,13 +46,15 @@ function buildWhatsAppMessage(c: CustomerSummary): string {
 export default function CustomerActionSheet({ customer, onClose, onPaymentSaved }: Props) {
   const navigate = useNavigate()
   const [showPayment, setShowPayment] = useState(false)
+  const { requestClose, markHandled } = useModalBackButton(true, onClose)
 
   const hasPending = customer.amount_pending > 0
   const hasPhone = !!customer.phone_number && customer.phone_number.trim().length >= 5
 
   function handleViewProfile() {
+    markHandled()
     onClose()
-    navigate('/customers/' + customer.customer_id)
+    navigate('/customers/' + customer.customer_id, { replace: true })
   }
 
   function handleWhatsApp() {
@@ -63,7 +66,7 @@ export default function CustomerActionSheet({ customer, onClose, onPaymentSaved 
     <>
       <div
         className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={requestClose}
       >
         <div
           className="w-full max-w-lg bg-white rounded-t-3xl shadow-2xl"

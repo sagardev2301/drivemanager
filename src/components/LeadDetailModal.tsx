@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import type { Lead, LeadStatus } from '../lib/supabase'
 import { toLocalDateString } from '../lib/dateUtils'
 import { invalidateCustomerCache } from '../lib/customerCache'
+import { useModalBackButton } from '../hooks/useModalBackButton'
 
 interface Props {
   lead: Lead
@@ -45,6 +46,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
   const [converting, setConverting] = useState(false)
   const [error, setError] = useState('')
   const [warning, setWarning] = useState('')
+  const { requestClose, markHandled } = useModalBackButton(true, onClose)
 
   const isConverted = status === 'converted' || Boolean(lead.converted_customer_id)
   const cleanPhoneForCall = phone.replace(/[^\d+]/g, '')
@@ -87,7 +89,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
       }
 
       onUpdated('Lead details updated successfully!')
-      onClose()
+      requestClose()
     } catch {
       setError('Network error occurred. Please try again.')
       setSaving(false)
@@ -180,10 +182,15 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
 
       invalidateCustomerCache()
       onUpdated(`Lead converted to enrolled customer!`)
+      // Closing and navigating together: mark the pushed history entry as
+      // handled first so the modal's own cleanup doesn't also call
+      // history.back() after replace() below has already moved it forward.
+      markHandled()
       onClose()
 
-      // Step d: Navigate to the new customer's detail page in Customers
-      navigate(`/customers/${newCustomer.id}`)
+      // Step d: Navigate to the new customer's detail page, replacing this
+      // modal's history entry rather than pushing a new one on top of it.
+      navigate(`/customers/${newCustomer.id}`, { replace: true })
     } catch {
       setError('An unexpected error occurred during conversion.')
       setConverting(false)
@@ -193,7 +200,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
   return createPortal(
     <div
       className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end justify-center transition-opacity duration-200"
-      onClick={onClose}
+      onClick={requestClose}
     >
       <div
         className="w-full max-w-lg bg-white rounded-t-2xl p-5 pt-3 pb-8 shadow-2xl max-h-[88vh] overflow-y-auto"
@@ -203,7 +210,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
         {/* Drag Handle */}
         <div
           className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-3 cursor-pointer"
-          onClick={onClose}
+          onClick={requestClose}
         />
 
         {/* Modal Header */}
@@ -215,7 +222,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
             <p className="text-[12px] text-slate-500">Update inquiry status or enroll student</p>
           </div>
           <button
-            onClick={onClose}
+            onClick={requestClose}
             className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
@@ -433,8 +440,9 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
                   <button
                     type="button"
                     onClick={() => {
+                      markHandled()
                       onClose()
-                      navigate(`/customers/${lead.converted_customer_id}`)
+                      navigate(`/customers/${lead.converted_customer_id}`, { replace: true })
                     }}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tertiary hover:bg-tertiary/90 text-on-tertiary text-[12px] font-semibold shadow-sm transition-colors"
                   >
@@ -464,7 +472,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
               </button>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={requestClose}
                 className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[13px] transition-colors"
               >
                 Cancel
