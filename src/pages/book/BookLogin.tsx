@@ -1,14 +1,17 @@
-import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { normalizePhoneNumber } from '../../lib/phoneUtils'
+import { IconAlert, IconArrowLeft, IconCar } from '../../components/book/icons'
 
 function toE164(phone: string): string {
   const digits = normalizePhoneNumber(phone).replace(/\D/g, '')
-  if (digits.startsWith('91') && digits.length === 12) return `+${digits}`
+  if (digits.length === 12 && digits.startsWith('91')) return `+${digits}`
   if (digits.length === 10) return `+91${digits}`
   return `+${digits}`
 }
+
+const RESEND_SECONDS = 30
 
 export default function BookLogin() {
   const navigate = useNavigate()
@@ -21,38 +24,54 @@ export default function BookLogin() {
   const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resendIn, setResendIn] = useState(0)
+  const otpRef = useRef<HTMLInputElement>(null)
 
-  async function handleSendOtp(e: React.FormEvent) {
-    e.preventDefault()
+  const phoneDigits = normalizePhoneNumber(phone).replace(/\D/g, '')
+  const phoneLooksValid = phoneDigits.length === 10 || (phoneDigits.length === 12 && phoneDigits.startsWith('91'))
+
+  useEffect(() => {
+    if (resendIn <= 0) return
+    const timer = setTimeout(() => setResendIn(s => s - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [resendIn])
+
+  useEffect(() => {
+    if (step === 'otp') otpRef.current?.focus()
+  }, [step])
+
+  async function sendCode(e?: React.FormEvent) {
+    e?.preventDefault()
     setError('')
     setLoading(true)
-    const { error } = await supabase.auth.signInWithOtp({ phone: toE164(phone) })
+    const { error: otpError } = await supabase.auth.signInWithOtp({ phone: toE164(phone) })
     setLoading(false)
-    if (error) {
-      setError(error.message)
+    if (otpError) {
+      setError(otpError.message)
       return
     }
     setStep('otp')
+    setResendIn(RESEND_SECONDS)
   }
 
-  async function handleVerifyOtp(e: React.FormEvent) {
+  async function verifyCode(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { data, error } = await supabase.auth.verifyOtp({
+    const { data, error: verifyError } = await supabase.auth.verifyOtp({
       phone: toE164(phone),
       token: otp,
       type: 'sms',
     })
-    if (error) {
-      setError(error.message)
+    if (verifyError) {
+      setError('That code didn’t match. Check it and try again.')
       setLoading(false)
       return
     }
     if (data.user) {
       await supabase
         .from('profiles')
-        .update({ phone_number: toE164(phone), full_name: fullName || null })
+        .update({ phone_number: toE164(phone), full_name: fullName.trim() || null })
         .eq('id', data.user.id)
     }
     setLoading(false)
@@ -60,112 +79,129 @@ export default function BookLogin() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center flex-1 min-h-[70vh] px-1">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col items-center mb-6">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_16px_32px_-10px_rgba(0,63,177,0.55)]"
-            style={{ background: 'linear-gradient(155deg,#4d7dff,#003fb1)' }}
-          >
-            <span className="material-symbols-outlined text-white text-[28px]">directions_car</span>
-          </div>
-          <h1 className="text-headline-md font-semibold text-on-surface tracking-tight">
-            {step === 'phone' ? 'Sign in to book a class' : 'Verify your number'}
-          </h1>
-          <p className="text-body-sm text-on-surface-variant mt-1 text-center">
-            {step === 'phone'
-              ? "We'll text you a one-time code, no password needed"
-              : `Enter the code sent to ${phone}`}
-          </p>
-        </div>
+    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5">
+      <div className="flex h-14 items-center" style={{ marginTop: 'env(safe-area-inset-top, 0px)' }}>
+        <button
+          onClick={() => (step === 'otp' ? setStep('phone') : navigate(-1))}
+          aria-label="Go back"
+          className="rd-ink2 -ml-2 grid h-11 w-11 place-items-center rounded-full transition-colors active:bg-[#e7ebf3]"
+        >
+          <IconArrowLeft size={20} />
+        </button>
+      </div>
 
-        <div className="sr-panel rounded-2xl p-6">
-          {step === 'phone' ? (
-            <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
-              <div>
-                <label className="text-caption-xs text-on-surface-variant block mb-1 uppercase tracking-wider font-semibold">
-                  Your name
-                </label>
+      <div className="flex flex-1 flex-col pt-6">
+        <span className="grid h-12 w-12 place-items-center rounded-[14px] bg-[var(--brand)] text-white">
+          <IconCar size={24} />
+        </span>
+
+        <h1 className="rd-display mt-5 text-[30px] font-extrabold leading-[1.05]">
+          {step === 'phone' ? 'Sign in to book' : 'Enter your code'}
+        </h1>
+        <p className="rd-ink2 mt-2 max-w-[32ch] text-[15px] leading-[23px]">
+          {step === 'phone'
+            ? 'We’ll text you a one-time code. No password to remember.'
+            : `Sent to ${toE164(phone)}. It can take a few seconds to arrive.`}
+        </p>
+
+        {step === 'phone' ? (
+          <form onSubmit={sendCode} className="mt-7 flex flex-col gap-4">
+            <div>
+              <label htmlFor="name" className="mb-2 block text-[13px] font-semibold">
+                Your name
+              </label>
+              <input
+                id="name"
+                type="text"
+                required
+                autoComplete="name"
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                placeholder="e.g. Priya Sharma"
+                className="rd-field"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="phone" className="mb-2 block text-[13px] font-semibold">
+                Mobile number
+              </label>
+              <div className="relative">
+                <span className="rd-ink2 pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[16px] font-medium">
+                  +91
+                </span>
                 <input
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                  placeholder="Full name"
-                  className="w-full h-11 px-3 rounded-xl bg-white/70 text-on-surface text-body-base focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-white/60"
-                />
-              </div>
-              <div>
-                <label className="text-caption-xs text-on-surface-variant block mb-1 uppercase tracking-wider font-semibold">
-                  Phone number
-                </label>
-                <input
+                  id="phone"
                   type="tel"
                   required
+                  inputMode="numeric"
+                  autoComplete="tel"
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
                   placeholder="98765 43210"
-                  className="w-full h-11 px-3 rounded-xl bg-white/70 text-on-surface text-body-base focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-white/60"
+                  className="rd-field pl-[52px]"
                 />
               </div>
+            </div>
 
-              {error && (
-                <div className="flex items-center gap-2 bg-error-container text-on-error-container px-3 py-2 rounded-xl text-body-sm">
-                  <span className="material-symbols-outlined text-[16px]">error</span>
-                  <span>{error}</span>
-                </div>
-              )}
+            {error && (
+              <p className="rd-chip rd-chip-stop h-auto w-full justify-start gap-2 px-3 py-2 text-[13px] leading-[19px]">
+                <IconAlert size={15} />
+                {error}
+              </p>
+            )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="sr-btn-primary w-full h-11 text-white rounded-xl font-semibold text-body-base flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
-              >
-                {loading ? 'Sending code...' : 'Send code'}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
-              <div>
-                <label className="text-caption-xs text-on-surface-variant block mb-1 uppercase tracking-wider font-semibold">
-                  6-digit code
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  required
-                  value={otp}
-                  onChange={e => setOtp(e.target.value)}
-                  placeholder="123456"
-                  className="w-full h-11 px-3 rounded-xl bg-white/70 text-on-surface text-body-base tracking-[0.3em] text-center focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-white/60"
-                />
-              </div>
+            <button type="submit" disabled={loading || !phoneLooksValid} className="rd-btn mt-1 h-[52px] w-full text-[15px]">
+              {loading ? 'Sending code…' : 'Send code'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={verifyCode} className="mt-7 flex flex-col gap-4">
+            <div>
+              <label htmlFor="otp" className="mb-2 block text-[13px] font-semibold">
+                6-digit code
+              </label>
+              <input
+                id="otp"
+                ref={otpRef}
+                type="text"
+                required
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                value={otp}
+                onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+                placeholder="······"
+                className="rd-field rd-display text-center text-[26px] font-bold tracking-[0.4em]"
+              />
+            </div>
 
-              {error && (
-                <div className="flex items-center gap-2 bg-error-container text-on-error-container px-3 py-2 rounded-xl text-body-sm">
-                  <span className="material-symbols-outlined text-[16px]">error</span>
-                  <span>{error}</span>
-                </div>
-              )}
+            {error && (
+              <p className="rd-chip rd-chip-stop h-auto w-full justify-start gap-2 px-3 py-2 text-[13px] leading-[19px]">
+                <IconAlert size={15} />
+                {error}
+              </p>
+            )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="sr-btn-primary w-full h-11 text-white rounded-xl font-semibold text-body-base flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
-              >
-                {loading ? 'Verifying...' : 'Verify & continue'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setStep('phone')}
-                className="text-body-sm text-on-surface-variant text-center"
-              >
-                Change number
-              </button>
-            </form>
-          )}
-        </div>
+            <button type="submit" disabled={loading || otp.length < 6} className="rd-btn mt-1 h-[52px] w-full text-[15px]">
+              {loading ? 'Checking…' : 'Verify and continue'}
+            </button>
+
+            <button
+              type="button"
+              disabled={resendIn > 0 || loading}
+              onClick={() => sendCode()}
+              className="rd-ink2 h-10 text-[13px] font-semibold disabled:opacity-60"
+            >
+              {resendIn > 0 ? `Resend code in ${resendIn}s` : 'Resend code'}
+            </button>
+          </form>
+        )}
       </div>
+
+      <p className="rd-ink3 py-6 text-center text-[12px] leading-[18px]">
+        Booking a class never charges you here — you pay your instructor at the lesson.
+      </p>
     </div>
   )
 }

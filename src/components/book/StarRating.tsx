@@ -1,3 +1,5 @@
+import { IconStar } from './icons'
+
 interface StarRatingProps {
   rating: number
   size?: number
@@ -5,30 +7,36 @@ interface StarRatingProps {
   onChange?: (rating: number) => void
 }
 
-// Shared star display (driver cards, reviews) and star input (review form) —
-// pass `interactive` + `onChange` for the input variant.
-export default function StarRating({ rating, size = 16, interactive = false, onChange }: StarRatingProps) {
+const GOLD = '#E8A317'
+const EMPTY = '#CBD2E0'
+
+// Display treatment for driver/review ratings, and the input for the review
+// sheet when `interactive` is set.
+export default function StarRating({ rating, size = 15, interactive = false, onChange }: StarRatingProps) {
+  const rounded = Math.round(rating)
+
+  if (!interactive) {
+    return (
+      <div className="flex items-center gap-[3px]" role="img" aria-label={`${rating.toFixed(1)} out of 5`}>
+        {[1, 2, 3, 4, 5].map(star => (
+          <IconStar key={star} size={size} filled={star <= rounded} style={{ color: star <= rounded ? GOLD : EMPTY }} />
+        ))}
+      </div>
+    )
+  }
+
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-2">
       {[1, 2, 3, 4, 5].map(star => (
         <button
           key={star}
           type="button"
-          disabled={!interactive}
           onClick={() => onChange?.(star)}
-          className={interactive ? 'active:scale-90 transition-transform' : 'cursor-default'}
-          aria-label={interactive ? `Rate ${star} star${star > 1 ? 's' : ''}` : undefined}
+          aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+          aria-pressed={star <= rounded}
+          className="p-1 transition-transform duration-150 active:scale-90"
         >
-          <span
-            className="material-symbols-outlined"
-            style={{
-              fontSize: size,
-              fontVariationSettings: star <= Math.round(rating) ? "'FILL' 1" : "'FILL' 0",
-              color: star <= Math.round(rating) ? '#f5a623' : '#c3c5d7',
-            }}
-          >
-            star
-          </span>
+          <IconStar size={size} filled={star <= rounded} style={{ color: star <= rounded ? GOLD : EMPTY }} />
         </button>
       ))}
     </div>

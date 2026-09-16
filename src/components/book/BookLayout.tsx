@@ -1,98 +1,121 @@
+import { useEffect, useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
+import { supabase } from '../../lib/supabase'
+import { IconCar, IconSearch, IconTicket, IconUser, IconLogout } from './icons'
 
-interface BookLayoutProps {
-  session: Session | null
-}
-
-const NAV_ITEMS = [
-  { to: '/book', label: 'Browse', icon: 'search', end: true },
-  { to: '/book/my-bookings', label: 'Bookings', icon: 'event_note', end: false },
+const TABS = [
+  { to: '/book', label: 'Browse', Icon: IconSearch, end: true },
+  { to: '/book/my-bookings', label: 'Bookings', Icon: IconTicket, end: false },
 ] as const
 
-export function BookBottomNav({ session }: { session: Session | null }) {
+function TopBar({ session }: { session: Session | null }) {
+  const navigate = useNavigate()
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    navigate('/book')
+  }
+
+  return (
+    <header
+      className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${
+        scrolled ? 'border-b border-[var(--line)] bg-[rgba(243,245,249,0.88)] backdrop-blur-xl' : 'bg-transparent'
+      }`}
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+    >
+      <div className="mx-auto flex h-14 max-w-md items-center justify-between px-5">
+        <NavLink to="/book" className="flex items-center gap-2">
+          <span className="grid h-7 w-7 place-items-center rounded-[9px] bg-[var(--brand)] text-white">
+            <IconCar size={16} />
+          </span>
+          <span className="rd-display text-[15px] font-bold">DriveManager</span>
+        </NavLink>
+
+        {session ? (
+          <button
+            onClick={handleSignOut}
+            className="rd-ink2 flex h-10 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-semibold transition-colors active:bg-[#e7ebf3]"
+          >
+            <IconLogout size={17} />
+            Sign out
+          </button>
+        ) : (
+          <NavLink
+            to="/book/login"
+            className="rd-brand flex h-10 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-semibold transition-colors active:bg-[var(--brand-tint)]"
+          >
+            Sign in
+          </NavLink>
+        )}
+      </div>
+    </header>
+  )
+}
+
+function TabBar({ session }: { session: Session | null }) {
   return (
     <nav
-      className="fixed bottom-0 left-0 w-full z-40 flex justify-center px-4"
-      style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--line)] bg-[rgba(255,255,255,0.92)] backdrop-blur-xl"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <div className="sr-panel flex items-center gap-1 rounded-full px-2 py-2 shadow-[0_20px_40px_-16px_rgba(26,45,92,0.35)]">
-        {NAV_ITEMS.map(item => (
+      <div className="mx-auto flex h-[60px] max-w-md items-stretch justify-around px-3">
+        {TABS.map(({ to, label, Icon, end }) => (
           <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
+            key={to}
+            to={to}
+            end={end}
             className={({ isActive }) =>
-              `flex items-center gap-1.5 min-h-[44px] px-4 rounded-full text-[12px] font-semibold transition-all active:scale-90 ${
-                isActive ? 'sr-btn-primary text-white' : 'text-on-surface-variant'
+              `relative flex min-w-[76px] flex-col items-center justify-center gap-1 transition-colors ${
+                isActive ? 'text-[var(--brand)]' : 'text-[var(--ink-3)]'
               }`
             }
           >
-            <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-            <span>{item.label}</span>
+            {({ isActive }) => (
+              <>
+                <span
+                  className={`absolute top-0 h-[2px] w-9 rounded-full transition-opacity ${
+                    isActive ? 'bg-[var(--brand)] opacity-100' : 'opacity-0'
+                  }`}
+                />
+                <Icon size={21} />
+                <span className="text-[11px] font-semibold">{label}</span>
+              </>
+            )}
           </NavLink>
         ))}
         <NavLink
           to={session ? '/book/my-bookings' : '/book/login'}
           className={({ isActive }) =>
-            `flex items-center justify-center w-11 h-11 rounded-full transition-all active:scale-90 ${
-              isActive ? 'sr-btn-primary text-white' : 'text-on-surface-variant bg-white/60'
+            `flex min-w-[76px] flex-col items-center justify-center gap-1 transition-colors ${
+              isActive ? 'text-[var(--brand)]' : 'text-[var(--ink-3)]'
             }`
           }
-          aria-label={session ? 'Account' : 'Sign in'}
         >
-          <span className="material-symbols-outlined text-[20px]">account_circle</span>
+          <IconUser size={21} />
+          <span className="text-[11px] font-semibold">{session ? 'Account' : 'Sign in'}</span>
         </NavLink>
       </div>
     </nav>
   )
 }
 
-export function BookHeader({ session }: { session: Session | null }) {
-  const navigate = useNavigate()
-
-  async function handleAuthAction() {
-    if (session) {
-      await supabase.auth.signOut()
-      navigate('/book')
-    } else {
-      navigate('/book/login')
-    }
-  }
-
+export default function BookLayout({ session }: { session: Session | null }) {
   return (
-    <header className="fixed top-0 w-full z-40 px-4 pt-3" style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top, 0px))' }}>
-      <div className="sr-panel h-12 rounded-full px-3 flex items-center justify-between">
-        <NavLink to="/book" className="flex items-center gap-2">
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_4px_10px_-2px_rgba(0,63,177,0.5)]"
-            style={{ background: 'linear-gradient(180deg,#2f6bef,#003fb1)' }}
-          >
-            <span className="material-symbols-outlined text-white text-[16px]">directions_car</span>
-          </div>
-          <span className="text-[14px] font-semibold text-on-surface tracking-tight">DriveManager</span>
-        </NavLink>
-        <button
-          onClick={handleAuthAction}
-          className="h-8 px-3 rounded-full text-[11px] font-semibold text-on-surface-variant hover:bg-white/70 active:scale-95 transition-all flex items-center gap-1"
-        >
-          <span className="material-symbols-outlined text-[15px]">{session ? 'logout' : 'login'}</span>
-          {session ? 'Sign out' : 'Sign in'}
-        </button>
-      </div>
-    </header>
-  )
-}
-
-export default function BookLayout({ session }: BookLayoutProps) {
-  return (
-    <div className="flex flex-col min-h-screen sr-stage">
-      <BookHeader session={session} />
-      <main className="flex flex-col w-full px-4 pt-[4.75rem] pb-28 min-h-screen">
+    <div className="flex min-h-screen flex-col">
+      <TopBar session={session} />
+      <main className="mx-auto w-full max-w-md flex-1 px-5 pb-28 pt-[calc(3.5rem+env(safe-area-inset-top,0px))]">
         <Outlet />
       </main>
-      <BookBottomNav session={session} />
+      <TabBar session={session} />
     </div>
   )
 }

@@ -1,14 +1,21 @@
-import { useEffect, useState, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
-import { supabase } from '../../lib/supabase'
-import type { Driver, CoursePackage, Review, DriverRatingSummary } from '../../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
+import { supabase } from '../../lib/supabase'
+import type {
+  CoursePackage,
+  Driver,
+  DriverAvailability,
+  DriverRatingSummary,
+  Review,
+} from '../../lib/supabase'
 import StarRating from '../../components/book/StarRating'
-import RatingGauge from '../../components/book/RatingGauge'
 import BookingModal from './BookingModal'
 import ReviewModal from './ReviewModal'
 import Toast from '../../components/Toast'
+import { IconArrowLeft, IconCalendar, IconStar, IconTicket } from '../../components/book/icons'
+import { WEEKDAY_SHORT, formatPrice, formatTimeLabel } from '../../lib/bookingFormat'
 
 interface ReviewWithLearner extends Review {
   learner_name: string
@@ -20,27 +27,34 @@ export default function BookDriverDetail({ session }: { session: Session | null 
 
   const [driver, setDriver] = useState<Driver | null>(null)
   const [packages, setPackages] = useState<CoursePackage[]>([])
+  const [availability, setAvailability] = useState<DriverAvailability[]>([])
   const [reviews, setReviews] = useState<ReviewWithLearner[]>([])
   const [summary, setSummary] = useState<DriverRatingSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
-  const [bookingPackage, setBookingPackage] = useState<CoursePackage | null>(null)
-  const [showBookingChooser, setShowBookingChooser] = useState(false)
-  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [bookingOpen, setBookingOpen] = useState(false)
+  const [preselectedPackage, setPreselectedPackage] = useState<CoursePackage | null>(null)
+  const [reviewOpen, setReviewOpen] = useState(false)
   const [canReview, setCanReview] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
-  function showToast(msg: string) {
-    setToastMessage(msg)
-    setTimeout(() => setToastMessage(prev => (prev === msg ? null : prev)), 2500)
+  function showToast(message: string) {
+    setToastMessage(message)
+    setTimeout(() => setToastMessage(prev => (prev === message ? null : prev)), 2600)
   }
 
   const load = useCallback(async () => {
     if (!driverId) return
-    const [driverRes, packagesRes, reviewsRes, summaryRes] = await Promise.all([
+    const [driverRes, packagesRes, availabilityRes, reviewsRes, summaryRes] = await Promise.all([
       supabase.from('drivers').select('*').eq('id', driverId).single(),
       supabase.from('course_packages').select('*').eq('driver_id', driverId).eq('is_active', true).order('price'),
+      supabase
+        .from('driver_availability')
+        .select('*')
+        .eq('driver_id', driverId)
+        .eq('is_active', true)
+        .order('day_of_week'),
       supabase.from('reviews').select('*').eq('driver_id', driverId).order('created_at', { ascending: false }),
       supabase.from('driver_rating_summary').select('*').eq('driver_id', driverId).maybeSingle(),
     ])
@@ -53,23 +67,21 @@ export default function BookDriverDetail({ session }: { session: Session | null 
 
     setDriver(driverRes.data as Driver)
     setPackages((packagesRes.data as CoursePackage[] | null) ?? [])
+    setAvailability((availabilityRes.data as DriverAvailability[] | null) ?? [])
+    setSummary((summaryRes.data as DriverRatingSummary | null) ?? null)
 
     const reviewRows = (reviewsRes.data as Review[] | null) ?? []
     const learnerIds = Array.from(new Set(reviewRows.map(r => r.learner_id)))
-    const profileMap = new Map<string, string | null>()
+    const nameMap = new Map<string, string | null>()
     if (learnerIds.length > 0) {
-      const { data: profileRows } = await supabase.from('public_learner_names').select('id, full_name').in('id', learnerIds)
-      for (const p of (profileRows as { id: string; full_name: string | null }[] | null) ?? []) {
-        profileMap.set(p.id, p.full_name)
+      const { data } = await supabase.from('public_learner_names').select('id, full_name').in('id', learnerIds)
+      for (const row of (data as { id: string; full_name: string | null }[] | null) ?? []) {
+        nameMap.set(row.id, row.full_name)
       }
     }
     setReviews(
-      reviewRows.map(r => ({
-        ...r,
-        learner_name: profileMap.get(r.learner_id)?.split(' ')[0] ?? 'Learner',
-      }))
+      reviewRows.map(r => ({ ...r, learner_name: nameMap.get(r.learner_id)?.split(' ')[0] ?? 'Learner' }))
     )
-    setSummary((summaryRes.data as DriverRatingSummary | null) ?? null)
     setLoading(false)
   }, [driverId])
 
@@ -92,242 +104,269 @@ export default function BookDriverDetail({ session }: { session: Session | null 
       .then(({ data }) => setCanReview(!!data && data.length > 0))
   }, [session, driverId])
 
-  function handleBookClick(pkg?: CoursePackage) {
-    if (!session) {
-      navigate('/book/login', { state: { from: `/book/drivers/${driverId}` } })
-      return
+  const availabilityByDay = useMemo(() => {
+    const grouped = new Map<number, DriverAvailability[]>()
+    for (const slot of availability) {
+      const existing = grouped.get(slot.day_of_week) ?? []
+      existing.push(slot)
+      grouped.set(slot.day_of_week, existing)
     }
-    if (pkg) {
-      setBookingPackage(pkg)
-    } else if (packages.length === 1) {
-      setBookingPackage(packages[0])
-    } else {
-      setShowBookingChooser(true)
-    }
+    return grouped
+  }, [availability])
+
+  function requireLogin() {
+    navigate('/book/login', { state: { from: `/book/drivers/${driverId}` } })
   }
 
-  function handleReviewClick() {
-    if (!session) {
-      navigate('/book/login', { state: { from: `/book/drivers/${driverId}` } })
-      return
-    }
-    setShowReviewModal(true)
+  function openBooking(pkg?: CoursePackage) {
+    if (!session) return requireLogin()
+    setPreselectedPackage(pkg ?? null)
+    setBookingOpen(true)
+  }
+
+  function openReview() {
+    if (!session) return requireLogin()
+    setReviewOpen(true)
   }
 
   if (loading) {
     return (
-      <div className="pt-4 space-y-4">
-        <div className="h-40 rounded-2xl bg-white/60 animate-pulse" />
-        <div className="h-24 rounded-2xl bg-white/60 animate-pulse" />
+      <div className="mx-auto w-full max-w-md">
+        <div className="rd-skeleton h-[230px] rounded-b-[26px]" />
+        <div className="flex flex-col gap-3 p-5">
+          <div className="rd-skeleton h-24 rounded-[18px]" />
+          <div className="rd-skeleton h-24 rounded-[18px]" />
+        </div>
       </div>
     )
   }
 
   if (notFound || !driver) {
     return (
-      <div className="pt-12 text-center">
-        <p className="text-body-base font-semibold text-on-surface">Instructor not found</p>
-        <button onClick={() => navigate('/book/drivers')} className="mt-3 text-primary text-body-sm font-semibold">
-          Back to all instructors
+      <div className="mx-auto flex min-h-screen w-full max-w-md flex-col items-center justify-center gap-3 px-5 text-center">
+        <p className="rd-display text-[19px] font-bold">This instructor isn’t available</p>
+        <p className="rd-ink2 text-[14px]">The profile may have been removed from booking.</p>
+        <button onClick={() => navigate('/book/drivers')} className="rd-btn mt-1 h-11 px-5 text-[14px]">
+          Browse instructors
         </button>
       </div>
     )
   }
 
+  const rating = summary?.average_rating ?? 0
+  const reviewCount = summary?.review_count ?? 0
+
   return (
-    <div className="flex flex-col gap-5 pt-2 pb-8">
+    <div className="mx-auto w-full max-w-md pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <Toast message={toastMessage} />
 
-      {/* Header */}
-      <div className="sr-panel rounded-2xl p-4 flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-16 h-16 rounded-2xl bg-white/70 flex items-center justify-center shrink-0 overflow-hidden shadow-[inset_0_1px_2px_rgba(20,27,43,0.06)]">
-            {driver.photo_url ? (
-              <img src={driver.photo_url} alt={driver.full_name} className="w-full h-full object-cover" />
-            ) : (
-              <span className="material-symbols-outlined text-on-surface-variant text-[32px]">person</span>
-            )}
+      {/* Photo header */}
+      <header className="relative h-[240px] overflow-hidden rounded-b-[26px] bg-[var(--brand)]">
+        {driver.photo_url ? (
+          <img src={driver.photo_url} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div className="grid h-full w-full place-items-center bg-gradient-to-br from-[#2f6bef] to-[#123f9e]">
+            <span className="rd-display text-[64px] font-extrabold text-white/25">
+              {driver.full_name.slice(0, 2).toUpperCase()}
+            </span>
           </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-headline-sm font-semibold text-on-surface truncate">{driver.full_name}</h1>
-            <div className="flex items-center gap-1.5 mt-1">
-              <StarRating rating={summary?.average_rating ?? 0} size={15} />
-              <span className="text-caption-xs text-on-surface-variant">
-                {summary && summary.average_rating > 0 ? summary.average_rating.toFixed(1) : 'New'} ({summary?.review_count ?? 0} reviews)
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#06090f]/85 via-[#06090f]/25 to-transparent" />
+
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Go back"
+          className="absolute left-4 grid h-10 w-10 place-items-center rounded-full bg-black/35 text-white backdrop-blur-md transition-transform active:scale-90"
+          style={{ top: 'calc(0.9rem + env(safe-area-inset-top, 0px))' }}
+        >
+          <IconArrowLeft size={19} />
+        </button>
+
+        <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+          <h1 className="rd-display text-[28px] font-extrabold leading-tight">{driver.full_name}</h1>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
+            <span className="flex items-center gap-1.5">
+              <StarRating rating={rating} size={14} />
+              <span className="font-semibold">
+                {rating > 0 ? rating.toFixed(1) : 'Newly listed'}
               </span>
-            </div>
+              {reviewCount > 0 && (
+                <span className="text-white/70">
+                  ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
+                </span>
+              )}
+            </span>
             {driver.years_experience !== null && (
-              <p className="text-caption-xs text-on-surface-variant mt-0.5">{driver.years_experience}+ years experience</p>
+              <span className="text-white/80">{driver.years_experience}+ yrs experience</span>
             )}
           </div>
-          <RatingGauge rating={summary?.average_rating ?? 0} reviewCount={summary?.review_count ?? 0} size={64} />
         </div>
-        {driver.bio && <p className="text-body-sm text-on-surface-variant">{driver.bio}</p>}
+      </header>
+
+      <div className="flex flex-col gap-8 px-5 pt-6">
+        {driver.bio && <p className="text-[15px] leading-[24px]">{driver.bio}</p>}
+
         {driver.specialties.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {driver.specialties.map(s => (
-              <span key={s} className="px-2.5 py-1 rounded-full bg-white/70 text-caption-xs text-on-surface-variant font-medium">
+              <span key={s} className="rd-chip rd-chip-brand">
                 {s}
               </span>
             ))}
           </div>
         )}
-      </div>
 
-      <div className="sr-chrome-divider" />
-
-      {/* Packages */}
-      <div>
-        <h2 className="text-headline-sm font-semibold text-on-surface mb-3">Course packages</h2>
-        {packages.length === 0 ? (
-          <p className="text-body-sm text-on-surface-variant">No packages listed yet.</p>
-        ) : (
-          <div className="space-y-3">
-            {packages.map(pkg => (
-              <div key={pkg.id} className="sr-panel sr-tilt rounded-2xl p-4 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-body-strong text-on-surface">{pkg.name}</p>
-                  <p className="text-caption-xs text-on-surface-variant mt-0.5">
-                    {pkg.class_count} classes · {pkg.class_duration_minutes} min each
-                  </p>
-                  {pkg.description && <p className="text-body-sm text-on-surface-variant mt-1">{pkg.description}</p>}
-                </div>
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  <p className="text-body-strong text-on-surface">₹{pkg.price}</p>
+        {/* Packages */}
+        <section>
+          <h2 className="rd-display mb-3.5 text-[19px] font-bold">Packages</h2>
+          {packages.length === 0 ? (
+            <div className="rd-card flex items-center gap-3 p-4">
+              <span className="rd-ink3">
+                <IconTicket size={20} />
+              </span>
+              <p className="rd-ink2 text-[14px]">No packages published yet — check back soon.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {packages.map(pkg => (
+                <div key={pkg.id} className="rd-card p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[16px] font-semibold">{pkg.name}</p>
+                      <p className="rd-ink2 mt-0.5 text-[13px]">
+                        {pkg.class_count} {pkg.class_count === 1 ? 'class' : 'classes'} · {pkg.class_duration_minutes} min
+                        each
+                      </p>
+                    </div>
+                    <p className="rd-display shrink-0 text-[20px] font-extrabold">{formatPrice(pkg.price)}</p>
+                  </div>
+                  {pkg.description && (
+                    <p className="rd-ink2 mt-2 text-[13px] leading-[20px]">{pkg.description}</p>
+                  )}
                   <button
-                    onClick={() => handleBookClick(pkg)}
-                    className="sr-btn-primary h-9 px-3 rounded-full text-white text-caption-xs font-semibold active:scale-95 transition-all"
+                    onClick={() => openBooking(pkg)}
+                    className="rd-btn-quiet mt-3.5 h-11 w-full text-[14px]"
                   >
-                    Select
+                    Choose this package
                   </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Reviews */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-headline-sm font-semibold text-on-surface">Reviews</h2>
-          {canReview && (
-            <button onClick={handleReviewClick} className="text-primary text-caption-xs font-semibold">
-              Leave a review
-            </button>
+              ))}
+            </div>
           )}
-        </div>
-        {reviews.length === 0 ? (
-          <p className="text-body-sm text-on-surface-variant">No reviews yet.</p>
-        ) : (
-          <div className="space-y-3">
-            {reviews.map(r => (
-              <div key={r.id} className="sr-panel rounded-2xl p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-body-strong text-on-surface">{r.learner_name}</p>
-                  <StarRating rating={r.rating} size={14} />
-                </div>
-                {r.comment && <p className="text-body-sm text-on-surface-variant mt-1.5">{r.comment}</p>}
-              </div>
-            ))}
+        </section>
+
+        {/* Weekly availability */}
+        {availability.length > 0 && (
+          <section>
+            <h2 className="rd-display mb-3.5 flex items-center gap-2 text-[19px] font-bold">
+              <IconCalendar size={18} />
+              Usual hours
+            </h2>
+            <div className="rd-card divide-y divide-[var(--line)]">
+              {[1, 2, 3, 4, 5, 6, 0].map(dow => {
+                const slots = availabilityByDay.get(dow)
+                return (
+                  <div key={dow} className="flex items-center justify-between px-4 py-2.5">
+                    <span className={`text-[14px] font-semibold ${slots ? '' : 'rd-ink3'}`}>
+                      {WEEKDAY_SHORT[dow]}
+                    </span>
+                    <span className={`text-[13px] ${slots ? 'rd-ink2' : 'rd-ink3'}`}>
+                      {slots
+                        ? slots
+                            .map(s => `${formatTimeLabel(s.start_time)} – ${formatTimeLabel(s.end_time)}`)
+                            .join(', ')
+                        : 'Closed'}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Reviews */}
+        <section>
+          <div className="mb-3.5 flex items-center justify-between gap-3">
+            <h2 className="rd-display text-[19px] font-bold">Reviews</h2>
+            {canReview && (
+              <button onClick={openReview} className="rd-brand flex items-center gap-1 text-[13px] font-semibold">
+                <IconStar size={14} />
+                Write one
+              </button>
+            )}
           </div>
-        )}
+
+          {reviews.length === 0 ? (
+            <div className="rd-card p-4">
+              <p className="rd-ink2 text-[14px]">
+                No reviews yet{canReview ? ' — you could be the first.' : '. They appear once learners finish classes.'}
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {reviews.map(review => (
+                <article key={review.id} className="rd-card p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[14px] font-semibold">{review.learner_name}</p>
+                    <StarRating rating={review.rating} size={13} />
+                  </div>
+                  {review.comment && (
+                    <p className="rd-ink2 mt-2 text-[14px] leading-[22px]">{review.comment}</p>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
 
-      {/* Sticky primary CTA */}
+      {/* Sticky action bar */}
       <div
-        className="fixed bottom-0 left-0 w-full z-30 px-4 pb-4"
-        style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--line)] bg-[rgba(255,255,255,0.92)] px-5 pt-3 backdrop-blur-xl"
+        style={{ paddingBottom: 'calc(0.9rem + env(safe-area-inset-bottom, 0px))' }}
       >
-        <button
-          onClick={() => handleBookClick()}
-          className="sr-btn-primary w-full h-12 text-white rounded-2xl font-semibold text-body-base active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-        >
-          <span className="material-symbols-outlined text-[18px]">event_available</span>
-          Book a class
-        </button>
+        <div className="mx-auto max-w-md">
+          <button
+            onClick={() => openBooking()}
+            disabled={packages.length === 0}
+            className="rd-btn h-[52px] w-full text-[15px]"
+          >
+            {packages.length === 0 ? 'Not open for booking yet' : 'Book a class'}
+          </button>
+        </div>
       </div>
 
       <AnimatePresence>
-        {showBookingChooser && (
-          <PackageChooserSheet
-            packages={packages}
-            onClose={() => setShowBookingChooser(false)}
-            onSelect={pkg => {
-              setShowBookingChooser(false)
-              setBookingPackage(pkg)
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {bookingPackage && session && (
+        {bookingOpen && session && (
           <BookingModal
             driver={driver}
-            coursePackage={bookingPackage}
+            packages={packages}
+            initialPackage={preselectedPackage}
             session={session}
-            onClose={() => setBookingPackage(null)}
+            onClose={() => setBookingOpen(false)}
             onBooked={() => {
-              setBookingPackage(null)
-              showToast('Booking request sent — pending confirmation')
+              setBookingOpen(false)
+              showToast('Request sent — waiting on confirmation')
             }}
           />
         )}
       </AnimatePresence>
 
       <AnimatePresence>
-        {showReviewModal && session && (
+        {reviewOpen && session && (
           <ReviewModal
             driverId={driver.id}
+            driverName={driver.full_name}
             session={session}
-            onClose={() => setShowReviewModal(false)}
+            onClose={() => setReviewOpen(false)}
             onSaved={() => {
-              setShowReviewModal(false)
-              showToast('Thanks for your review!')
+              setReviewOpen(false)
+              showToast('Thanks — your review is live')
               load()
             }}
           />
         )}
       </AnimatePresence>
-    </div>
-  )
-}
-
-function PackageChooserSheet({
-  packages,
-  onClose,
-  onSelect,
-}: {
-  packages: CoursePackage[]
-  onClose: () => void
-  onSelect: (pkg: CoursePackage) => void
-}) {
-  return (
-    <div className="fixed inset-0 z-[90] flex items-end justify-center bg-on-surface/40 backdrop-blur-sm" onClick={onClose}>
-      <div
-        className="sr-panel w-full max-w-sm rounded-t-3xl p-4 flex flex-col gap-3"
-        style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="flex justify-center pt-1 pb-1">
-          <div className="w-10 h-1 rounded-full bg-outline-variant" />
-        </div>
-        <h3 className="text-headline-sm font-semibold text-on-surface px-1">Choose a package</h3>
-        {packages.map(pkg => (
-          <button
-            key={pkg.id}
-            onClick={() => onSelect(pkg)}
-            className="flex items-center justify-between px-3 py-3 rounded-xl bg-white/70 active:scale-[0.98] transition-all text-left"
-          >
-            <div>
-              <p className="text-body-strong text-on-surface">{pkg.name}</p>
-              <p className="text-caption-xs text-on-surface-variant">{pkg.class_count} classes</p>
-            </div>
-            <p className="text-body-strong text-on-surface">₹{pkg.price}</p>
-          </button>
-        ))}
-      </div>
     </div>
   )
 }

@@ -1,44 +1,95 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import type { Driver, DriverRatingSummary } from '../../lib/supabase'
+import type { Driver, DriverRatingSummary, CoursePackage, Review } from '../../lib/supabase'
 import StarRating from '../../components/book/StarRating'
-import RatingGauge from '../../components/book/RatingGauge'
+import { IconArrowRight, IconCar, IconChevronRight } from '../../components/book/icons'
+import { formatPrice } from '../../lib/bookingFormat'
 
-interface FeaturedDriver extends Driver {
+interface RailDriver extends Driver {
   average_rating: number
   review_count: number
+  starting_price: number | null
 }
+
+interface LandingReview extends Review {
+  learner_name: string
+  driver_name: string
+}
+
+const STEPS = [
+  {
+    title: 'Pick your instructor',
+    body: 'Compare profiles, packages and ratings. Every review here comes from a learner who actually took classes.',
+  },
+  {
+    title: 'Request a time',
+    body: 'Choose a date and slot that fits your week. Your request goes straight to that instructor.',
+  },
+  {
+    title: 'Get confirmed, then drive',
+    body: "You'll see the status under Bookings. Pay at the lesson — cash, UPI or card, whatever suits you.",
+  },
+]
 
 export default function BookLanding() {
   const navigate = useNavigate()
-  const [featured, setFeatured] = useState<FeaturedDriver[]>([])
-  const [learnerCount, setLearnerCount] = useState<number | null>(null)
+  const [drivers, setDrivers] = useState<RailDriver[]>([])
+  const [reviews, setReviews] = useState<LandingReview[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let ignore = false
 
     async function load() {
-      const [driversRes, summaryRes, countRes] = await Promise.all([
+      const [driversRes, summaryRes, packagesRes, reviewsRes] = await Promise.all([
         supabase.from('drivers').select('*').eq('is_active', true),
         supabase.from('driver_rating_summary').select('*'),
-        supabase.from('customers').select('id', { count: 'exact', head: true }),
+        supabase.from('course_packages').select('*').eq('is_active', true),
+        supabase
+          .from('reviews')
+          .select('*, drivers(full_name)')
+          .not('comment', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(3),
       ])
       if (ignore) return
 
-      const summaries = (summaryRes.data as DriverRatingSummary[] | null) ?? []
-      const summaryMap = new Map(summaries.map(s => [s.driver_id, s]))
-      const drivers = (driversRes.data as Driver[] | null) ?? []
-      const merged: FeaturedDriver[] = drivers.map(d => ({
+      const summaryMap = new Map(
+        ((summaryRes.data as DriverRatingSummary[] | null) ?? []).map(s => [s.driver_id, s])
+      )
+      const priceByDriver = new Map<string, number>()
+      for (const p of (packagesRes.data as CoursePackage[] | null) ?? []) {
+        const current = priceByDriver.get(p.driver_id)
+        if (current === undefined || p.price < current) priceByDriver.set(p.driver_id, p.price)
+      }
+
+      const list = ((driversRes.data as Driver[] | null) ?? []).map(d => ({
         ...d,
         average_rating: summaryMap.get(d.id)?.average_rating ?? 0,
         review_count: summaryMap.get(d.id)?.review_count ?? 0,
+        starting_price: priceByDriver.get(d.id) ?? null,
       }))
-      merged.sort((a, b) => b.average_rating - a.average_rating)
+      list.sort((a, b) => b.average_rating - a.average_rating)
+      setDrivers(list)
 
-      setFeatured(merged.slice(0, 3))
-      setLearnerCount(countRes.count ?? null)
+      const reviewRows = (reviewsRes.data as (Review & { drivers: { full_name: string } | null })[] | null) ?? []
+      const learnerIds = Array.from(new Set(reviewRows.map(r => r.learner_id)))
+      const nameMap = new Map<string, string | null>()
+      if (learnerIds.length > 0) {
+        const { data } = await supabase.from('public_learner_names').select('id, full_name').in('id', learnerIds)
+        for (const row of (data as { id: string; full_name: string | null }[] | null) ?? []) {
+          nameMap.set(row.id, row.full_name)
+        }
+      }
+      if (ignore) return
+      setReviews(
+        reviewRows.map(r => ({
+          ...r,
+          learner_name: nameMap.get(r.learner_id)?.split(' ')[0] ?? 'Learner',
+          driver_name: r.drivers?.full_name ?? 'your instructor',
+        }))
+      )
       setLoading(false)
     }
 
@@ -48,118 +99,137 @@ export default function BookLanding() {
     }
   }, [])
 
-  const topDriver = featured[0]
-
   return (
-    <div className="flex flex-col -mx-4 -mt-[4.75rem]">
-      {/* Showroom hero: spotlight ground + glass instrument card */}
-      <div className="relative pt-24 pb-14 px-4 overflow-hidden sr-stage">
-        <div className="absolute inset-x-0 bottom-0 h-24 sr-floor" aria-hidden="true" />
-        <div className="relative z-10 flex flex-col items-center text-center gap-4">
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_16px_32px_-10px_rgba(0,63,177,0.55)]"
-            style={{ background: 'linear-gradient(155deg,#4d7dff,#003fb1)' }}
-          >
-            <span className="material-symbols-outlined text-white text-[32px]">directions_car</span>
-          </div>
-          <h1 className="text-headline-lg font-semibold text-on-surface tracking-tight max-w-xs">
-            Learn to drive with confidence
-          </h1>
-          <p className="text-body-base text-on-surface-variant max-w-xs">
-            Compare certified instructors, real reviews, and flexible timings near you.
-          </p>
-          <button
-            onClick={() => navigate('/book/drivers')}
-            className="sr-btn-primary h-12 px-6 text-white rounded-full font-semibold text-body-base active:scale-95 transition-all flex items-center gap-2"
-          >
-            Find your instructor
-            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-          </button>
-        </div>
+    <div className="flex flex-col gap-12 pb-6">
+      {/* Opening statement */}
+      <section className="pt-4">
+        <h1 className="rd-display text-[clamp(40px,12vw,54px)] font-extrabold leading-[0.92]">
+          Learn to
+          <br />
+          drive with
+          <br />
+          <span className="rd-brand">confidence.</span>
+        </h1>
+        <p className="rd-ink2 mt-4 max-w-[33ch] text-[15px] leading-[23px]">
+          Compare certified instructors near you, read what past learners actually said, and hold a slot that fits your
+          week.
+        </p>
+        <button onClick={() => navigate('/book/drivers')} className="rd-btn mt-6 h-14 w-full text-[15px]">
+          Find your instructor
+          <IconArrowRight size={18} />
+        </button>
+      </section>
 
-        {/* Instrument card: trust stats as a dashboard readout */}
-        <div className="relative z-10 mt-8 sr-panel rounded-2xl p-4 grid grid-cols-3 gap-2 text-center max-w-sm mx-auto">
-          <div>
-            <p className="text-headline-sm font-semibold text-on-surface">
-              {learnerCount !== null ? `${learnerCount}+` : '—'}
-            </p>
-            <p className="text-caption-xs text-on-surface-variant mt-0.5">Trained</p>
-          </div>
-          <div className="border-x border-white/60">
-            <p className="text-headline-sm font-semibold text-on-surface">Certified</p>
-            <p className="text-caption-xs text-on-surface-variant mt-0.5">Instructors</p>
-          </div>
-          <div>
-            <p className="text-headline-sm font-semibold text-on-surface">Flexible</p>
-            <p className="text-caption-xs text-on-surface-variant mt-0.5">Timings</p>
-          </div>
-        </div>
-      </div>
+      {/* Instructors */}
+      <section>
+        <header className="mb-4 flex items-end justify-between gap-3">
+          <h2 className="rd-display text-[21px] font-bold">Meet the instructors</h2>
+          {drivers.length > 0 && (
+            <Link to="/book/drivers" className="rd-brand shrink-0 text-[13px] font-semibold">
+              See all
+            </Link>
+          )}
+        </header>
 
-      <div className="sr-chrome-divider mx-4" />
-
-      {/* Top-rated instructor, gauge-forward */}
-      <div className="px-4 pt-6 pb-2">
-        <h2 className="text-headline-sm font-semibold text-on-surface mb-3">Top-rated instructor</h2>
         {loading ? (
-          <div className="h-28 rounded-2xl bg-white/60 animate-pulse" />
-        ) : topDriver ? (
-          <button
-            onClick={() => navigate(`/book/drivers/${topDriver.id}`)}
-            className="sr-panel sr-tilt w-full rounded-2xl p-4 flex items-center gap-4 text-left active:scale-[0.98]"
-          >
-            <RatingGauge rating={topDriver.average_rating} reviewCount={topDriver.review_count} size={84} />
-            <div className="min-w-0 flex-1 pl-2">
-              <p className="text-body-strong text-on-surface truncate">{topDriver.full_name}</p>
-              {topDriver.specialties.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1.5">
-                  {topDriver.specialties.slice(0, 2).map(s => (
-                    <span key={s} className="px-2 py-0.5 rounded-full bg-white/70 text-caption-xs text-on-surface-variant font-medium">
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-            <span className="material-symbols-outlined text-on-surface-variant text-[20px] shrink-0">chevron_right</span>
-          </button>
+          <div className="rd-rail -mx-5 px-5">
+            {[0, 1].map(i => (
+              <div key={i} className="rd-skeleton h-[236px] w-[210px] rounded-[18px]" />
+            ))}
+          </div>
+        ) : drivers.length === 0 ? (
+          <div className="rd-card flex flex-col items-center gap-2 px-6 py-9 text-center">
+            <span className="rd-ink3">
+              <IconCar size={28} />
+            </span>
+            <p className="text-[15px] font-semibold">Instructor profiles are on the way</p>
+            <p className="rd-ink2 text-[13px] leading-[20px]">
+              Nobody has been listed for booking yet. Check back shortly.
+            </p>
+          </div>
         ) : (
-          <p className="text-body-sm text-on-surface-variant">No instructors listed yet.</p>
-        )}
-      </div>
-
-      {/* Remaining featured drivers */}
-      <div className="px-4 pt-4 pb-4">
-        {!loading && featured.length > 1 && (
-          <div className="space-y-3">
-            {featured.slice(1).map(d => (
-              <button
-                key={d.id}
-                onClick={() => navigate(`/book/drivers/${d.id}`)}
-                className="sr-panel sr-tilt w-full rounded-xl p-4 active:scale-[0.98] transition-all flex items-center gap-3 text-left"
+          <div className="rd-rail -mx-5 px-5">
+            {drivers.slice(0, 6).map(driver => (
+              <Link
+                key={driver.id}
+                to={`/book/drivers/${driver.id}`}
+                className="rd-card rd-press w-[210px] overflow-hidden"
               >
-                <div className="w-12 h-12 rounded-full bg-white/70 flex items-center justify-center shrink-0 overflow-hidden">
-                  {d.photo_url ? (
-                    <img src={d.photo_url} alt={d.full_name} className="w-full h-full object-cover" />
+                <div className="relative h-[124px] bg-[var(--brand-tint)]">
+                  {driver.photo_url ? (
+                    <img
+                      src={driver.photo_url}
+                      alt=""
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
                   ) : (
-                    <span className="material-symbols-outlined text-on-surface-variant text-[24px]">person</span>
+                    <span className="rd-display absolute inset-0 grid place-items-center text-[34px] font-extrabold text-[var(--brand)]/35">
+                      {driver.full_name.slice(0, 2).toUpperCase()}
+                    </span>
                   )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-body-strong text-on-surface truncate">{d.full_name}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <StarRating rating={d.average_rating} size={13} />
-                    <span className="text-caption-xs text-on-surface-variant">
-                      {d.average_rating > 0 ? d.average_rating.toFixed(1) : 'New'} ({d.review_count})
+                <div className="p-3.5">
+                  <p className="truncate text-[15px] font-semibold">{driver.full_name}</p>
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <StarRating rating={driver.average_rating} size={13} />
+                    <span className="rd-ink3 text-[12px]">
+                      {driver.average_rating > 0 ? driver.average_rating.toFixed(1) : 'New'}
                     </span>
                   </div>
+                  <p className="rd-ink2 mt-2.5 text-[13px]">
+                    {driver.starting_price !== null ? (
+                      <>
+                        from <span className="font-semibold text-[var(--ink)]">{formatPrice(driver.starting_price)}</span>
+                      </>
+                    ) : (
+                      'Packages coming soon'
+                    )}
+                  </p>
                 </div>
-                <span className="material-symbols-outlined text-on-surface-variant text-[20px]">chevron_right</span>
-              </button>
+              </Link>
             ))}
           </div>
         )}
-      </div>
+      </section>
+
+      {/* How it works — the sequence is the information, so it is numbered */}
+      <section>
+        <h2 className="rd-display mb-5 text-[21px] font-bold">How booking works</h2>
+        <ol className="relative">
+          {STEPS.map((step, i) => (
+            <li key={step.title} className="relative pb-7 pl-12 last:pb-0">
+              {i < STEPS.length - 1 && (
+                <span className="absolute bottom-2 left-[15px] top-9 w-px bg-[var(--line)]" aria-hidden="true" />
+              )}
+              <span className="rd-display absolute left-0 top-0 grid h-[31px] w-[31px] place-items-center rounded-full bg-[var(--ink)] text-[13px] font-bold text-white">
+                {i + 1}
+              </span>
+              <h3 className="pt-1 text-[15px] font-semibold">{step.title}</h3>
+              <p className="rd-ink2 mt-1 text-[14px] leading-[21px]">{step.body}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* Reviews */}
+      {reviews.length > 0 && (
+        <section>
+          <h2 className="rd-display mb-4 text-[21px] font-bold">What learners said</h2>
+          <div className="flex flex-col gap-3">
+            {reviews.map(review => (
+              <Link key={review.id} to={`/book/drivers/${review.driver_id}`} className="rd-card rd-press block p-4">
+                <StarRating rating={review.rating} size={14} />
+                <p className="mt-2.5 text-[14px] leading-[22px]">“{review.comment}”</p>
+                <p className="rd-ink3 mt-2.5 flex items-center gap-1 text-[12px] font-medium">
+                  {review.learner_name} · on {review.driver_name}
+                  <IconChevronRight size={13} />
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

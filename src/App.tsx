@@ -59,18 +59,23 @@ function StaffRoutes({ session }: { session: Session | null }) {
 }
 
 // Public/learner-facing routes — browsable without a session, own shell.
+// Driver detail and learner login sit outside <BookLayout>: each owns a
+// full-screen composition with its own back affordance, and driver detail's
+// sticky "Book a class" bar would otherwise collide with the tab bar.
 function BookRoutes({ session }: { session: Session | null }) {
   return (
-    <Routes>
-      <Route element={<BookLayout session={session} />}>
-        <Route index element={<BookLanding />} />
-        <Route path="drivers" element={<BookDriverList />} />
+    <div className="rd rd-screen">
+      <Routes>
+        <Route element={<BookLayout session={session} />}>
+          <Route index element={<BookLanding />} />
+          <Route path="drivers" element={<BookDriverList />} />
+          <Route path="my-bookings" element={<BookMyBookings session={session} />} />
+        </Route>
         <Route path="drivers/:driverId" element={<BookDriverDetail session={session} />} />
         <Route path="login" element={<BookLogin />} />
-        <Route path="my-bookings" element={<BookMyBookings session={session} />} />
         <Route path="*" element={<NotFound />} />
-      </Route>
-    </Routes>
+      </Routes>
+    </div>
   )
 }
 

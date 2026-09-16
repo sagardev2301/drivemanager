@@ -21,99 +21,176 @@
   * {
     -webkit-tap-highlight-color: transparent;
   }
-  ::selection {
-    background: #1a56db;
-    color: #ffffff;
-  }
 }
 
-/* "Showroom gloss" — the /book surface's visual world: polished-panel cards
-   with layered elevation, a diagonal highlight sweep standing in for studio
-   light, and a chrome hairline in place of flat borders. Kept local to /book
-   (sr- prefix) so the instructor app's flat Material tokens are untouched. */
+/* ===========================================================================
+   Customer booking portal
+   ---------------------------------------------------------------------------
+   Everything below is scoped under `.rd`, which wraps only the /book routes,
+   so the instructor app keeps its own Material tokens untouched.
+   =========================================================================== */
 @layer components {
-  .sr-panel {
-    position: relative;
-    background:
-      linear-gradient(155deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.55) 100%),
-      #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.6);
+  .rd {
+    --paper: #f3f5f9;
+    --card: #ffffff;
+    --ink: #0b0f1a;
+    --ink-2: #59617a;
+    --ink-3: #848ca2;
+    --line: #e3e7ef;
+
+    --brand: #1a56db;
+    --brand-deep: #123f9e;
+    --brand-tint: #eaf0ff;
+
+    --go: #066a4c;
+    --go-tint: #e6f6f0;
+    --wait: #8a4b0a;
+    --wait-tint: #fdf1e3;
+    --stop: #9b1c1c;
+    --stop-tint: #fdecec;
+
+    background: var(--paper);
+    color: var(--ink);
+    font-feature-settings: 'cv11';
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Full-height page shell. Kept off `.rd` itself because the bottom sheet
+     also needs the token scope, and a min-height there would stretch every
+     sheet to the full viewport regardless of its content. */
+  .rd-screen { min-height: 100vh; }
+
+  @supports (min-height: 100dvh) {
+    .rd-screen { min-height: 100dvh; }
+  }
+
+  /* Browser surfaces theming — selection, caret, focus ring */
+  .rd ::selection { background: #1a56db; color: #ffffff; }
+  .rd :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
+  .rd input, .rd textarea { caret-color: var(--brand); }
+
+  /* Display voice: Archivo held slightly expanded, the way automotive
+     wordmarks set their type. Falls back to Inter where wdth is unsupported. */
+  .rd-display {
+    font-family: Archivo, Inter, system-ui, sans-serif;
+    font-stretch: 112%;
+    letter-spacing: -0.025em;
+  }
+
+  .rd-ink2 { color: var(--ink-2); }
+  .rd-ink3 { color: var(--ink-3); }
+  .rd-brand { color: var(--brand); }
+  .rd-line { background: var(--line); }
+
+  .rd-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
     box-shadow:
-      0 1px 1px rgba(20, 27, 43, 0.03),
-      0 8px 20px -6px rgba(26, 45, 92, 0.12),
-      0 24px 48px -20px rgba(26, 45, 92, 0.18);
-    backdrop-filter: blur(20px);
+      0 1px 2px rgba(11, 15, 26, 0.04),
+      0 10px 26px -14px rgba(11, 15, 26, 0.18);
   }
 
-  .sr-panel::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(155deg, rgba(255, 255, 255, 0.9), rgba(180, 196, 255, 0.15) 40%, rgba(255, 255, 255, 0) 70%);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
+  .rd-press {
+    transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.18s ease;
+  }
+  .rd-press:active {
+    transform: scale(0.985);
+    box-shadow: 0 1px 2px rgba(11, 15, 26, 0.06);
   }
 
-  .sr-sheen {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  .sr-sheen::after {
-    content: '';
-    position: absolute;
-    top: -60%;
-    left: -30%;
-    width: 55%;
-    height: 220%;
-    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
-    transform: rotate(8deg);
-    transition: transform 0.6s ease;
-  }
-
-  .sr-tilt {
-    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
-    transform-style: preserve-3d;
-    will-change: transform;
-  }
-  .sr-tilt:active {
-    transform: scale(0.98) translateY(1px);
-  }
-
-  .sr-chrome-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(26, 86, 219, 0.35) 20%, rgba(180, 196, 255, 0.9) 50%, rgba(26, 86, 219, 0.35) 80%, transparent);
-  }
-
-  .sr-btn-primary {
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(180deg, #2f6bef 0%, #003fb1 100%);
+  .rd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--brand);
+    color: #ffffff;
+    border-radius: 14px;
+    font-weight: 600;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.35),
-      0 1px 2px rgba(0, 63, 177, 0.2),
-      0 10px 24px -8px rgba(0, 63, 177, 0.55);
+      0 1px 2px rgba(18, 63, 158, 0.28),
+      0 10px 22px -12px rgba(18, 63, 158, 0.7);
+    transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.16s ease;
   }
-  .sr-btn-primary:active {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset 0 2px 6px rgba(0, 20, 70, 0.3);
-    transform: translateY(1px) scale(0.99);
+  .rd-btn:active:not(:disabled) { background: var(--brand-deep); transform: translateY(1px) scale(0.99); }
+  .rd-btn:disabled { opacity: 0.4; box-shadow: none; cursor: not-allowed; }
+
+  .rd-btn-quiet {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 14px;
+    font-weight: 600;
+    transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.16s ease;
+  }
+  .rd-btn-quiet:active:not(:disabled) { background: #f6f8fc; transform: scale(0.99); }
+  .rd-btn-quiet:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* 16px keeps iOS from zooming the viewport on focus */
+  .rd-field {
+    width: 100%;
+    height: 52px;
+    padding: 0 14px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    font-size: 16px;
+    color: var(--ink);
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+  }
+  .rd-field::placeholder { color: var(--ink-3); }
+  .rd-field:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 4px rgba(26, 86, 219, 0.12);
   }
 
-  .sr-stage {
-    background:
-      radial-gradient(120% 90% at 50% -10%, rgba(180, 205, 255, 0.9) 0%, rgba(240, 245, 255, 0.4) 45%, rgba(249, 249, 255, 0) 70%),
-      linear-gradient(180deg, #eef2ff 0%, #f9f9ff 55%);
+  .rd-rail {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .rd-rail > * { scroll-snap-align: start; flex: 0 0 auto; }
+
+  .rd-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .rd-chip-go { background: var(--go-tint); color: var(--go); }
+  .rd-chip-wait { background: var(--wait-tint); color: var(--wait); }
+  .rd-chip-stop { background: var(--stop-tint); color: var(--stop); }
+  .rd-chip-mute { background: #eceff5; color: var(--ink-2); }
+  .rd-chip-brand { background: var(--brand-tint); color: var(--brand-deep); }
+
+  .rd-sheet {
+    background: #ffffff;
+    border-radius: 26px 26px 0 0;
+    box-shadow: 0 -8px 44px -14px rgba(11, 15, 26, 0.32);
   }
 
-  .sr-floor {
-    background: radial-gradient(60% 100% at 50% 0%, rgba(26, 86, 219, 0.14), rgba(26, 86, 219, 0) 70%);
+  .rd-skeleton {
+    background: linear-gradient(90deg, #e9edf4 0%, #f2f5fa 50%, #e9edf4 100%);
+    background-size: 200% 100%;
+    animation: rd-shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes rd-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 }

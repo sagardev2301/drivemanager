@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import type { Driver, DriverRatingSummary, CoursePackage } from '../../lib/supabase'
 import StarRating from '../../components/book/StarRating'
-import { FilterChip, FilterChipRow } from '../../components/FilterChips'
+import { IconSearch } from '../../components/book/icons'
+import { formatPrice } from '../../lib/bookingFormat'
 
 interface DriverCardData extends Driver {
   average_rating: number
@@ -11,11 +12,33 @@ interface DriverCardData extends Driver {
   starting_price: number | null
 }
 
+type SortKey = 'rating' | 'price'
+
+// Two chips only fit beside each other when the labels are short; past that
+// the row truncates both into unreadable stubs, so drop to one plus a count.
+function SpecialtyRow({ specialties }: { specialties: string[] }) {
+  if (specialties.length === 0) return null
+  const pair = specialties.slice(0, 2)
+  const visible = pair.join('').length <= 24 ? pair : specialties.slice(0, 1)
+  const hidden = specialties.length - visible.length
+
+  return (
+    <div className="mt-auto flex min-w-0 items-center gap-1.5 pt-2.5">
+      {visible.map(s => (
+        <span key={s} className="rd-chip rd-chip-mute min-w-0">
+          <span className="truncate">{s}</span>
+        </span>
+      ))}
+      {hidden > 0 && <span className="rd-ink3 shrink-0 text-[12px] font-medium">+{hidden}</span>}
+    </div>
+  )
+}
+
 export default function BookDriverList() {
-  const navigate = useNavigate()
   const [drivers, setDrivers] = useState<DriverCardData[]>([])
   const [loading, setLoading] = useState(true)
-  const [specialtyFilter, setSpecialtyFilter] = useState<string>('all')
+  const [specialty, setSpecialty] = useState('all')
+  const [sort, setSort] = useState<SortKey>('rating')
 
   useEffect(() => {
     let ignore = false
@@ -28,23 +51,23 @@ export default function BookDriverList() {
       ])
       if (ignore) return
 
-      const summaries = (summaryRes.data as DriverRatingSummary[] | null) ?? []
-      const summaryMap = new Map(summaries.map(s => [s.driver_id, s]))
-      const packages = (packagesRes.data as CoursePackage[] | null) ?? []
+      const summaryMap = new Map(
+        ((summaryRes.data as DriverRatingSummary[] | null) ?? []).map(s => [s.driver_id, s])
+      )
       const priceByDriver = new Map<string, number>()
-      for (const p of packages) {
+      for (const p of (packagesRes.data as CoursePackage[] | null) ?? []) {
         const current = priceByDriver.get(p.driver_id)
         if (current === undefined || p.price < current) priceByDriver.set(p.driver_id, p.price)
       }
 
-      const list = ((driversRes.data as Driver[] | null) ?? []).map(d => ({
-        ...d,
-        average_rating: summaryMap.get(d.id)?.average_rating ?? 0,
-        review_count: summaryMap.get(d.id)?.review_count ?? 0,
-        starting_price: priceByDriver.get(d.id) ?? null,
-      }))
-      list.sort((a, b) => b.average_rating - a.average_rating)
-      setDrivers(list)
+      setDrivers(
+        ((driversRes.data as Driver[] | null) ?? []).map(d => ({
+          ...d,
+          average_rating: summaryMap.get(d.id)?.average_rating ?? 0,
+          review_count: summaryMap.get(d.id)?.review_count ?? 0,
+          starting_price: priceByDriver.get(d.id) ?? null,
+        }))
+      )
       setLoading(false)
     }
 
@@ -57,91 +80,137 @@ export default function BookDriverList() {
   const specialties = useMemo(() => {
     const set = new Set<string>()
     drivers.forEach(d => d.specialties.forEach(s => set.add(s)))
-    return Array.from(set)
+    return Array.from(set).sort()
   }, [drivers])
 
-  const filtered = useMemo(() => {
-    if (specialtyFilter === 'all') return drivers
-    return drivers.filter(d => d.specialties.includes(specialtyFilter))
-  }, [drivers, specialtyFilter])
+  const visible = useMemo(() => {
+    const filtered = specialty === 'all' ? drivers : drivers.filter(d => d.specialties.includes(specialty))
+    return [...filtered].sort((a, b) => {
+      if (sort === 'price') {
+        const ap = a.starting_price ?? Number.POSITIVE_INFINITY
+        const bp = b.starting_price ?? Number.POSITIVE_INFINITY
+        return ap - bp
+      }
+      return b.average_rating - a.average_rating
+    })
+  }, [drivers, specialty, sort])
 
   return (
-    <div className="flex flex-col gap-4 pt-2 pb-4">
+    <div className="flex flex-col gap-5 pb-4 pt-4">
       <div>
-        <h1 className="text-headline-md font-semibold text-on-surface">Find your instructor</h1>
-        <p className="text-body-sm text-on-surface-variant mt-0.5">{filtered.length} instructors available</p>
+        <h1 className="rd-display text-[30px] font-extrabold leading-tight">Instructors</h1>
+        <p className="rd-ink2 mt-1 text-[14px]">
+          {loading ? 'Loading…' : `${visible.length} available near you`}
+        </p>
       </div>
 
-      {specialties.length > 0 && (
-        <FilterChipRow>
-          <FilterChip active={specialtyFilter === 'all'} onClick={() => setSpecialtyFilter('all')}>
-            All
-          </FilterChip>
-          {specialties.map(s => (
-            <FilterChip key={s} active={specialtyFilter === s} onClick={() => setSpecialtyFilter(s)}>
-              {s}
-            </FilterChip>
-          ))}
-        </FilterChipRow>
+      {!loading && drivers.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {/* Sort */}
+          <div className="inline-flex self-start rounded-full border border-[var(--line)] bg-white p-1">
+            {([
+              ['rating', 'Top rated'],
+              ['price', 'Lowest price'],
+            ] as const).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setSort(key)}
+                aria-pressed={sort === key}
+                className={`h-9 rounded-full px-4 text-[13px] font-semibold transition-colors ${
+                  sort === key ? 'bg-[var(--ink)] text-white' : 'rd-ink2'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Specialty */}
+          {specialties.length > 0 && (
+            <div className="rd-rail -mx-5 px-5">
+              {['all', ...specialties].map(item => (
+                <button
+                  key={item}
+                  onClick={() => setSpecialty(item)}
+                  aria-pressed={specialty === item}
+                  className={`h-9 rounded-full border px-3.5 text-[13px] font-semibold transition-colors ${
+                    specialty === item
+                      ? 'border-transparent bg-[var(--brand-tint)] text-[var(--brand-deep)]'
+                      : 'border-[var(--line)] bg-white text-[var(--ink-2)]'
+                  }`}
+                >
+                  {item === 'all' ? 'All specialities' : item}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {loading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-24 rounded-2xl bg-white/60 animate-pulse" />
+        <div className="flex flex-col gap-3">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="rd-skeleton h-[108px] rounded-[18px]" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="sr-panel rounded-2xl p-8 text-center">
-          <p className="text-body-base font-semibold text-on-surface">No instructors match this filter</p>
+      ) : visible.length === 0 ? (
+        <div className="rd-card flex flex-col items-center gap-2 px-6 py-10 text-center">
+          <span className="rd-ink3">
+            <IconSearch size={26} />
+          </span>
+          <p className="text-[15px] font-semibold">
+            {drivers.length === 0 ? 'No instructors listed yet' : 'Nothing matches that speciality'}
+          </p>
+          <p className="rd-ink2 text-[13px] leading-[20px]">
+            {drivers.length === 0
+              ? 'Profiles will appear here as soon as instructors are listed for booking.'
+              : 'Try “All specialities” to see everyone available.'}
+          </p>
+          {drivers.length > 0 && specialty !== 'all' && (
+            <button onClick={() => setSpecialty('all')} className="rd-btn-quiet mt-2 h-10 px-4 text-[13px]">
+              Show all instructors
+            </button>
+          )}
         </div>
       ) : (
-        <div className="space-y-3">
-          {filtered.map(d => (
-            <button
-              key={d.id}
-              onClick={() => navigate(`/book/drivers/${d.id}`)}
-              className="sr-panel sr-tilt w-full rounded-2xl p-4 active:scale-[0.98] transition-all text-left"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-14 h-14 rounded-xl bg-white/70 flex items-center justify-center shrink-0 overflow-hidden shadow-[inset_0_1px_2px_rgba(20,27,43,0.06)]">
-                  {d.photo_url ? (
-                    <img src={d.photo_url} alt={d.full_name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="material-symbols-outlined text-on-surface-variant text-[28px]">person</span>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-body-strong text-on-surface truncate">{d.full_name}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <StarRating rating={d.average_rating} size={13} />
-                    <span className="text-caption-xs text-on-surface-variant">
-                      {d.average_rating > 0 ? d.average_rating.toFixed(1) : 'New'} ({d.review_count})
-                    </span>
-                  </div>
-                  {d.specialties.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {d.specialties.slice(0, 3).map(s => (
-                        <span
-                          key={s}
-                          className="px-2 py-0.5 rounded-full bg-white/70 text-caption-xs text-on-surface-variant font-medium"
-                        >
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="text-right shrink-0">
-                  {d.starting_price !== null && (
-                    <>
-                      <p className="text-caption-xs text-on-surface-variant">From</p>
-                      <p className="text-body-strong text-on-surface">₹{d.starting_price}</p>
-                    </>
-                  )}
-                </div>
+        <div className="flex flex-col gap-3">
+          {visible.map(driver => (
+            <Link key={driver.id} to={`/book/drivers/${driver.id}`} className="rd-card rd-press flex gap-3.5 p-3.5">
+              <div className="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-[14px] bg-[var(--brand-tint)]">
+                {driver.photo_url ? (
+                  <img src={driver.photo_url} alt="" className="h-full w-full object-cover" loading="lazy" />
+                ) : (
+                  <span className="rd-display grid h-full w-full place-items-center text-[22px] font-extrabold text-[var(--brand)]/35">
+                    {driver.full_name.slice(0, 2).toUpperCase()}
+                  </span>
+                )}
               </div>
-            </button>
+
+              <div className="flex min-w-0 flex-1 flex-col">
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="truncate text-[16px] font-semibold">{driver.full_name}</p>
+                  {driver.starting_price !== null && (
+                    <p className="rd-ink3 shrink-0 text-[11px]">
+                      from{' '}
+                      <span className="rd-display text-[15px] font-bold text-[var(--ink)]">
+                        {formatPrice(driver.starting_price)}
+                      </span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-1 flex items-center gap-1.5">
+                  <StarRating rating={driver.average_rating} size={13} />
+                  <span className="rd-ink3 text-[12px]">
+                    {driver.average_rating > 0
+                      ? `${driver.average_rating.toFixed(1)} · ${driver.review_count} ${driver.review_count === 1 ? 'review' : 'reviews'}`
+                      : 'Newly listed'}
+                  </span>
+                </div>
+
+                <SpecialtyRow specialties={driver.specialties} />
+              </div>
+            </Link>
           ))}
         </div>
       )}
