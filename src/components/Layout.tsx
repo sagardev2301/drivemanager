@@ -51,6 +51,17 @@ export function BottomNav() {
           <span className="text-[10px] leading-[13px] mt-0.5 font-medium">Customers</span>
         </NavLink>
         <NavLink
+          to="/requests"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-all duration-150 active:scale-90 ${
+              isActive ? 'text-primary' : 'text-on-surface-variant'
+            }`
+          }
+        >
+          <span className="material-symbols-outlined text-[24px]">inbox</span>
+          <span className="text-[10px] leading-[13px] mt-0.5 font-medium">Requests</span>
+        </NavLink>
+        <NavLink
           to="/dashboard"
           className={({ isActive }) =>
             `flex flex-col items-center justify-center min-w-[52px] min-h-[44px] py-1 transition-all duration-150 active:scale-90 ${
@@ -95,6 +106,17 @@ export function Header({ title, showBack, onBack }: LayoutProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <NavLink
+            to="/driver-profile"
+            aria-label="My driver profile"
+            className={({ isActive }) =>
+              `w-9 h-9 flex items-center justify-center rounded-full transition-all active:scale-90 ${
+                isActive ? 'bg-primary-fixed text-on-primary-fixed' : 'text-on-surface-variant hover:bg-surface-container-high'
+              }`
+            }
+          >
+            <span className="material-symbols-outlined text-[20px]">badge</span>
+          </NavLink>
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
             <span className="material-symbols-outlined text-on-primary text-[18px]">person</span>
           </div>
