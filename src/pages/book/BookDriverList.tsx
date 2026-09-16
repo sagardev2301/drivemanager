@@ -88,11 +88,11 @@ export default function BookDriverList() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-24 bg-surface-container-low rounded-xl animate-pulse" />
+            <div key={i} className="h-24 rounded-2xl bg-white/60 animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-dashed border-outline-variant p-8 text-center">
+        <div className="sr-panel rounded-2xl p-8 text-center">
           <p className="text-body-base font-semibold text-on-surface">No instructors match this filter</p>
         </div>
       ) : (
@@ -101,10 +101,10 @@ export default function BookDriverList() {
             <button
               key={d.id}
               onClick={() => navigate(`/book/drivers/${d.id}`)}
-              className="w-full bg-white rounded-xl p-4 shadow-sm active:scale-[0.98] transition-all text-left"
+              className="sr-panel sr-tilt w-full rounded-2xl p-4 active:scale-[0.98] transition-all text-left"
             >
               <div className="flex items-start gap-3">
-                <div className="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0 overflow-hidden">
+                <div className="w-14 h-14 rounded-xl bg-white/70 flex items-center justify-center shrink-0 overflow-hidden shadow-[inset_0_1px_2px_rgba(20,27,43,0.06)]">
                   {d.photo_url ? (
                     <img src={d.photo_url} alt={d.full_name} className="w-full h-full object-cover" />
                   ) : (
@@ -124,7 +124,7 @@ export default function BookDriverList() {
                       {d.specialties.slice(0, 3).map(s => (
                         <span
                           key={s}
-                          className="px-2 py-0.5 rounded-full bg-surface-container text-caption-xs text-on-surface-variant font-medium"
+                          className="px-2 py-0.5 rounded-full bg-white/70 text-caption-xs text-on-surface-variant font-medium"
                         >
                           {s}
                         </span>

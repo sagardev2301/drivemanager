@@ -63,8 +63,11 @@ export default function BookLogin() {
     <div className="flex flex-col items-center justify-center flex-1 min-h-[70vh] px-1">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mb-3 shadow-lg">
-            <span className="material-symbols-outlined text-on-primary text-[28px]">directions_car</span>
+          <div
+            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_16px_32px_-10px_rgba(0,63,177,0.55)]"
+            style={{ background: 'linear-gradient(155deg,#4d7dff,#003fb1)' }}
+          >
+            <span className="material-symbols-outlined text-white text-[28px]">directions_car</span>
           </div>
           <h1 className="text-headline-md font-semibold text-on-surface tracking-tight">
             {step === 'phone' ? 'Sign in to book a class' : 'Verify your number'}
@@ -76,7 +79,7 @@ export default function BookLogin() {
           </p>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-xl shadow-sm p-6">
+        <div className="sr-panel rounded-2xl p-6">
           {step === 'phone' ? (
             <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
               <div>
@@ -89,7 +92,7 @@ export default function BookLogin() {
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   placeholder="Full name"
-                  className="w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-body-base focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-outline-variant/30"
+                  className="w-full h-11 px-3 rounded-xl bg-white/70 text-on-surface text-body-base focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-white/60"
                 />
               </div>
               <div>
@@ -102,7 +105,7 @@ export default function BookLogin() {
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
                   placeholder="98765 43210"
-                  className="w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-body-base focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-outline-variant/30"
+                  className="w-full h-11 px-3 rounded-xl bg-white/70 text-on-surface text-body-base focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-white/60"
                 />
               </div>
 
@@ -116,7 +119,7 @@ export default function BookLogin() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-11 bg-primary hover:bg-primary-container text-on-primary rounded-xl font-semibold text-body-base flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
+                className="sr-btn-primary w-full h-11 text-white rounded-xl font-semibold text-body-base flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
               >
                 {loading ? 'Sending code...' : 'Send code'}
               </button>
@@ -134,7 +137,7 @@ export default function BookLogin() {
                   value={otp}
                   onChange={e => setOtp(e.target.value)}
                   placeholder="123456"
-                  className="w-full h-11 px-3 rounded-xl bg-surface-container-low text-on-surface text-body-base tracking-[0.3em] text-center focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-outline-variant/30"
+                  className="w-full h-11 px-3 rounded-xl bg-white/70 text-on-surface text-body-base tracking-[0.3em] text-center focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-white/60"
                 />
               </div>
 
@@ -148,7 +151,7 @@ export default function BookLogin() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-11 bg-primary hover:bg-primary-container text-on-primary rounded-xl font-semibold text-body-base flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
+                className="sr-btn-primary w-full h-11 text-white rounded-xl font-semibold text-body-base flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
               >
                 {loading ? 'Verifying...' : 'Verify & continue'}
               </button>

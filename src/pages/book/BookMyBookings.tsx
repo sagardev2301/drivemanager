@@ -9,7 +9,7 @@ const STATUS_CONFIG: Record<BookingStatus, { label: string; bg: string; text: st
   pending: { label: 'Pending', bg: 'bg-amber-50', text: 'text-amber-800' },
   confirmed: { label: 'Confirmed', bg: 'bg-emerald-50', text: 'text-emerald-700' },
   declined: { label: 'Declined', bg: 'bg-rose-50', text: 'text-rose-700' },
-  cancelled: { label: 'Cancelled', bg: 'bg-surface-container', text: 'text-on-surface-variant' },
+  cancelled: { label: 'Cancelled', bg: 'bg-white/70', text: 'text-on-surface-variant' },
 }
 
 export default function BookMyBookings({ session }: { session: Session | null }) {
@@ -60,7 +60,7 @@ export default function BookMyBookings({ session }: { session: Session | null })
         <p className="text-body-base font-semibold text-on-surface">Sign in to see your bookings</p>
         <button
           onClick={() => navigate('/book/login', { state: { from: '/book/my-bookings' } })}
-          className="h-10 px-4 rounded-xl bg-primary text-on-primary text-body-sm font-semibold"
+          className="sr-btn-primary h-10 px-4 rounded-full text-white text-body-sm font-semibold"
         >
           Sign in
         </button>
@@ -76,16 +76,16 @@ export default function BookMyBookings({ session }: { session: Session | null })
       {loading ? (
         <div className="space-y-3">
           {[1, 2].map(i => (
-            <div key={i} className="h-20 bg-surface-container-low rounded-xl animate-pulse" />
+            <div key={i} className="h-20 rounded-2xl bg-white/60 animate-pulse" />
           ))}
         </div>
       ) : bookings.length === 0 ? (
-        <div className="bg-white rounded-xl border border-dashed border-outline-variant p-8 text-center flex flex-col items-center gap-3">
+        <div className="sr-panel rounded-2xl p-8 text-center flex flex-col items-center gap-3">
           <span className="material-symbols-outlined text-on-surface-variant text-[36px]">event_available</span>
           <p className="text-body-base font-semibold text-on-surface">No bookings yet</p>
           <button
             onClick={() => navigate('/book/drivers')}
-            className="h-10 px-4 rounded-xl bg-primary text-on-primary text-body-sm font-semibold"
+            className="sr-btn-primary h-10 px-4 rounded-full text-white text-body-sm font-semibold"
           >
             Find an instructor
           </button>
@@ -95,7 +95,7 @@ export default function BookMyBookings({ session }: { session: Session | null })
           {bookings.map(b => {
             const cfg = STATUS_CONFIG[b.status]
             return (
-              <div key={b.id} className="bg-white rounded-xl shadow-sm p-4">
+              <div key={b.id} className="sr-panel rounded-2xl p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-body-strong text-on-surface truncate">{b.drivers?.full_name ?? 'Instructor'}</p>
@@ -105,7 +105,7 @@ export default function BookMyBookings({ session }: { session: Session | null })
                     {cfg.label}
                   </span>
                 </div>
-                <div className="flex items-center gap-3 mt-3 pt-3 border-t border-outline-variant/40 text-body-sm text-on-surface-variant">
+                <div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/60 text-body-sm text-on-surface-variant">
                   <span className="flex items-center gap-1">
                     <span className="material-symbols-outlined text-[15px]">calendar_today</span>
                     {new Date(b.requested_date + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
@@ -118,7 +118,7 @@ export default function BookMyBookings({ session }: { session: Session | null })
                 {b.status === 'pending' && (
                   <button
                     onClick={() => handleCancel(b.id)}
-                    className="mt-3 w-full h-9 rounded-xl bg-surface-container-low text-on-surface-variant text-caption-xs font-semibold active:scale-95 transition-all"
+                    className="mt-3 w-full h-9 rounded-xl bg-white/70 text-on-surface-variant text-caption-xs font-semibold active:scale-95 transition-all"
                   >
                     Cancel request
                   </button>

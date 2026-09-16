@@ -21,4 +21,99 @@
   * {
     -webkit-tap-highlight-color: transparent;
   }
+  ::selection {
+    background: #1a56db;
+    color: #ffffff;
+  }
+}
+
+/* "Showroom gloss" — the /book surface's visual world: polished-panel cards
+   with layered elevation, a diagonal highlight sweep standing in for studio
+   light, and a chrome hairline in place of flat borders. Kept local to /book
+   (sr- prefix) so the instructor app's flat Material tokens are untouched. */
+@layer components {
+  .sr-panel {
+    position: relative;
+    background:
+      linear-gradient(155deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.55) 100%),
+      #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+      0 1px 1px rgba(20, 27, 43, 0.03),
+      0 8px 20px -6px rgba(26, 45, 92, 0.12),
+      0 24px 48px -20px rgba(26, 45, 92, 0.18);
+    backdrop-filter: blur(20px);
+  }
+
+  .sr-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.9), rgba(180, 196, 255, 0.15) 40%, rgba(255, 255, 255, 0) 70%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .sr-sheen {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .sr-sheen::after {
+    content: '';
+    position: absolute;
+    top: -60%;
+    left: -30%;
+    width: 55%;
+    height: 220%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    transform: rotate(8deg);
+    transition: transform 0.6s ease;
+  }
+
+  .sr-tilt {
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .sr-tilt:active {
+    transform: scale(0.98) translateY(1px);
+  }
+
+  .sr-chrome-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(26, 86, 219, 0.35) 20%, rgba(180, 196, 255, 0.9) 50%, rgba(26, 86, 219, 0.35) 80%, transparent);
+  }
+
+  .sr-btn-primary {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #2f6bef 0%, #003fb1 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      0 1px 2px rgba(0, 63, 177, 0.2),
+      0 10px 24px -8px rgba(0, 63, 177, 0.55);
+  }
+  .sr-btn-primary:active {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 2px 6px rgba(0, 20, 70, 0.3);
+    transform: translateY(1px) scale(0.99);
+  }
+
+  .sr-stage {
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(180, 205, 255, 0.9) 0%, rgba(240, 245, 255, 0.4) 45%, rgba(249, 249, 255, 0) 70%),
+      linear-gradient(180deg, #eef2ff 0%, #f9f9ff 55%);
+  }
+
+  .sr-floor {
+    background: radial-gradient(60% 100% at 50% 0%, rgba(26, 86, 219, 0.14), rgba(26, 86, 219, 0) 70%);
+  }
 }

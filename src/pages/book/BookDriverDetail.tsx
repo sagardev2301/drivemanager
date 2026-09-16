@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import type { Driver, CoursePackage, Review, DriverRatingSummary } from '../../lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 import StarRating from '../../components/book/StarRating'
+import RatingGauge from '../../components/book/RatingGauge'
 import BookingModal from './BookingModal'
 import ReviewModal from './ReviewModal'
 import Toast from '../../components/Toast'
@@ -116,8 +117,8 @@ export default function BookDriverDetail({ session }: { session: Session | null 
   if (loading) {
     return (
       <div className="pt-4 space-y-4">
-        <div className="h-40 bg-surface-container-low rounded-xl animate-pulse" />
-        <div className="h-24 bg-surface-container-low rounded-xl animate-pulse" />
+        <div className="h-40 rounded-2xl bg-white/60 animate-pulse" />
+        <div className="h-24 rounded-2xl bg-white/60 animate-pulse" />
       </div>
     )
   }
@@ -138,9 +139,9 @@ export default function BookDriverDetail({ session }: { session: Session | null 
       <Toast message={toastMessage} />
 
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-sm p-4 flex flex-col gap-3">
+      <div className="sr-panel rounded-2xl p-4 flex flex-col gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="w-16 h-16 rounded-2xl bg-white/70 flex items-center justify-center shrink-0 overflow-hidden shadow-[inset_0_1px_2px_rgba(20,27,43,0.06)]">
             {driver.photo_url ? (
               <img src={driver.photo_url} alt={driver.full_name} className="w-full h-full object-cover" />
             ) : (
@@ -159,12 +160,13 @@ export default function BookDriverDetail({ session }: { session: Session | null 
               <p className="text-caption-xs text-on-surface-variant mt-0.5">{driver.years_experience}+ years experience</p>
             )}
           </div>
+          <RatingGauge rating={summary?.average_rating ?? 0} reviewCount={summary?.review_count ?? 0} size={64} />
         </div>
         {driver.bio && <p className="text-body-sm text-on-surface-variant">{driver.bio}</p>}
         {driver.specialties.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {driver.specialties.map(s => (
-              <span key={s} className="px-2.5 py-1 rounded-full bg-surface-container text-caption-xs text-on-surface-variant font-medium">
+              <span key={s} className="px-2.5 py-1 rounded-full bg-white/70 text-caption-xs text-on-surface-variant font-medium">
                 {s}
               </span>
             ))}
@@ -172,8 +174,7 @@ export default function BookDriverDetail({ session }: { session: Session | null 
         )}
       </div>
 
-      {/* Road-line divider */}
-      <div className="h-[2px] bg-[repeating-linear-gradient(90deg,transparent,transparent_6px,theme(colors.outline-variant)_6px,theme(colors.outline-variant)_14px)]" />
+      <div className="sr-chrome-divider" />
 
       {/* Packages */}
       <div>
@@ -183,7 +184,7 @@ export default function BookDriverDetail({ session }: { session: Session | null 
         ) : (
           <div className="space-y-3">
             {packages.map(pkg => (
-              <div key={pkg.id} className="bg-white rounded-xl shadow-sm p-4 flex items-center justify-between gap-3">
+              <div key={pkg.id} className="sr-panel sr-tilt rounded-2xl p-4 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-body-strong text-on-surface">{pkg.name}</p>
                   <p className="text-caption-xs text-on-surface-variant mt-0.5">
@@ -195,7 +196,7 @@ export default function BookDriverDetail({ session }: { session: Session | null 
                   <p className="text-body-strong text-on-surface">₹{pkg.price}</p>
                   <button
                     onClick={() => handleBookClick(pkg)}
-                    className="h-9 px-3 rounded-xl bg-primary text-on-primary text-caption-xs font-semibold active:scale-95 transition-all"
+                    className="sr-btn-primary h-9 px-3 rounded-full text-white text-caption-xs font-semibold active:scale-95 transition-all"
                   >
                     Select
                   </button>
@@ -221,7 +222,7 @@ export default function BookDriverDetail({ session }: { session: Session | null 
         ) : (
           <div className="space-y-3">
             {reviews.map(r => (
-              <div key={r.id} className="bg-white rounded-xl shadow-sm p-4">
+              <div key={r.id} className="sr-panel rounded-2xl p-4">
                 <div className="flex items-center justify-between">
                   <p className="text-body-strong text-on-surface">{r.learner_name}</p>
                   <StarRating rating={r.rating} size={14} />
@@ -235,12 +236,12 @@ export default function BookDriverDetail({ session }: { session: Session | null 
 
       {/* Sticky primary CTA */}
       <div
-        className="fixed bottom-0 left-0 w-full z-30 bg-surface/95 backdrop-blur-xl border-t border-outline-variant/40 px-4 py-3"
-        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
+        className="fixed bottom-0 left-0 w-full z-30 px-4 pb-4"
+        style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
       >
         <button
           onClick={() => handleBookClick()}
-          className="w-full h-12 bg-primary text-on-primary rounded-xl font-semibold text-body-base shadow-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+          className="sr-btn-primary w-full h-12 text-white rounded-2xl font-semibold text-body-base active:scale-[0.98] transition-all flex items-center justify-center gap-2"
         >
           <span className="material-symbols-outlined text-[18px]">event_available</span>
           Book a class
@@ -303,21 +304,21 @@ function PackageChooserSheet({
   onSelect: (pkg: CoursePackage) => void
 }) {
   return (
-    <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[90] flex items-end justify-center bg-on-surface/40 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-sm bg-white rounded-t-3xl shadow-2xl p-4 flex flex-col gap-3"
+        className="sr-panel w-full max-w-sm rounded-t-3xl p-4 flex flex-col gap-3"
         style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-center pt-1 pb-1">
-          <div className="w-10 h-1 rounded-full bg-surface-container-high" />
+          <div className="w-10 h-1 rounded-full bg-outline-variant" />
         </div>
         <h3 className="text-headline-sm font-semibold text-on-surface px-1">Choose a package</h3>
         {packages.map(pkg => (
           <button
             key={pkg.id}
             onClick={() => onSelect(pkg)}
-            className="flex items-center justify-between px-3 py-3 rounded-xl bg-surface-container-low active:scale-[0.98] transition-all text-left"
+            className="flex items-center justify-between px-3 py-3 rounded-xl bg-white/70 active:scale-[0.98] transition-all text-left"
           >
             <div>
               <p className="text-body-strong text-on-surface">{pkg.name}</p>

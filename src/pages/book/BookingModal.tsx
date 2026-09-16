@@ -137,7 +137,7 @@ export default function BookingModal({ driver, coursePackage, session, onClose, 
         initial="hidden"
         animate="visible"
         exit="exit"
-        className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40 backdrop-blur-sm"
+        className="fixed inset-0 z-[90] flex items-end justify-center bg-on-surface/40 backdrop-blur-sm"
         onClick={handleClose}
       >
         <motion.div
@@ -145,12 +145,12 @@ export default function BookingModal({ driver, coursePackage, session, onClose, 
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="w-full max-w-sm bg-white rounded-t-3xl shadow-2xl p-4 flex flex-col gap-4 max-h-[85vh] overflow-y-auto"
+          className="sr-panel w-full max-w-sm rounded-t-3xl p-4 flex flex-col gap-4 max-h-[85vh] overflow-y-auto"
           style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}
           onClick={e => e.stopPropagation()}
         >
           <div className="flex justify-center pt-1 pb-1">
-            <div className="w-10 h-1 rounded-full bg-surface-container-high" />
+            <div className="w-10 h-1 rounded-full bg-outline-variant" />
           </div>
 
           <div className="flex items-center justify-between px-1">
@@ -162,7 +162,7 @@ export default function BookingModal({ driver, coursePackage, session, onClose, 
             </div>
             <button
               onClick={handleClose}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-white/70 transition-colors"
               aria-label="Close"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
@@ -173,7 +173,7 @@ export default function BookingModal({ driver, coursePackage, session, onClose, 
             <>
               <button
                 onClick={() => setShowDatePicker(true)}
-                className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-surface-container-low"
+                className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/70"
               >
                 <span className="text-body-sm font-semibold text-on-surface">
                   {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-IN', {
@@ -188,7 +188,7 @@ export default function BookingModal({ driver, coursePackage, session, onClose, 
               {loadingSlots ? (
                 <div className="grid grid-cols-3 gap-2">
                   {[1, 2, 3, 4, 5, 6].map(i => (
-                    <div key={i} className="h-10 bg-surface-container-low rounded-xl animate-pulse" />
+                    <div key={i} className="h-10 bg-white/60 rounded-xl animate-pulse" />
                   ))}
                 </div>
               ) : slots.length === 0 ? (
@@ -203,8 +203,8 @@ export default function BookingModal({ driver, coursePackage, session, onClose, 
                       onClick={() => setSelectedSlot(slot)}
                       className={`h-10 rounded-xl text-caption-xs font-semibold transition-all active:scale-95 ${
                         selectedSlot === slot
-                          ? 'bg-primary text-on-primary'
-                          : 'bg-surface-container-low text-on-surface'
+                          ? 'sr-btn-primary text-white'
+                          : 'bg-white/70 text-on-surface'
                       }`}
                     >
                       {formatTimeLabel(slot)}
@@ -216,7 +216,7 @@ export default function BookingModal({ driver, coursePackage, session, onClose, 
               <button
                 disabled={!selectedSlot}
                 onClick={() => setStep('confirm')}
-                className="w-full h-11 bg-primary text-on-primary rounded-xl font-semibold text-body-base disabled:opacity-40 active:scale-[0.98] transition-all"
+                className="sr-btn-primary w-full h-11 text-white rounded-xl font-semibold text-body-base disabled:opacity-40 active:scale-[0.98] transition-all"
               >
                 Continue
               </button>
@@ -225,7 +225,7 @@ export default function BookingModal({ driver, coursePackage, session, onClose, 
 
           {step === 'confirm' && selectedSlot && (
             <>
-              <div className="bg-surface-container-low rounded-xl p-4 space-y-2">
+              <div className="bg-white/70 rounded-xl p-4 space-y-2">
                 <div className="flex justify-between text-body-sm">
                   <span className="text-on-surface-variant">Instructor</span>
                   <span className="font-semibold text-on-surface">{driver.full_name}</span>
@@ -267,7 +267,7 @@ export default function BookingModal({ driver, coursePackage, session, onClose, 
               <button
                 disabled={submitting}
                 onClick={handleConfirm}
-                className="w-full h-11 bg-primary text-on-primary rounded-xl font-semibold text-body-base disabled:opacity-60 active:scale-[0.98] transition-all"
+                className="sr-btn-primary w-full h-11 text-white rounded-xl font-semibold text-body-base disabled:opacity-60 active:scale-[0.98] transition-all"
               >
                 {submitting ? 'Sending request...' : 'Send booking request'}
               </button>

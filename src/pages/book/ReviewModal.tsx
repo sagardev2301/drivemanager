@@ -62,7 +62,7 @@ export default function ReviewModal({ driverId, session, onClose, onSaved }: Rev
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-[90] flex items-end justify-center bg-on-surface/40 backdrop-blur-sm"
       onClick={requestClose}
     >
       <motion.div
@@ -70,12 +70,12 @@ export default function ReviewModal({ driverId, session, onClose, onSaved }: Rev
         initial="hidden"
         animate="visible"
         exit="exit"
-        className="w-full max-w-sm bg-white rounded-t-3xl shadow-2xl p-4 flex flex-col gap-4"
+        className="sr-panel w-full max-w-sm rounded-t-3xl p-4 flex flex-col gap-4"
         style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-center pt-1 pb-1">
-          <div className="w-10 h-1 rounded-full bg-surface-container-high" />
+          <div className="w-10 h-1 rounded-full bg-outline-variant" />
         </div>
 
         <h3 className="text-headline-sm font-semibold text-on-surface px-1">Leave a review</h3>
@@ -89,7 +89,7 @@ export default function ReviewModal({ driverId, session, onClose, onSaved }: Rev
           onChange={e => setComment(e.target.value)}
           placeholder="How was your experience? (optional)"
           rows={3}
-          className="w-full px-3 py-2.5 rounded-xl bg-surface-container-low text-on-surface text-body-base focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-outline-variant/30 resize-none"
+          className="w-full px-3 py-2.5 rounded-xl bg-white/70 text-on-surface text-body-base focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline border border-white/60 resize-none"
         />
 
         {error && (
@@ -102,7 +102,7 @@ export default function ReviewModal({ driverId, session, onClose, onSaved }: Rev
         <button
           disabled={submitting || !bookingId}
           onClick={handleSubmit}
-          className="w-full h-11 bg-primary text-on-primary rounded-xl font-semibold text-body-base disabled:opacity-60 active:scale-[0.98] transition-all"
+          className="sr-btn-primary w-full h-11 text-white rounded-xl font-semibold text-body-base disabled:opacity-60 active:scale-[0.98] transition-all"
         >
           {submitting ? 'Submitting...' : 'Submit review'}
         </button>
