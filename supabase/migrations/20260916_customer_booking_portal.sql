@@ -1,7 +1,24 @@
 -- Customer Booking Portal — schema, RLS, and confirm_booking RPC
 -- Run this once in the Supabase SQL editor (or via `supabase db push` if you adopt the CLI).
--- Idempotent-ish: uses IF NOT EXISTS / CREATE OR REPLACE where possible, but review before
--- re-running against a database that already has some of this applied.
+-- Safe to re-run: section 0 resets only this feature's own new objects (drivers,
+-- course_packages, driver_availability, bookings, reviews, and their views/functions/
+-- type) before recreating them, so a previous partial/failed run can't leave stale
+-- columns behind (e.g. a `bookings` table that predates the current `learner_id`
+-- column). It never touches customers/classes/payments/leads/customer_summary, and
+-- never drops `profiles` (it may already hold real role assignments).
+
+-- ============================================================================
+-- 0. Safety reset — this feature's own new objects only
+-- ============================================================================
+drop function if exists confirm_booking(uuid);
+drop function if exists decline_booking(uuid);
+drop view if exists driver_rating_summary;
+drop table if exists reviews cascade;
+drop table if exists bookings cascade;
+drop table if exists driver_availability cascade;
+drop table if exists course_packages cascade;
+drop table if exists drivers cascade;
+drop type if exists booking_status;
 
 -- ============================================================================
 -- 1. Roles: profiles table (staff vs learner)
@@ -12,11 +29,19 @@
 
 create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  role text not null default 'learner' check (role in ('staff', 'learner')),
-  full_name text,
-  phone_number text,
   created_at timestamptz not null default now()
 );
+
+-- Heal a profiles table left over from a partial earlier run (adds any
+-- missing column without touching rows/columns that already exist).
+alter table profiles add column if not exists role text not null default 'learner';
+alter table profiles add column if not exists full_name text;
+alter table profiles add column if not exists phone_number text;
+
+do $$ begin
+  alter table profiles add constraint profiles_role_check check (role in ('staff', 'learner'));
+exception when duplicate_object then null;
+end $$;
 
 -- Backfill: every auth.users row that exists right now is staff.
 insert into profiles (id, role)
