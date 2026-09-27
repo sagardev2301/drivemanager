@@ -74,3 +74,18 @@ export interface CustomerSummary {
   location: string | null
 }
 
+
+export type SiteReviewStatus = 'pending' | 'approved' | 'rejected'
+
+// Reviews submitted from the public marketing site (via the submit_site_review
+// RPC). Only 'approved' rows are shown on the website.
+export interface SiteReview {
+  id: string
+  customer_id: string | null
+  author_name: string
+  rating: number
+  comment: string
+  status: SiteReviewStatus
+  created_at: string
+  customers?: { full_name: string; customer_code: string } | null
+}

@@ -106,7 +106,23 @@ export default function AnalyticsDashboard() {
     setPeriodLoading(false)
   }
 
+  // Pending website reviews: null = still loading, 'unavailable' = the
+  // site_reviews table is missing (website migration not run) or unreadable.
+  const [pendingReviews, setPendingReviews] = useState<number | 'unavailable' | null>(null)
+
   useEffect(() => { fetchData() }, [])
+  useEffect(() => {
+    let ignore = false
+    supabase
+      .from('site_reviews')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending')
+      .then(({ count, error }) => {
+        if (ignore) return
+        setPendingReviews(error ? 'unavailable' : count ?? 0)
+      })
+    return () => { ignore = true }
+  }, [])
   useEffect(() => { fetchPeriodStats(period) }, [period])
 
   // Aggregates
@@ -135,6 +151,39 @@ export default function AnalyticsDashboard() {
         <span className="material-symbols-outlined text-primary text-[20px]">bar_chart</span>
       </div>
       <p className="text-[13px] text-on-surface-variant -mt-3 px-0.5">Lifetime performance at a glance.</p>
+
+      {/* Website Reviews entry point (moderation lives on /reviews) */}
+      <button
+        onClick={() => navigate('/reviews')}
+        className="bg-white rounded-xl shadow-sm p-4 flex items-center gap-3 text-left active:bg-surface-container-low active:scale-[0.98] transition-all"
+      >
+        <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+          <span
+            className="material-symbols-outlined text-amber-500 text-[22px]"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            star
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[14px] font-bold text-on-surface">Website Reviews</p>
+          <p className="text-[11px] text-on-surface-variant">
+            {pendingReviews === null
+              ? 'Checking for new reviews…'
+              : pendingReviews === 'unavailable'
+                ? 'Not set up yet'
+                : pendingReviews === 0
+                  ? 'All caught up — no reviews waiting'
+                  : `${pendingReviews} waiting for approval`}
+          </p>
+        </div>
+        {typeof pendingReviews === 'number' && pendingReviews > 0 && (
+          <span className="px-2.5 py-0.5 rounded-full bg-primary text-on-primary text-[12px] font-bold shrink-0">
+            {pendingReviews}
+          </span>
+        )}
+        <span className="material-symbols-outlined text-[18px] text-outline shrink-0">chevron_right</span>
+      </button>
 
       {/* Total Enrolled card */}
       <div className="bg-white rounded-xl shadow-sm p-4">
