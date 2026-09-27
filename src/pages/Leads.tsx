@@ -110,6 +110,14 @@ function getSourceIcon(source: string | null): string {
   return 'sell'
 }
 
+// Sources written by other surfaces get a readable label (the marketing site
+// inserts leads with source = 'website_contact_form').
+function formatSource(source: string | null): string {
+  if (!source) return 'Direct'
+  if (source === 'website_contact_form') return 'Website'
+  return source
+}
+
 export default function Leads() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
@@ -305,7 +313,7 @@ export default function Leads() {
                       <span className="material-symbols-outlined text-[14px] text-slate-500">
                         {sourceIcon}
                       </span>
-                      <span>{lead.source || 'Direct'}</span>
+                      <span>{formatSource(lead.source)}</span>
                     </span>
 
                     {/* Relative Time */}
