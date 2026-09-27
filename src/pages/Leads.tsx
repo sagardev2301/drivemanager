@@ -9,6 +9,7 @@ import EntityListCard from '../components/EntityListCard'
 import Toast from '../components/Toast'
 import { AnimatePresence, motion } from 'framer-motion'
 import { listItemVariants } from '../lib/motionPresets'
+import { sourceLabel } from '../lib/leadSources'
 
 type FilterKey = 'all' | LeadStatus
 
@@ -108,14 +109,6 @@ function getSourceIcon(source: string | null): string {
   if (s.includes('web') || s.includes('form') || s.includes('online') || s.includes('site')) return 'language'
   if (s.includes('phone') || s.includes('call') || s.includes('enquiry')) return 'call'
   return 'sell'
-}
-
-// Sources written by other surfaces get a readable label (the marketing site
-// inserts leads with source = 'website_contact_form').
-function formatSource(source: string | null): string {
-  if (!source) return 'Direct'
-  if (source === 'website_contact_form') return 'Website'
-  return source
 }
 
 export default function Leads() {
@@ -313,7 +306,7 @@ export default function Leads() {
                       <span className="material-symbols-outlined text-[14px] text-slate-500">
                         {sourceIcon}
                       </span>
-                      <span>{formatSource(lead.source)}</span>
+                      <span>{sourceLabel(lead.source)}</span>
                     </span>
 
                     {/* Relative Time */}

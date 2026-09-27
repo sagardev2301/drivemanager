@@ -5,19 +5,12 @@ import { supabase } from '../lib/supabase'
 import { normalizePhoneNumber } from '../lib/phoneUtils'
 import { useModalBackButton } from '../hooks/useModalBackButton'
 import { backdropVariants, sheetVariants } from '../lib/motionPresets'
+import { PRESET_SOURCES } from '../lib/leadSources'
 
 interface Props {
   onClose: () => void
   onSaved: (leadName: string) => void
 }
-
-const PRESET_SOURCES = [
-  'Just Dial',
-  'Referred',
-  'Walk-in',
-  'Phone Enquiry',
-  'Other',
-]
 
 export default function AddLeadModal({ onClose, onSaved }: Props) {
   const [fullName, setFullName] = useState('')

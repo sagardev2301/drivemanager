@@ -8,6 +8,7 @@ import { toLocalDateString } from '../lib/dateUtils'
 import { invalidateCustomerCache } from '../lib/customerCache'
 import { useModalBackButton } from '../hooks/useModalBackButton'
 import { backdropVariants, sheetVariants } from '../lib/motionPresets'
+import { sourceOptions } from '../lib/leadSources'
 
 interface Props {
   lead: Lead
@@ -15,26 +16,15 @@ interface Props {
   onUpdated: (msg: string) => void
 }
 
-const PRESET_SOURCES = [
-  'Instagram Ad',
-  'Referral',
-  'Walk-in',
-  'Google Maps',
-  'Website Form',
-  'Phone Enquiry',
-  'Other',
-]
-
 export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
   const navigate = useNavigate()
 
   const [fullName, setFullName] = useState(lead.full_name)
   const [phone, setPhone] = useState(lead.phone_number)
-  const isKnownPreset = PRESET_SOURCES.slice(0, -1).includes(lead.source ?? '')
-  const [source, setSource] = useState(
-    lead.source ? (isKnownPreset ? lead.source : 'Other') : 'Instagram Ad'
-  )
-  const [customSource, setCustomSource] = useState(!isKnownPreset && lead.source ? lead.source : '')
+  // The saved source is always one of the dropdown options (see sourceOptions),
+  // so 'Other' + free text only appears when the user picks it.
+  const [source, setSource] = useState(lead.source ?? 'Other')
+  const [customSource, setCustomSource] = useState('')
   const [location, setLocation] = useState(lead.location ?? '')
   const [status, setStatus] = useState<LeadStatus>(lead.status)
   const [notes, setNotes] = useState(lead.notes ?? '')
@@ -306,8 +296,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdated }: Props) {
                 onChange={e => setSource(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
               >
-                {PRESET_SOURCES.map(s => (
-                  <option key={s} value={s}>{s}</option>
+                {sourceOptions(lead.source).map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
               </select>
             </div>
