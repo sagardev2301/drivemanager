@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import type { CustomerSummary } from '../lib/supabase'
 import CustomerActionSheet from '../components/CustomerActionSheet'
 import SegmentedControl from '../components/SegmentedControl'
+import WebsiteThemeCard from '../components/WebsiteThemeCard'
 import { getPeriodStartDate, toLocalDateString } from '../lib/dateUtils'
 import type { PeriodKey } from '../lib/dateUtils'
 
@@ -184,6 +185,9 @@ export default function AnalyticsDashboard() {
         )}
         <span className="material-symbols-outlined text-[18px] text-outline shrink-0">chevron_right</span>
       </button>
+
+      {/* Website colour theme (stored in site_settings, read by the marketing site) */}
+      <WebsiteThemeCard />
 
       {/* Total Enrolled card */}
       <div className="bg-white rounded-xl shadow-sm p-4">
